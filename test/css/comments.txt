@@ -1,0 +1,3 @@
+Makes sure CDO and CDC are ignored or invalidate the rules properly.
+
+http://www.hixie.ch/tests/evil/mixed/cdocdc.html

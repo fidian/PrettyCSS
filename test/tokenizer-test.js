@@ -49,6 +49,7 @@ var compareTokens = function compareTokens() {
 		},
 
 		'Tokens Match': function (err, expected, tokenizerObj) {
+			assert.ifError(err);
 			var actual = tokenizerObj.tokens;
 			var eStr = tokensToString(expected) + "\n";
 			var aStr = tokensToString(actual) + "\n";
@@ -61,11 +62,13 @@ var compareTokens = function compareTokens() {
 };
 
 vows.describe('lib/tokenizer.js').addBatch({
+	'comments.css': tokenizeFile({
+		'comments.json': compareTokens()
+	}),
+	'meyers_reset.css': tokenizeFile({
+		'meyers_reset.json': compareTokens()
+	}),
 	'simple.css': tokenizeFile({
-		'simple.json': compareTokens(),
-		'whatever': function (result) {
-			//console.log('TOKENIZER RESULT');
-			//console.log(result);
-		}
+		'simple.json': compareTokens()
 	})
 }).export(module);
