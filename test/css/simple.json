@@ -1,0 +1,14 @@
+[
+	{ "line": 1, "type": "IDENT", "content": "body" },
+	{ "line": 1, "type": "WHITESPACE", "content": " " },
+	{ "line": 1, "type": "TEXT", "content": "{" },
+	{ "line": 1, "type": "WHITESPACE", "content": "\n\t" },
+	{ "line": 2, "type": "IDENT", "content": "font-size" },
+	{ "line": 2, "type": "TEXT", "content": ":" },
+	{ "line": 2, "type": "WHITESPACE", "content": " " },
+	{ "line": 2, "type": "UNIT", "content": "1em" },
+	{ "line": 2, "type": "TEXT", "content": ";" },
+	{ "line": 2, "type": "WHITESPACE", "content": "\n" },
+	{ "line": 3, "type": "TEXT", "content": "}" },
+	{ "line": 3, "type": "WHITESPACE", "content": "\n" }
+]

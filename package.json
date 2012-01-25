@@ -30,6 +30,7 @@
 	},
 	"devDependencies": {
 		"browserify": "*",
+		"diff": "*",
 		"vows": "*"
 	},
 	"license": "MIT",
