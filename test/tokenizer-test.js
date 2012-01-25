@@ -53,7 +53,7 @@ var compareTokens = function compareTokens() {
 			var actual = tokenizerObj.tokens;
 			var eStr = tokensToString(expected) + "\n";
 			var aStr = tokensToString(actual) + "\n";
-			var dStr = diff.createPatch(null, aStr, eStr);
+			var dStr = diff.createPatch(null, eStr, aStr);
 			assert.deepEqual(expected, actual, "Token list did not match\nExpected: " + eStr + "Actual: " + aStr + "Diff:" + dStr);
 		}
 	};
