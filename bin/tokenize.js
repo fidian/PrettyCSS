@@ -17,7 +17,7 @@ for (var i = 0; i < filenames.length; i ++) {
 		}
 
 		var j = JSON.stringify(result.tokens[i]);
-		process.stdout.write("\t" + j);
+		process.stdout.write(j);
 	}
 	process.stdout.write("\n]\n");
 	count ++;
