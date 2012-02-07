@@ -4,22 +4,12 @@ var fs = require('fs');
 var filenames = process.argv;
 filenames.shift(); // Remove "node"
 filenames.shift(); // Remove current script
-var count = 0;
+count = 0;
 
 for (var i = 0; i < filenames.length; i ++) {
 	var contents = fs.readFileSync(filenames[i], 'utf-8');
 	var result = tokenizer.tokenize(contents);
-	process.stdout.write("[\n");
-
-	for (var i = 0; i < result.tokens.length; i ++) {
-		if (i) {
-			process.stdout.write(",\n");
-		}
-
-		var j = JSON.stringify(result.tokens[i]);
-		process.stdout.write(j);
-	}
-	process.stdout.write("\n]\n");
+	console.log(result.toString());
 	count ++;
 }
 
