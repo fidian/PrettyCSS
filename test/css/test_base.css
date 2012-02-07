@@ -1,0 +1,10 @@
+.hidden {
+	    display: none;
+}
+
+.error {
+	    background-color: #FF0000;
+		font-weight: bolder;
+		font-size: 2em;
+		font-color: #00FFFF;
+}

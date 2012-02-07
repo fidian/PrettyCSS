@@ -1,0 +1,25 @@
+/* When a block is ignored, any nested blocks that are inside the ignored
+ * block are also ignored.
+ */
+
+.one {
+    display: inline;
+}
+
+}
+
+.something {
+    display: inline;
+    html: {
+        /* This is also ignored */
+    };
+    .two {
+        display: inline;
+        /* This should also be ignored */
+    }
+}
+
+.three {
+    display: inline;
+}
+
