@@ -14,17 +14,6 @@ var tokenizeFile = function (context) {
 	return context;
 };
 
-var tokensToString = function (tokens) {
-	var out = [];
-
-	for (var i = 0; i < tokens.length; i ++) {
-		out.push(JSON.stringify(tokens[i]));
-	}
-
-	out = "[\n\t" + out.join(",\n\t") + "\n]";
-	return out;
-};
-
 var compareTokens = function compareTokens() {
 	context = {
 		topic: function (tokenizerObj) {
@@ -44,17 +33,16 @@ var compareTokens = function compareTokens() {
 					return;
 				}
 
-				topicCallback(err, tokensExpected, tokenizerObj);
+				topicCallback(err, tokensExpected, data, tokenizerObj);
 			});
 		},
 
-		'Tokens Match': function (err, expected, tokenizerObj) {
+		'Tokens Match': function (err, expected, expectedString, tokenizerObj) {
 			assert.ifError(err);
 			var actual = tokenizerObj.tokens;
-			var eStr = tokensToString(expected) + "\n";
-			var aStr = tokensToString(actual) + "\n";
-			var dStr = diff.createPatch(null, eStr, aStr);
-			assert.deepEqual(expected, actual, "Token list did not match\nExpected: " + eStr + "Actual: " + aStr + "Diff:" + dStr);
+			var aStr = actual.toString() + "\n";
+			var dStr = diff.createPatch(null, expectedString, aStr);
+			assert.deepEqual(expected, actual, "Token list did not match\nDiff:" + dStr);
 		}
 	};
 
