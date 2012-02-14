@@ -1,0 +1,6 @@
+{
+	"name": "comment",
+	"tokenList": ["COMMENT"],
+	"tokensRemaining": 6,
+	"toString": "/* real comment */"
+}
