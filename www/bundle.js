@@ -341,8 +341,9 @@ exports.extname = function(path) {
 });
 
 require.define("/prettycss.js", function (require, module, exports, __dirname, __filename) {
-var stylesheet = require('./css/stylesheet.js');
-var tokenizer = require('./tokenizer.js');
+require('./shim');
+var stylesheet = require('./css/stylesheet');
+var tokenizer = require('./tokenizer');
 var util = require('./util');
 
 var PrettyCSS = function (options) {
@@ -381,6 +382,32 @@ exports.parseFile = function (filename, callback, options) {
 		}
 	}, options);
 };
+
+});
+
+require.define("/shim.js", function (require, module, exports, __dirname, __filename) {
+if (! Array.prototype.every) {
+	Array.prototype.every = function (callback, context) {
+		var keepGoing = true;
+
+		for (var i = 0; i < this.length; i ++) {
+			keepGoing = callback.call(context, this[i], i, this);
+			if (! keepGoing) {
+				return keepGoing;
+			}
+		}
+
+		return keepGoing;
+	};
+}
+
+if (! Array.prototype.forEach) {
+	Array.prototype.forEach = function (callback, context) {
+		for (var i = 0; i < this.length; i ++) {
+			callback.call(context, this[i], i, this);
+		}
+	};
+}
 
 });
 
@@ -795,7 +822,16 @@ exports.setOptions = function (override) {
 // Extend an object with properties from subsequent objects
 // Code based heavily on jQuery's version with far less error checking
 exports.extend = (function (undefined) {
-	return function () {
+	var exProp = function (dest, name, src) {
+		// Recurse if merging objects, but not arrays nor functions
+		if (typeof src == "object" && ! src instanceof Function && ! src instanceof Array) {
+			dest[name] = exObj(dest[name], src);
+		} else if (src !== undefined) {
+			dest[name] = src;
+		}
+	};
+
+	var exObj = function () {
 		var target = arguments[0] || {},
 			i = 1,
 			length = arguments.length;
@@ -804,19 +840,20 @@ exports.extend = (function (undefined) {
 			var addMe = arguments[i];
 
 			for (var name in addMe) {
-				// Recurse if merging objects, but not arrays nor functions
-				if (typeof addMe[name] == "object" && ! addMe[name] instanceof Function && ! addMe[name] instanceof Array) {
-					target[name] = exports.extend(target[name], addMe[name]);
-				} else if (addMe[name] !== undefined) {
-					target[name] = addMe[name];
-				}
+				exProp(target, name, addMe[name]);
 			}
+
+			exProp(target, "constructor", addMe.constructor);
+			exProp(target, "toString", addMe.toString);
+			exProp(target, "valueOf", addMe.valueOf);
 
 			i ++;
 		}
 
 		return target;
 	};
+
+	return exObj;
 })();
 
 });
