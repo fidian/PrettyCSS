@@ -1,0 +1,6 @@
+{
+	"name": "at-rule",
+	"tokenList": ["AT_SYMBOL", "S"],
+	"tokensRemaining": 0,
+	"toString": "@charset "
+}

@@ -1,0 +1,6 @@
+{
+	"name": "at-rule",
+	"tokenList": ["AT_SYMBOL", "S", "STRING", "SEMICOLON"],
+	"tokensRemaining": 1,
+	"toString": "@charset \"UTF-8\";"
+}
