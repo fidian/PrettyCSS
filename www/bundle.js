@@ -781,8 +781,8 @@ exports.setOptions = function (override) {
 		at_post: "",
 		at_whitespace: " ",
 		important: " !important", // Must contain !{w}important
-		cdo: "<!--", // Either {w} or {w}CDO{w}
-		cdc: "-->", // Either {w} or {w}CDC{w}
+		cdo: "<!--\n", // Either {w} or {w}CDO{w}
+		cdc: "\n-->", // Either {w} or {w}CDC{w}
 		topcomment_pre: "",
 		topcomment_post: "\n\n",
 		comment_pre: "  ",
@@ -1651,7 +1651,6 @@ exports.parse = function (tokens, parser, container) {
 
 require.define("/css/selector.js", function (require, module, exports, __dirname, __filename) {
 var base = require('./base');
-var invalid = require('./invalid');
 var util = require('../util');
 
 var Selector = base.baseConstructor();
@@ -1712,7 +1711,7 @@ exports.parse = function (tokens, parser, container) {
 	selector.debug('parse', tokens);
 	var token = tokens.getToken();
 
-	while (token && token.type == 'S' || exports.canStartWith(token)) {
+	while (token.type == 'S' || exports.canStartWith(token)) {
 		selector.add(token);
 
 		if (token.type == "COMBINATOR") {
