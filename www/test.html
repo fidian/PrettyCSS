@@ -4,40 +4,113 @@
 <script type="text/javascript" src="bundle.js"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script type="text/javascript">
+
+function anyUpdate($target, func) {
+	$target.change(func).keypress(func).keyup(func).keydown(func);
+}
+
+function addOptions() {
+	var util = require('./util');
+	var options = util.setOptions({});
+	delete(options.debug);
+	delete(options.fileEncoding);
+	$dest = $('#optionWrapper');
+	for (var i in options) {
+		var v = options[i];
+		v = v.replace(/\\/g, "\\");
+		v = v.replace(/\r/g, "\\r");
+		v = v.replace(/\t/g, "\\t");
+		v = v.replace(/\f/g, "\\f");
+		v = v.replace(/\n/g, "\\n");
+		var inp = $('<input type="text" name="' + i + '" id="' + i + '" class="option"/>').val(v);
+		var opt = $('<div />');
+		opt.append($('<span class="optionLabel" />').text(i + ":")).append(inp);
+		$dest.append(opt);
+	}
+}
+
 $(function () {
 	var lastContent = '';
 	var prettycss = require('./prettycss');
 	var $cssIn = $('#cssIn');
 	var $cssOut = $('#cssOut');
+	var dirty = false;
+	var force = false;
 	var setFlag = function () {
-		$cssIn.data('prettycss-dirty', true);
+		dirty = true;
+	};
+	var setFlagForce = function () {
+		dirty = true;
+		force = true;
 	};
 	var update = function () {
-		if (! $cssIn.data('prettycss-dirty')) {
+		if (! dirty) {
 			return;
 		}
 
-		$cssIn.data('prettycss-dirty', '');
+		dirty = false;
 		var content = $cssIn.val();
 
-		if (content == lastContent) {
+		if (! force && content == lastContent) {
 			return;
 		}
 
+		force = false;
 		lastContent = content;
-		var pp = prettycss.parse(content);
-		$cssOut.val(pp.toString());
+		options = {};
+		$(".option").each(function (idx, elem) {
+			var $elem = $(elem);
+			var v = $elem.val();
+			v = v.replace(/\\r/g, "\r");
+			v = v.replace(/\\t/g, "\t");
+			v = v.replace(/\\f/g, "\f");
+			v = v.replace(/\\n/g, "\n");
+			v = v.replace(/\\\\/g, "\\");
+			options[$elem.attr('id')] = v;
+		});
+
+		try {
+			$cssOut.removeClass('error');
+			var pp = prettycss.parse(content, options);
+			$cssOut.val(pp.toString());
+		} catch (e) {
+			$cssOut.addClass('error');
+			$cssOut.val(e.toString());
+		}
 	};
 
 	window.setInterval(update, 100);
-	$cssIn.change(setFlag).keypress(setFlag).keyup(setFlag).keydown(setFlag);
-	$cssIn.tabby();
+	anyUpdate($cssIn, setFlag);
+	addOptions();
+	anyUpdate($('.option'), setFlagForce);
 });
+
 </script>
 <style type="text/css">
+
+#optionWrapper {
+	height: 6em;
+	width: 100%;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	background-color: #ddd;
+}
+
+.optionLabel {
+	width: 10em;
+	text-align: right;
+	display: inline-block;
+	padding-right: 0.5em;
+}
+
+.error {
+	background-color: #fcc;
+}
+
 </style>
 </head>
 <body>
+<form method="post" action="">
 <table width="960" align="center" border=0 cellpadding=0 cellspacing=0>
 <tr><td width="460">
 	<h1>Before</h1>
@@ -48,5 +121,14 @@ $(function () {
 	<h1>After</h1>
 	<textarea style="width: 100%; height: 30em" id="cssOut" readonly="true"></textarea>
 </td></tr>
+<tr><td>
+<b>Pretty printer options:</b>
+<div id="optionWrapper">
+</div>
+<td></td>
+<td>
+</td></tr>
+</table>
+</form>
 </body>
 </html>
