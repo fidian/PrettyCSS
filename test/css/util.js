@@ -37,8 +37,8 @@ exports.fakeParser = function () {
 			atblock_post: "}",
 			at_whitespace: " ",
 			important: " !important", // Must contain !{w}important
-			cdo: "<!-- ", // Either {w} or {w}CDO{w}
-			cdc: " -->", // Either {w} or {w}CDC{w}
+			cdo: "<!--", // Either {w} or {w}CDO{w}
+			cdc: "-->", // Either {w} or {w}CDC{w}
 			topcomment_pre: "",
 			topcomment_post: "",
 			comment_pre: "",
