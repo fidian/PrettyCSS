@@ -1,0 +1,6 @@
+{
+	"name": "block",
+	"tokenList": ["whitespace", "declaration", "whitespace", "block", "whitespace", "declaration"],
+	"tokensRemaining": 1,
+	"toString": "{font:black;{nested:yes;}tigger:{cat:true;};}"
+}

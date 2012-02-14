@@ -1,0 +1,6 @@
+{
+	"name": "block",
+	"tokenList": ["whitespace", "declaration", "whitespace"],
+	"tokensRemaining": 1,
+	"toString": "{some-property:some value(\"maybe\");}"
+}

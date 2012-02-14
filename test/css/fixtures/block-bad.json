@@ -1,0 +1,6 @@
+{
+	"name": "block",
+	"tokenList": ["whitespace"],
+	"tokensRemaining": 0,
+	"toString": "{}"
+}

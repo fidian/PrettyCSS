@@ -1,0 +1,6 @@
+{
+	"name": "block",
+	"tokenList": ["whitespace", "block", "whitespace"],
+	"tokensRemaining": 0,
+	"toString": "{{nested:yes;display:hidden;}}"
+}
