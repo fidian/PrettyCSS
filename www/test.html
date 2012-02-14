@@ -22,16 +22,30 @@ function addOptions() {
 	$dest = $('#optionWrapper');
 	for (var i in options) {
 		var v = options[i];
-		v = v.replace(/\\/g, "\\");
-		v = v.replace(/\r/g, "\\r");
-		v = v.replace(/\t/g, "\\t");
-		v = v.replace(/\f/g, "\\f");
-		v = v.replace(/\n/g, "\\n");
+		v = addslashes(v);
 		var inp = $('<input type="text" name="' + i + '" id="' + i + '" class="option"/>').val(v);
 		var opt = $('<div />');
 		opt.append($('<span class="optionLabel" />').text(i + ":")).append(inp);
 		$dest.append(opt);
 	}
+}
+
+function addslashes(v) {
+	v = v.replace(/\\/g, "\\");
+	v = v.replace(/\r/g, "\\r");
+	v = v.replace(/\t/g, "\\t");
+	v = v.replace(/\f/g, "\\f");
+	v = v.replace(/\n/g, "\\n");
+	return v;
+}
+
+function stripslashes(v) {
+	v = v.replace(/\\r/g, "\r");
+	v = v.replace(/\\t/g, "\t");
+	v = v.replace(/\\f/g, "\f");
+	v = v.replace(/\\n/g, "\n");
+	v = v.replace(/\\\\/g, "\\");
+	return v;
 }
 
 $(function () {
@@ -66,11 +80,7 @@ $(function () {
 		$(".option").each(function (idx, elem) {
 			var $elem = $(elem);
 			var v = $elem.val();
-			v = v.replace(/\\r/g, "\r");
-			v = v.replace(/\\t/g, "\t");
-			v = v.replace(/\\f/g, "\f");
-			v = v.replace(/\\n/g, "\n");
-			v = v.replace(/\\\\/g, "\\");
+			v = stripslashes(v);
 			options[$elem.attr('id')] = v;
 		});
 
@@ -95,7 +105,9 @@ $(function () {
 		var $optElem = $('.option');
 
 		for (var i in opt) {
-			$optElem.filter('#' + i).val(opt[i]);
+			var v = opt[i];
+			v = addslashes(v);
+			$optElem.filter('#' + i).val(v);
 		}
 	};
 	$('#presetMinify').click(function () {
@@ -109,8 +121,8 @@ $(function () {
 		opt.selector_comma = ",";
 		opt.block_pre = "{";
 		opt.block_post = "}";
-		opt.ruleset_post = "\\n";
-		opt.at_post = "\\n";
+		opt.ruleset_post = "\n";
+		opt.at_post = "\n";
 		opt.important = "!important";
 		setOptions(opt);
 		return false;
