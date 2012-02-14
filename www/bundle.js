@@ -481,6 +481,16 @@ exports.base = {
 		return opt[type + '_pre'] + out + opt[type + '_post'];
 	},
 
+	convertToString: function (token) {
+		// Check if it is a token
+		if (token.type && token.line) {
+			return token.type + "@" + token.line + ":" + JSON.stringify(token.content);
+		}
+
+		// It probably is not - use its toString() method
+		return token.toString();
+	},
+
 	debug: function (message, info) {
 		if (! this.parser.options.debug) {
 			return;
@@ -493,15 +503,16 @@ exports.base = {
 				// Tokenizer object
 				message += "\n" + JSON.stringify(info.getToken());
 			} else if (info instanceof Array) {
-				// Array of tokens
+				// Array of tokens or CSS objects
 				var outArr = [];
+				message += "\n" + info.length;
 				for (var i = 0; i < info.length; i ++) {
-					outArr.push(this.tokenToString(info[i]));
+					outArr.push(this.convertToString(info[i]));
 				}
 				message += "\n[" + outArr.join(" ") + "]";
 			} else {
-				// Single token object
-				message += "\n" + this.tokenToString(info);
+				// Single token object or CSS object
+				message += "\n" + this.convertToString(info);
 			}
 		} else if (typeof info != "undefined") {
 			message += "\nUnknown type: " + typeof info;
@@ -554,7 +565,7 @@ exports.base = {
 	},
 
 	reindent: function (str) {
-		indent = this.parser.options.indent;
+		var indent = this.parser.options.indent;
 
 		if (! indent) {
 			return str;
@@ -577,10 +588,6 @@ exports.base = {
 		}
 
 		this.parser = parser;
-	},
-
-	tokenToString: function (token) {
-		return token.type + "@" + token.line + ":" + JSON.stringify(token.content);
 	},
 
 	toString: function () {
@@ -619,7 +626,7 @@ util.extend(At.prototype, base.base, {
 	toString: function () {
 		this.debug('toString', this.list);
 		var ws = this.parser.options.at_whitespace;
-		out = ""
+		var out = ""
 
 		this.list.forEach(function (value) {
 			if (value.type == "S") {
@@ -630,9 +637,9 @@ util.extend(At.prototype, base.base, {
 		})
 
 		if (this.stylesheet) {
-			out += "{";
-			out += this.stylesheet.toString();
-			out += "}";
+			var block = this.stylesheet.toString();
+			block = this.reindent(block);
+			out += this.addWhitespace('atblock', block);
 		}
 
 		return this.addWhitespace('at', out);
@@ -666,12 +673,28 @@ exports.parse = function (tokens, parser, container) {
 	}
 
 	// Match braces and find the right closing block
-	at.block = block.parse(tokens, parser, container);
+	var depth = 1;
+	token = tokens.nextToken();  // Consume BLOCK_OPEN
+	var blockTokens = [];
 
+	while (token && depth) {
+		if (token.type == 'BLOCK_OPEN') {
+			depth ++;
+		} else if (token.type == "BLOCK_CLOSE") {
+			depth --;
+		}
+
+		if (depth) {
+			blockTokens.push(token);
+		}
+
+		token = tokens.nextToken();
+	}
+		
 	// Send the block through the stylesheet parser
-	var blockTokens = tokenizer.tokenize('', parser.options);
-	blockTokens.tokens = at.block.list;
-	at.stylesheet = stylesheet.parse(blockTokens, parser, container);
+	var tempTokenizer = tokenizer.tokenize('', parser.options);
+	tempTokenizer.tokens = blockTokens;
+	at.stylesheet = stylesheet.parse(tempTokenizer, parser, at);
 
 	return at;
 };
@@ -806,6 +829,8 @@ exports.setOptions = function (override) {
 		value_post: "",
 		at_pre: "",
 		at_post: "",
+		atblock_pre: "{\n\t",
+		atblock_post: "\n}",
 		at_whitespace: " ",
 		important: " !important", // Must contain !{w}important
 		cdo: "<!--\n", // Either {w} or {w}CDO{w}
