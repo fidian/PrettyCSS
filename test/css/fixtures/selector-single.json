@@ -1,0 +1,6 @@
+{
+	"name": "selector",
+	"tokenList": ["IDENT"],
+	"tokensRemaining": 3,
+	"toString": "a"
+}

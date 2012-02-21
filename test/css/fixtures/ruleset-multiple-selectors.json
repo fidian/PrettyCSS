@@ -1,0 +1,6 @@
+{
+	"name": "ruleset",
+	"tokenList": [],
+	"tokensRemaining": 1,
+	"toString": "br,a,html>body,.blue:hover{rule:value;}"
+}

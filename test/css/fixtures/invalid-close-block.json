@@ -1,0 +1,6 @@
+{
+	"name": "invalid",
+	"tokenList": ["UNIT", "UNIT", "BLOCK_CLOSE", "STRING", "S"],
+	"tokensRemaining": 0,
+	"toString": ""
+}

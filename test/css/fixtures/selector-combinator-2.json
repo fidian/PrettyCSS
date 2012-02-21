@@ -1,0 +1,6 @@
+{
+	"name": "selector",
+	"tokenList": ["IDENT", "COMBINATOR", "IDENT", "CLASS", "HASH", "COLON", "IDENT"],
+	"tokensRemaining": 3,
+	"toString": "p+div.colorful#blinking:hover"
+}

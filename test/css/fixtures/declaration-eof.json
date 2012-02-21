@@ -1,0 +1,6 @@
+{
+	"name": "declaration",
+	"tokenList": [],
+	"tokensRemaining": 0,
+	"toString": "background-image:url(http://example.com/image.png);"
+}

@@ -1,0 +1,6 @@
+{
+	"name": "invalid",
+	"tokenList": ["IDENT", "S", "COLON", "S", "IDENT", "S"],
+	"tokensRemaining": 1,
+	"toString": ""
+}

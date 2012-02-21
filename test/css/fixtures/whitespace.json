@@ -1,0 +1,6 @@
+{
+	"name": "whitespace",
+	"tokenList": ["S"],
+	"tokensRemaining": 0,
+	"toString": ""
+}

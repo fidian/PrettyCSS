@@ -1,0 +1,6 @@
+{
+	"name": "declaration",
+	"tokenList": [],
+	"tokensRemaining": 1,
+	"toString": "has-to-start-with-ident:true;"
+}

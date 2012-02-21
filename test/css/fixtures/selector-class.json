@@ -1,0 +1,6 @@
+{
+	"name": "selector",
+	"tokenList": ["CLASS", "S"],
+	"tokensRemaining": 3,
+	"toString": ".homeboy"
+}

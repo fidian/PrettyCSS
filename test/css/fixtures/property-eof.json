@@ -1,0 +1,6 @@
+{
+	"name": "property",
+	"tokenList": ["IDENT"],
+	"tokensRemaining": 0,
+	"toString": "property-name"
+}

@@ -18,6 +18,8 @@ exports.fakeParser = function () {
 		options: {
 			ruleset_pre: "",
 			ruleset_post: "",
+			combinator_pre: "",
+			combinator_post: "",
 			declaration_pre: '',
 			declaration_post: '',
 			selector_pre: "",
@@ -97,7 +99,14 @@ exports.compareResult = function compareTokens(against) {
 		'Tokens Remaining': function (err, expected, result, tokenizerObj) {
 			assert.ifError(err);
 			var remaining = tokenizerObj.tokens.length - tokenizerObj.tokenIndex;
-			assert.equal(remaining, expected.tokensRemaining);
+			var tokensLeft = [];
+
+			while (tokenizerObj.anyLeft()) {
+				tokensLeft.push(tokenizerObj.getToken().type);
+				tokenizerObj.next();
+			}
+
+			assert.equal(remaining, expected.tokensRemaining, "Expected " + expected.tokensRemaining + ", actually was " + remaining + ".\nWe have: " + tokensLeft.join(" "));
 		},
 
 		'ToString': function (err, expected, result, tokenizerObj) {

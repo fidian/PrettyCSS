@@ -1,0 +1,6 @@
+{
+	"name": "value",
+	"tokenList": ["IDENT"],
+	"tokensRemaining": 0,
+	"toString": "blue"
+}

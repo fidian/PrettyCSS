@@ -1,0 +1,6 @@
+{
+	"name": "value",
+	"tokenList": ["STRING"],
+	"tokensRemaining": 7,
+	"toString": "\"times new roman\""
+}
