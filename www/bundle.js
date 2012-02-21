@@ -1173,7 +1173,7 @@ exports.parse = function (tokens, parser, container) {
 	value.debug('parse', tokens);
 	var token = tokens.getToken();
 
-	if (token.type == "S") {
+	if (token && token.type == "S") {
 		token = tokens.nextToken();
 	}
 
