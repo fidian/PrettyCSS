@@ -348,27 +348,52 @@ var util = require('./util');
 
 var PrettyCSS = function (options) {
 	this.options = util.setOptions(options);
+	this.errors = [];
 	this.warnings = [];
-	this.rules = [];
+	this.stylesheet = null;
 };
 
-PrettyCSS.prototype.debug = function (message) {
-	if (! this.options.debug) {
-		return;
-	}
+util.extend(PrettyCSS.prototype, {
+	addError: function (code, token) {
+		this.errors.push({
+			"code": code,
+			"token": token
+		});
+	},
 
-	console.log(message);
-};
+	addWarning: function (code, token) {
+		this.warnings.push({
+			"code": code,
+			"token": token
+		});
+	},
 
-PrettyCSS.prototype.parse = function (tokens) {
-	return stylesheet.parse(tokens, this);
-};
+	debug: function (message) {
+		if (! this.options.debug) {
+			return;
+		}
+
+		console.log(message);
+	},
+
+	parse: function (tokens) {
+		this.stylesheet = stylesheet.parse(tokens, this);
+	},
+
+	toString: function () {
+		if (this.stylesheet) {
+			return this.stylesheet.toString();
+		}
+
+		return "";
+	},
+});
 
 exports.parse = function (str, options) {
 	var p = new PrettyCSS(options);
 	var t = tokenizer.tokenize(str, options);
-	var parsed = p.parse(t);
-	return parsed;
+	p.parse(t);
+	return p;
 };
 
 exports.parseFile = function (filename, callback, options) {
@@ -475,6 +500,12 @@ exports.base = {
 		this.list.push(t);
 	},
 
+	addList: function (l) {
+		for (var i in l) {
+			this.list.push(l[i]);
+		}
+	},
+
 	addWhitespace: function (type, data) {
 		var opt = this.parser.options;
 		var out = this.makeString(data);
@@ -496,7 +527,16 @@ exports.base = {
 			return;
 		}
 
-		message = "[" + this.name + "] " + message;
+		// Count depth
+		var lead = "";
+		var ptr = this.container;
+
+		while (ptr.container) {
+			lead += "....";
+			ptr = ptr.container;
+		}
+
+		message = lead + "[" + this.name + "] " + message;
 
 		if (typeof info == "object") {
 			if (typeof info.getToken == "function") {
@@ -604,10 +644,6 @@ exports.baseConstructor = function () {
 	};
 };
 
-exports.unexpectedToken = function (wanted, actual) {
-	throw new Error(wanted + " - found " + JSON.stringify(actual));
-};
-
 
 });
 
@@ -621,7 +657,7 @@ var util = require('../util');
 var At = base.baseConstructor();
 
 util.extend(At.prototype, base.base, {
-	name: "at",
+	name: "at-rule",
 
 	toString: function () {
 		this.debug('toString', this.list);
@@ -646,7 +682,7 @@ util.extend(At.prototype, base.base, {
 	}
 });
 
-exports.canStartWith = function (token, tokens, container) {
+exports.canStartWith = function (token, tokens) {
 	return token.type == 'AT_SYMBOL';
 };
 
@@ -743,7 +779,7 @@ util.extend(Block.prototype, base.base, {
 	}
 });
 
-exports.canStartWith = function (token, tokens, container) {
+exports.canStartWith = function (token, tokens) {
 	return token.type == 'BLOCK_OPEN';
 };
 
@@ -793,7 +829,7 @@ util.extend(Comment.prototype, base.base, {
 	}
 });
 
-exports.canStartWith = function (token, tokens, container) {
+exports.canStartWith = function (token, tokens) {
 	return token.type == 'COMMENT';
 };
 
@@ -809,11 +845,17 @@ exports.parse = function (tokens, parser, container) {
 
 require.define("/util.js", function (require, module, exports, __dirname, __filename) {
 exports.setOptions = function (override) {
+	if (typeof override != "object") {
+		override = {};
+	}
+
 	var options = {
 		debug: false,
 		fileEncoding: "utf-8",
 		ruleset_pre: "",
 		ruleset_post: "\n\n",
+		combinator_pre: ' ',
+		combinator_post: ' ',
 		declaration_pre: '',
 		declaration_post: '',
 		selector_pre: "",
@@ -893,13 +935,35 @@ var Invalid = base.baseConstructor();
 util.extend(Invalid.prototype, base.base, {
 	name: "invalid",
 
+	consume: function (tokens, parser, container) {
+		var token = tokens.getToken();
+
+		// Eat until the first semicolon or the ending of a block
+		while (token && token.type != 'SEMICOLON' && token.type != 'BLOCK_OPEN') {
+			this.add(token);
+			token = tokens.nextToken();
+		}
+
+		if (! token) {
+			return;
+		}
+
+		if (token.type == 'SEMICOLON') {
+			this.add(token);
+			tokens.next();
+			return;
+		}
+
+		this.block = block.parse(tokens, this.parser, this);
+	},
+
 	toString: function () {
 		this.debug('toString', this.list);
 		return "";  // Remove invalid declarations
 	}
 });
 
-exports.canStartWith = function (token, tokens, container) {
+exports.canStartWith = function (token, tokens) {
 	return true;  // Invalid things can be anything
 };
 
@@ -907,27 +971,12 @@ exports.parse = function (tokens, parser, container) {
 	var invalid = new Invalid(parser, container);
 	invalid.debug('parse', tokens);
 	invalid.block = null;
-	invalid.add(tokens.getToken());
 
-	var token = tokens.nextToken();
-
-	// Eat until the first semicolon or the ending of a block
-	while (token && token.type != 'SEMICOLON' && token.type != 'BLOCK_OPEN') {
-		invalid.add(token);
-		token = tokens.nextToken();
+	if (tokens) {
+		parser.addError('invalid_token', tokens.getToken());
+		invalid.consume(tokens);
 	}
 
-	if (! token) {
-		return invalid;
-	}
-
-	if (token.type == 'SEMICOLON') {
-		invalid.add(token);
-		tokens.next();
-		return invalid;
-	}
-
-	invalid.block = block.parse(tokens, parser, container);
 	return invalid;
 };
 
@@ -935,6 +984,7 @@ exports.parse = function (tokens, parser, container) {
 
 require.define("/css/declaration.js", function (require, module, exports, __dirname, __filename) {
 var base = require('./base');
+var invalid = require('./invalid');
 var property = require('./property');
 var util = require('../util');
 var value = require('./value');
@@ -954,9 +1004,9 @@ util.extend(Declaration.prototype, base.base, {
 	}
 });
 
-exports.canStartWith = function (token, tokens, container) {
+exports.canStartWith = function (token, tokens) {
 	// Needs to match property + S* + COLON
-	if (! property.canStartWith(token, tokens, container)) {
+	if (! property.canStartWith(token, tokens)) {
 		return false;
 	}
 
@@ -989,15 +1039,19 @@ exports.parse = function (tokens, parser, container) {
 	var declaration = new Declaration(parser, container);
 	declaration.debug('parse', tokens);
 
-	declaration.property = property.parse(tokens, parser, container);
+	declaration.property = property.parse(tokens, parser, declaration);
 	var nextToken = tokens.getToken();
 
-	if (nextToken.type != "COLON") {
-		base.unexpectedToken("expected_colon", nextToken);
+	if (! nextToken || nextToken.type != "COLON") {
+		parser.addError('colon_expected', nextToken);
+		var invalidCss = invalid.parse(null, parser, container);
+		invalidCss.addList(declaration.property.list);
+		invalidCss.consume(tokens);
+		return invalidCss;
 	}
 
 	tokens.next();
-	declaration.value = value.parse(tokens, parser, container);
+	declaration.value = value.parse(tokens, parser, declaration);
 	return declaration;
 };
 
@@ -1018,7 +1072,7 @@ util.extend(Property.prototype, base.base, {
 	}
 });
 
-exports.canStartWith = function (token, tokens, container) {
+exports.canStartWith = function (token, tokens) {
 	return token.type == 'IDENT';
 };
 
@@ -1028,7 +1082,7 @@ exports.parse = function (tokens, parser, container) {
 	property.add(tokens.getToken());
 	var nextToken = tokens.nextToken();
 
-	if (nextToken.type == 'S') {
+	if (nextToken && nextToken.type == 'S') {
 		tokens.next();
 	}
 	
@@ -1098,7 +1152,7 @@ util.extend(Value.prototype, base.base, {
 });
 
 
-exports.canStartWith = function (token, tokens, container) {
+exports.canStartWith = function (token, tokens) {
 	return false;  // Not used in automatic pattern matching
 };
 
@@ -1125,7 +1179,7 @@ exports.parse = function (tokens, parser, container) {
 
 	while (isPartOfValue(token)) {
 		if (token.type == 'BLOCK_OPEN') {
-			value.add(block.parse(tokens, parser, container));
+			value.add(block.parse(tokens, parser, value));
 			token = tokens.getToken();
 		} else {
 			value.add(token);
@@ -1136,7 +1190,7 @@ exports.parse = function (tokens, parser, container) {
 	value.removeWhitespaceAtEnd();
 	value.handlePriority();
 
-	if (token.type == "SEMICOLON") {
+	if (token && token.type == "SEMICOLON") {
 		tokens.next();
 	}
 
@@ -1160,7 +1214,7 @@ util.extend(Whitespace.prototype, base.base, {
 	}
 });
 
-exports.canStartWith = function (token, tokens, container) {
+exports.canStartWith = function (token, tokens) {
 	return token.type == 'S';
 };
 
@@ -1588,7 +1642,7 @@ util.extend(CDC.prototype, base.base, {
 	}
 });
 
-exports.canStartWith = function (token, tokens, container) {
+exports.canStartWith = function (token, tokens) {
 	return token.type == 'CDC';
 };
 
@@ -1617,7 +1671,7 @@ util.extend(CDO.prototype, base.base, {
 	}
 });
 
-exports.canStartWith = function (token, tokens, container) {
+exports.canStartWith = function (token, tokens) {
 	return token.type == 'CDO';
 };
 
@@ -1673,12 +1727,12 @@ exports.parse = function (tokens, parser, container) {
 	// The current token is the first part of our selector
 	ruleset.selectors = [];
 	ruleset.block = null;
-	ruleset.selectors.push(selector.parse(tokens, parser, container));
+	ruleset.selectors.push(selector.parse(tokens, parser, ruleset));
 
 	// Add additional selectors
 	var nextToken = tokens.getToken();
 
-	while (nextToken.type == 'OPERATOR' && nextToken.content == ',') {
+	while (nextToken && nextToken.type == 'OPERATOR' && nextToken.content == ',') {
 		// Consume comma
 		nextToken = tokens.nextToken();
 
@@ -1691,21 +1745,32 @@ exports.parse = function (tokens, parser, container) {
 			base.unexpectedToken("expected_selector", nextToken);
 		}
 
-		ruleset.selectors.push(selector.parse(tokens, parser, container));
+		ruleset.selectors.push(selector.parse(tokens, parser, ruleset));
 
 		// Don't advance the token pointer - use getToken here
 		nextToken = tokens.getToken();
 	}
 
-	if (nextToken.type == "S") {
+	if (nextToken && nextToken.type == "S") {
 		nextToken = tokens.nextToken();
 	}
 
-	if (nextToken.type != 'BLOCK_OPEN') {
-		base.unexpectedToken("expected_block_open", nextToken);
+	if (! nextToken || nextToken.type != 'BLOCK_OPEN') {
+		parser.addError('block_expected', nextToken);
+		var invalidCss = invalid.parse(null, parser, container);
+
+		for (var s in ruleset.selectors) {
+			invalidCss.addList(ruleset.selectors[s].list);
+		}
+
+		if (nextToken) {
+			invalidCss.consume(tokens);
+		}
+
+		return invalidCss;
 	}
 
-	ruleset.block = block.parse(tokens, parser, container);
+	ruleset.block = block.parse(tokens, parser, ruleset);
 	return ruleset;
 };
 
@@ -1713,6 +1778,7 @@ exports.parse = function (tokens, parser, container) {
 
 require.define("/css/selector.js", function (require, module, exports, __dirname, __filename) {
 var base = require('./base');
+var invalid = require('./invalid');
 var util = require('../util');
 
 var Selector = base.baseConstructor();
@@ -1724,6 +1790,7 @@ util.extend(Selector.prototype, base.base, {
 		this.debug('toString', this.list);
 		var simpleSelectors = [];
 		var building = "";
+		var myself = this;
 
 		var done = function () {
 			if (building != "") {
@@ -1739,9 +1806,7 @@ util.extend(Selector.prototype, base.base, {
 					break;
 
 				case "COMBINATOR":
-					done();
-					building += token.content;
-					done();
+					building += myself.addWhitespace('combinator', token.content);
 					break;
 
 				default:
@@ -1754,7 +1819,7 @@ util.extend(Selector.prototype, base.base, {
 	}
 });
 
-exports.canStartWith = function (token, tokens, container) {
+exports.canStartWith = function (token, tokens) {
 	switch (token.type) {
 		case "ATTRIB":
 		case "CLASS":
@@ -1773,25 +1838,36 @@ exports.parse = function (tokens, parser, container) {
 	selector.debug('parse', tokens);
 	var token = tokens.getToken();
 
-	while (token.type == 'S' || exports.canStartWith(token)) {
-		selector.add(token);
+	while (token && (token.type == 'S' || exports.canStartWith(token))) {
+		var nextToken = tokens.getToken(1);
+
+		if (token.type != 'S' || ! nextToken || nextToken.type != 'COMBINATOR') {
+			selector.add(token);
+		}
 
 		if (token.type == "COMBINATOR") {
 			token = tokens.nextToken();
 
 			if (token.type == 'S') {
-				selector.add(token);
 				token = tokens.nextToken();
 			}
 
 			if (token.type == 'COMBINATOR' || ! exports.canStartWith(token)) {
-				base.unexpectedToken("expected_selector_after_combinator", token);
+				parser.addError('illegal_token_after_combinator', nextToken);
+				var invalidCss = invalid.parse(null, parser, container);
+				invalidCss.addList(selector.list);
+				invalidCss.consume(tokens);
+				return invalidCss;
 			}
-		} else if (token.type == 'COLON' || token.type == "COMBINATOR") {
+		} else if (token.type == 'COLON') {
 			token = tokens.nextToken();
 
 			if (token.type != 'IDENT') {
-				base.unexpectedToken("expected_ident_after_ident", token);
+				parser.addError('ident_after_colon', nextToken);
+				var invalidCss = invalid.parse(null, parser, container);
+				invalidCss.addList(selector.list);
+				invalidCss.consume(tokens);
+				return invalidCss;
 			}
 		} else {
 			token = tokens.nextToken();
