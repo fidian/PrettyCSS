@@ -30,7 +30,7 @@ Usage
 
 Still working on this one.  Bug me to update the README.md for the project.
 
-The easiest way is to use the web interface by opening www/index.html in
+The easiest way is to use the web interface by opening www/test.html in
 your favorite browser.
 
 This can also be linked into your existing JavaScript code, such as what you
