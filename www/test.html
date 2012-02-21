@@ -1,183 +1,38 @@
 <html>
 <head>
 <title>PrettyCSS - Sample In-Browser Version</title>
+<link type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/vader/jquery-ui.css" rel="stylesheet" />
+<link type="text/css" href="demo.css" rel="stylesheet" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
 <script type="text/javascript" src="bundle.js"></script>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-<script type="text/javascript">
-
-function defaultOptions() {
-	var util = require('./util');
-	var options = util.setOptions({});
-	delete(options.debug);
-	delete(options.fileEncoding);
-	return options;
-}
-
-function anyUpdate($target, func) {
-	$target.change(func).keypress(func).keyup(func).keydown(func);
-}
-
-function addOptions() {
-	var options = defaultOptions();
-	$dest = $('#optionWrapper');
-	for (var i in options) {
-		var v = options[i];
-		v = addslashes(v);
-		var inp = $('<input type="text" name="' + i + '" id="' + i + '" class="option"/>').val(v);
-		var opt = $('<div />');
-		opt.append($('<span class="optionLabel" />').text(i + ":")).append(inp);
-		$dest.append(opt);
-	}
-}
-
-function addslashes(v) {
-	v = v.replace(/\\/g, "\\");
-	v = v.replace(/\r/g, "\\r");
-	v = v.replace(/\t/g, "\\t");
-	v = v.replace(/\f/g, "\\f");
-	v = v.replace(/\n/g, "\\n");
-	return v;
-}
-
-function stripslashes(v) {
-	v = v.replace(/\\r/g, "\r");
-	v = v.replace(/\\t/g, "\t");
-	v = v.replace(/\\f/g, "\f");
-	v = v.replace(/\\n/g, "\n");
-	v = v.replace(/\\\\/g, "\\");
-	return v;
-}
-
-$(function () {
-	var lastContent = '';
-	var prettycss = require('./prettycss');
-	var $cssIn = $('#cssIn');
-	var $cssOut = $('#cssOut');
-	var dirty = false;
-	var force = false;
-	var setFlag = function () {
-		dirty = true;
-	};
-	var setFlagForce = function () {
-		dirty = true;
-		force = true;
-	};
-	var update = function () {
-		if (! dirty) {
-			return;
-		}
-
-		dirty = false;
-		var content = $cssIn.val();
-
-		if (! force && content == lastContent) {
-			return;
-		}
-
-		force = false;
-		lastContent = content;
-		options = {};
-		$(".option").each(function (idx, elem) {
-			var $elem = $(elem);
-			var v = $elem.val();
-			v = stripslashes(v);
-			options[$elem.attr('id')] = v;
-		});
-
-		try {
-			$cssOut.removeClass('error');
-			var pp = prettycss.parse(content, options);
-			$cssOut.val(pp.toString());
-		} catch (e) {
-			$cssOut.addClass('error');
-			$cssOut.val(e.toString());
-		}
-	};
-
-	window.setInterval(update, 100);
-	anyUpdate($cssIn, setFlag);
-	addOptions();
-	anyUpdate($('.option'), setFlagForce);
-});
-
-$(function () {
-	var setOptions = function (opt) {
-		var $optElem = $('.option');
-
-		for (var i in opt) {
-			var v = opt[i];
-			v = addslashes(v);
-			$optElem.filter('#' + i).val(v);
-		}
-	};
-	$('#presetMinify').click(function () {
-		var opt = defaultOptions();
-
-		for (var i in opt) {
-			opt[i] = '';
-		}
-
-		opt.selector_whitespace = " ";
-		opt.selector_comma = ",";
-		opt.block_pre = "{";
-		opt.block_post = "}";
-		opt.ruleset_post = "\n";
-		opt.at_post = "\n";
-		opt.important = "!important";
-		setOptions(opt);
-		return false;
-	});
-	$('#presetDefault').click(function () {
-		setOptions(defaultOptions());
-		return false;
-	});
-});
-
-</script>
-<style type="text/css">
-
-#optionWrapper {
-	height: 6em;
-	width: 100%;
-	overflow-x: hidden;
-	overflow-y: scroll;
-	background-color: #ddd;
-}
-
-.optionLabel {
-	width: 10em;
-	text-align: right;
-	display: inline-block;
-	padding-right: 0.5em;
-}
-
-.error {
-	background-color: #fcc;
-}
-
-</style>
+<script type="text/javascript" src="demo.js"></script>
 </head>
 <body>
 <form method="post" action="">
-<table width="960" align="center" border=0 cellpadding=0 cellspacing=0>
-<tr><td width="460">
-	<h1>Before</h1>
-	<textarea style="width: 100%; height: 30em" id="cssIn"></textarea>
-</td>
-<td width="40"></td>
-<td>
-	<h1>After</h1>
-	<textarea style="width: 100%; height: 30em" id="cssOut" readonly="true"></textarea>
-</td></tr>
-<tr><td>
-<b>Pretty printer options:</b>
-<div id="optionWrapper">
+
+<div id="tabs">
+  <ul>
+    <li><a href="#tabs-1">Live Demo</a></li>
+    <li><a href="#tabs-2">Errors / Warnings</a></li>
+    <li><a href="#tabs-3">Options</a></li>
+  </ul>
+  <div id="tabs-1">
+    <b>Before</b> - <a href="" id="presetMinify">Minify</a> - <a href="" id="presetDefault">Default</a><br />
+    <textarea id="cssIn"></textarea><br />
+    <b>After</b> - Invalid CSS grammar is automatically removed<br />
+    <textarea id="cssOut" readonly="true"></textarea>
+  </div>
+  <div id="tabs-2">
+    <p><b>Errors:</b><br /><span id="errorList"></span></p>
+    <p><b>Warnings:</b><br /><span id="warningList"></span></p>
+  </div>
+  <div id="tabs-3">
+    <div id="optionWrapper"></div>
+  </div>
 </div>
-<td></td>
-<td>
-<p><a href="" id="presetMinify">Minify</a> - <a href="" id="presetDefault">Default</a></p>
-</td></tr>
-</table>
+
 </form>
+
 </body>
 </html>
