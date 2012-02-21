@@ -1,4 +1,5 @@
 {
+	"errors": ["invalid_token:IDENT@1", "invalid_token:IDENT@1"],
 	"name": "invalid",
 	"tokenList": ["IDENT", "S"],
 	"tokensRemaining": 3,

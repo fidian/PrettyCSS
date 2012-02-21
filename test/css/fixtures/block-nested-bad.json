@@ -1,4 +1,5 @@
 {
+	"errors": [],
 	"name": "block",
 	"tokenList": ["whitespace", "block", "whitespace"],
 	"tokensRemaining": 0,

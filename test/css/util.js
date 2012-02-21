@@ -15,6 +15,16 @@ exports.tokenizeFile = function (context) {
 
 exports.fakeParser = function () {
 	var parser = {
+		addError: function (code, token) {
+			if (token) {
+				this.errors.push(code + ":" + token.type + "@" + token.line);
+			} else {
+				this.errors.push(code + ":no_token");
+			}
+		},
+
+		errors: [],
+
 		options: {
 			ruleset_pre: "",
 			ruleset_post: "",
@@ -69,17 +79,23 @@ exports.compareResult = function compareTokens(against) {
 					return;
 				}
 
-				var result = against.parse(tokenizerObj, exports.fakeParser(), {});
-				topicCallback(err, expected, result, tokenizerObj);
+				var fakeParser = exports.fakeParser();
+				var result = against.parse(tokenizerObj, fakeParser, {});
+				topicCallback(err, expected, result, tokenizerObj, fakeParser);
 			});
 		},
 
-		'Name': function (err, expected, result, tokenizerObj) {
+		'Errors': function (err, expected, result, tokenizerObj, fakeParser) {
+			assert.ifError(err);
+			assert.deepEqual(fakeParser.errors, expected.errors);
+		},
+
+		'Name': function (err, expected, result, tokenizerObj, fakeParser) {
 			assert.ifError(err);
 			assert.equal(result.name, expected.name);
 		},
 
-		'Token List': function (err, expected, result, tokenizerObj) {
+		'Token List': function (err, expected, result, tokenizerObj, fakeParser) {
 			assert.ifError(err);
 			var tokenList = [];
 
@@ -96,7 +112,7 @@ exports.compareResult = function compareTokens(against) {
 			assert.deepEqual(tokenList, expected.tokenList);
 		},
 
-		'Tokens Remaining': function (err, expected, result, tokenizerObj) {
+		'Tokens Remaining': function (err, expected, result, tokenizerObj, fakeParser) {
 			assert.ifError(err);
 			var remaining = tokenizerObj.tokens.length - tokenizerObj.tokenIndex;
 			var tokensLeft = [];
@@ -109,7 +125,7 @@ exports.compareResult = function compareTokens(against) {
 			assert.equal(remaining, expected.tokensRemaining, "Expected " + expected.tokensRemaining + ", actually was " + remaining + ".\nWe have: " + tokensLeft.join(" "));
 		},
 
-		'ToString': function (err, expected, result, tokenizerObj) {
+		'ToString': function (err, expected, result, tokenizerObj, fakeParser) {
 			assert.ifError(err);
 			var str = result.toString();
 			assert.equal(str, expected.toString);

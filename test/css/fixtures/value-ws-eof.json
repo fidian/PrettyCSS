@@ -1,4 +1,5 @@
 {
+	"errors": [],
 	"name": "value",
 	"tokenList": ["IDENT"],
 	"tokensRemaining": 0,

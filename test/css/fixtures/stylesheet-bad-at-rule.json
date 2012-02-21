@@ -1,4 +1,5 @@
 {
+	"errors": ["ident_after_colon:S@4", "block_expected:no_token"],
 	"name": "stylesheet",
 	"tokenList": ["at-rule", "whitespace", "ruleset", "whitespace"],
 	"tokensRemaining": 0,
