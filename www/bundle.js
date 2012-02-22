@@ -870,7 +870,7 @@ exports.setOptions = function (override) {
 		value_pre: " ",
 		value_post: "",
 		at_pre: "",
-		at_post: "",
+		at_post: "\n\n",
 		atblock_pre: "{\n\t",
 		atblock_post: "\n}",
 		at_whitespace: " ",
@@ -1779,6 +1779,8 @@ exports.parse = function (tokens, parser, container) {
 require.define("/css/selector.js", function (require, module, exports, __dirname, __filename) {
 var base = require('./base');
 var invalid = require('./invalid');
+var pseudoclass = require('./pseudoclass');
+var pseudoelement = require('./pseudoelement');
 var util = require('../util');
 
 var Selector = base.baseConstructor();
@@ -1810,7 +1812,7 @@ util.extend(Selector.prototype, base.base, {
 					break;
 
 				default:
-					building += token.content;
+					building += token.toString();
 			}
 		});
 
@@ -1839,42 +1841,121 @@ exports.parse = function (tokens, parser, container) {
 	var token = tokens.getToken();
 
 	while (token && (token.type == 'S' || exports.canStartWith(token))) {
-		var nextToken = tokens.getToken(1);
-
-		if (token.type != 'S' || ! nextToken || nextToken.type != 'COMBINATOR') {
-			selector.add(token);
-		}
-
 		if (token.type == "COMBINATOR") {
+			selector.add(token);
 			token = tokens.nextToken();
 
-			if (token.type == 'S') {
+			if (token && token.type == 'S') {
 				token = tokens.nextToken();
 			}
 
-			if (token.type == 'COMBINATOR' || ! exports.canStartWith(token)) {
-				parser.addError('illegal_token_after_combinator', nextToken);
+			if (! token || token.type == 'COMBINATOR' || ! exports.canStartWith(token)) {
+				parser.addError('illegal_token_after_combinator', token);
 				var invalidCss = invalid.parse(null, parser, container);
 				invalidCss.addList(selector.list);
 				invalidCss.consume(tokens);
 				return invalidCss;
 			}
 		} else if (token.type == 'COLON') {
+			var oldTokens = [ token ];
+			var pseudoToUse = pseudoclass;
+			var potentialError = 'ident_after_colon';
 			token = tokens.nextToken();
 
-			if (token.type != 'IDENT') {
-				parser.addError('ident_after_colon', nextToken);
+			if (token && token.type == 'COLON') {
+				potentialError = 'ident_after_double_colon';
+				pseudoToUse = pseudoelement;
+				oldTokens.push(token);
+				token = tokens.nextToken();
+			}
+
+			if (! token || token.type != 'IDENT') {
+				parser.addError(potentialError, token);
 				var invalidCss = invalid.parse(null, parser, container);
 				invalidCss.addList(selector.list);
+				invalidCss.addList(oldTokens);
 				invalidCss.consume(tokens);
 				return invalidCss;
 			}
+
+			var pseudoCss = pseudoToUse.parse(tokens, parser, this);
+			selector.add(pseudoCss);
+			token = tokens.getToken();
+		} else if (token.type == "S") {
+			var nextToken = tokens.getToken(1);
+
+			if (nextToken && nextToken.type != "COMBINATOR") {
+				selector.add(token);
+			}
+
+			token = tokens.nextToken();
 		} else {
+			selector.add(token);
 			token = tokens.nextToken();
 		}
 	}
 
 	return selector;
+};
+
+});
+
+require.define("/css/pseudoclass.js", function (require, module, exports, __dirname, __filename) {
+var base = require('./base');
+var util = require('../util');
+
+var PseudoClass = base.baseConstructor();
+
+util.extend(PseudoClass.prototype, base.base, {
+	name: "pseudoclass",
+
+	toString: function () {
+		this.debug('toString', this.list);
+		return ":" + this.list.join("");
+	}
+});
+
+exports.canStartWith = function (token, tokens) {
+	return token.type == "COLON";
+};
+
+exports.parse = function (tokens, parser, container) {
+	var pseudo = new PseudoClass(parser, container);
+	pseudo.debug('parse', tokens);
+	var token = tokens.getToken();
+	pseudo.add(token);
+	tokens.next();
+	return pseudo;
+};
+
+});
+
+require.define("/css/pseudoelement.js", function (require, module, exports, __dirname, __filename) {
+var base = require('./base');
+var util = require('../util');
+
+var PseudoElement = base.baseConstructor();
+
+util.extend(PseudoElement.prototype, base.base, {
+	name: "pseudoelement",
+
+	toString: function () {
+		this.debug('toString', this.list);
+		return "::" + this.list.join("");
+	}
+});
+
+exports.canStartWith = function (token, tokens) {
+	return token.type == "COLON";
+};
+
+exports.parse = function (tokens, parser, container) {
+	var pseudo = new PseudoElement(parser, container);
+	pseudo.debug('parse', tokens);
+	var token = tokens.getToken();
+	pseudo.add(token);
+	tokens.next();
+	return pseudo;
 };
 
 });
