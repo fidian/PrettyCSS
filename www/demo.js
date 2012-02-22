@@ -1,3 +1,42 @@
+var codeToMessage = {
+	"block_expected": "Expected a block",
+	"colon_expected": "Expected a colon",
+	"ident_after_colon": "Expected an identifier after a colon",
+	"ident_after_double_colon": "Expected an identifier after a double colon",
+	"illegal_token_after_combinator": "An invalid token was found after a combinator",
+	"invalid_token": "Invalid token encountered",
+};
+
+function showCodeList(target, list) {
+	var $target = $(target);
+	$target.empty();
+
+	if (list.length == 0) {
+		$target.text('None were reported.');
+		return;
+	}
+
+	var ul = $('<ul />');
+
+	for (var i = 0; i < list.length; i ++) {
+		var code = list[i].code;
+		var token = list[i].token;
+		var li = $('<li />');
+		var message = codeToMessage[code] || code;
+
+		if (token) {
+			message += " (" + token.type + ", line " + token.line + ")";
+		} else {
+			message += " (no token supplied)";
+		}
+
+		li.text(message);
+		ul.append(li);
+	}
+
+	$target.append(ul);
+}
+
 function defaultOptions() {
 	var util = require('./util');
 	var options = util.setOptions({});
@@ -82,18 +121,22 @@ $(function () {
 			options[$elem.attr('id')] = v;
 		});
 
-		$cssOut.removeClass('error');
 		var pp = prettycss.parse(content, options);
 		$cssOut.val(pp.toString());
+		showCodeList('#errorList', pp.errors);
+		showCodeList('#warningList', pp.warnings);
+
+		if (pp.errors) {
+			$cssOut.addClass('error');
+		} else {
+			$cssOut.removeClass('error');
+		}
 	};
 
 	window.setInterval(update, 100);
 	anyUpdate($cssIn, setFlag);
 	addOptions();
-	anyUpdate($('.option'), setFlagForce);
-});
 
-$(function () {
 	var setOptions = function (opt) {
 		var $optElem = $('.option');
 
@@ -114,14 +157,18 @@ $(function () {
 		opt.selector_comma = ",";
 		opt.block_pre = "{";
 		opt.block_post = "}";
+		opt.atblock_pre = "{";
+		opt.atblock_post = "}";
 		opt.ruleset_post = "\n";
 		opt.at_post = "\n";
 		opt.important = "!important";
 		setOptions(opt);
+		setFlagForce();
 		return false;
 	});
 	$('#presetDefault').click(function () {
 		setOptions(defaultOptions());
+		setFlagForce();
 		return false;
 	});
 });
