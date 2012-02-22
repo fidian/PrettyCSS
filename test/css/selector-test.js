@@ -27,6 +27,9 @@ vows.describe('lib/css/selector.js').addBatch({
 	'selector-error-combinator-2.css': util.tokenizeFile({
 		'selector-error-combinator-2.json': util.compareResult(selector)
 	}),
+	'selector-error-colon-colon-ident.css': util.tokenizeFile({
+		'selector-error-colon-colon-ident.json': util.compareResult(selector)
+	}),
 	'selector-error-colon-ident.css': util.tokenizeFile({
 		'selector-error-colon-ident.json': util.compareResult(selector)
 	})

@@ -1,5 +1,5 @@
 {
-	"errors": ["illegal_token_after_combinator:S@1"],
+	"errors": ["illegal_token_after_combinator:COMBINATOR@1"],
 	"name": "invalid",
 	"tokenList": ["IDENT", "COMBINATOR", "COMBINATOR", "S", "IDENT", "S"],
 	"tokensRemaining": 0,

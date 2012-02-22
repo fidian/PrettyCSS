@@ -1,0 +1,7 @@
+{
+	"errors": [],
+	"name": "pseudoelement",
+	"tokenList": ["IDENT"],
+	"tokensRemaining": 1,
+	"toString": "::after"
+}

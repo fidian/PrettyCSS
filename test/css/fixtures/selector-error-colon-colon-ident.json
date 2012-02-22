@@ -1,0 +1,7 @@
+{
+	"errors": ["ident_after_double_colon:S@1"],
+	"name": "invalid",
+	"tokenList": ["IDENT", "S", "COLON", "COLON", "S", "IDENT", "S"],
+	"tokensRemaining": 1,
+	"toString": ""
+}

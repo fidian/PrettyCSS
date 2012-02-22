@@ -1,7 +1,7 @@
 {
 	"errors": ["block_expected:no_token"],
 	"name": "invalid",
-	"tokenList": ["IDENT", "S", "IDENT", "S", "IDENT", "S"],
+	"tokenList": ["IDENT", "S", "IDENT", "S", "IDENT"],
 	"tokensRemaining": 0,
 	"toString": ""
 }

@@ -1,7 +1,7 @@
 {
 	"errors": [],
 	"name": "selector",
-	"tokenList": ["IDENT", "S"],
+	"tokenList": ["IDENT"],
 	"tokensRemaining": 0,
 	"toString": "br"
 }
