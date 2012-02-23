@@ -11,7 +11,7 @@ This was created because there were no tools that I could download and use
 on my own computer that also handled CSS3.
 
 The PrettyCSS project is on [GitHub](https://github.com/fidian/prettycss/).
-Further documentation is at http://fidian.com/PrettyCSS
+Further documentation is at http://fidian.com/prettycss
 List of authors is at docs/AUTHORS.md
 
 Installation
