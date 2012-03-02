@@ -23,6 +23,10 @@ exports.fakeParser = function () {
 			}
 		},
 
+		addWarning: function () {
+			// Do not care for these unit tests
+		},
+
 		errors: [],
 
 		options: {
