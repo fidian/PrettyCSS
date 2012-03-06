@@ -46,6 +46,7 @@ for (var i = 0; i < filenames.length; i ++) {
 	}
 
 	if (parseFiles && parseThisFile) {
+		var stars = "************************************";
 		var timeStart = new Date();
 		var contents = fs.readFileSync(filenames[i], 'utf-8');
 		var timeLoaded = new Date();
@@ -53,10 +54,14 @@ for (var i = 0; i < filenames.length; i ++) {
 		var timeParsed = new Date();
 		var resultString = result.toString();
 		var timeToString = new Date();
+
+		if (options.debug) {
+			console.log('/' + stars + stars + '/');
+		}
+
 		console.log(resultString);
 
 		if (options.extendedInfo) {
-			var stars = "************************************";
 			var showProblem = function (problemInfo) {
 				var msg = "\t" + problemInfo.code + "  ";
 
