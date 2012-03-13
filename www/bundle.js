@@ -1040,6 +1040,7 @@ var value = require('./value');
 // Mapping properties to value types
 var propertyMapping = {
 	'background-color': require('./values/background-color'),
+	'clear': require('./values/clear'),
 	'color': require('./values/color'),
 	'display': require('./values/display'),
 	'float': require('./values/float'),
@@ -1570,16 +1571,21 @@ exports.base = {
 		return null;
 	},
 
+	testRuleValidation: function (rule, tokenOrObject) {
+		var myself = this;
+
+		rule.validation.forEach(function (validationFunction) {
+			// Call function in my context so it can use
+			// this.addWarning();
+			validationFunction.call(myself, tokenOrObject);
+		});
+	},
+
 	testRuleValueSuccess: function (unparsedReal, rule) {
 		var unparsed = unparsedReal.clone();
 		var token = unparsed.advance();
 		this.add(token);
-		var myself = this;
-
-		rule.validation.forEach(function (validationFunction) {
-			validationFunction.call(myself, token);
-		});
-
+		this.testRuleValidation(rule, token);
 		this.unparsed = unparsed;
 		return this;
 	},
@@ -1596,7 +1602,10 @@ exports.base = {
 			var ret = value.parse(unparsed, this.parser, this);
 
 			if (ret) {
-				return ret;
+				this.add(ret);
+				this.testRuleValidation(rule, ret);
+				this.unparsed = ret.unparsed;
+				return this;
 			}
 		} else {
 			this.debug('testRuleValue vs string ' + value.toString());
@@ -1637,7 +1646,6 @@ exports.base = {
 		}
 
 		if (! /^[-+]?[0-9]+$/.test(value)) {
-			console.log('fidian');
 			this.addWarning('only_integers_allowed', token);
 		}
 	},
@@ -2242,6 +2250,7 @@ require.define("/css/values/percent.js", function (require, module, exports, __d
 
 var base = require('./base');
 var util = require('../../util');
+var validate = require('./validate');
 
 var Percent = base.baseConstructor();
 
@@ -2250,7 +2259,9 @@ util.extend(Percent.prototype, base.base, {
 
 	allowed: [
 		{
-			validation: [],
+			validation: [
+				validate.positiveValue()
+			],
 			values: [ 
 				base.makeRegexp('[-+]?{n}%')
 			]
@@ -2270,16 +2281,90 @@ util.extend(Percent.prototype, base.base, {
 	}
 });
 
-exports.parse = function (unparsed, parser, container) {
-	var percent = new Percent(parser, container, unparsed);
-	percent.debug('parse', unparsed);
+exports.parse = base.simpleParser(Percent);
 
-	if (! percent.scanRules()) {
-		return null;
+});
+
+require.define("/css/values/validate.js", function (require, module, exports, __dirname, __filename) {
+exports.browserQuirk = function (browserAndVersion) {
+	return function (token) {
+		this.addWarning('browser_quirk_' + browserAndVersion, token);
+	};
+};
+
+exports.browserUnsupported = function (browserAndVersion) {
+	return function (token) {
+		this.addWarning('browser_unsupported_' + browserAndVersion, token);
+	};
+};
+
+exports.deprecated = function (deprecatedVersion, suggestion) {
+	return function (token) {
+		var warning = 'deprecated_css_version_3';
+
+		if (suggestion) {
+			warning += '_use_' + suggestion;
+		}
+
+		this.addWarning(warning, token);
 	}
+};
 
-	percent.warnIfNotInteger(percent.firstToken(), percent.getValue());
-	return percent;
+exports.maximumCss = function (maxVersion) {
+	return function (token) {
+		if (this.parser.options.cssLevel > maxVersion) {
+			this.addWarning('maximum_css_version_' + maxVersion, token);
+		}
+	}
+};
+
+exports.minimumCss = function (minVersion) {
+	return function (token) {
+		if (this.parser.options.cssLevel < minVersion) {
+			this.addWarning('minimum_css_version_' + minVersion, token);
+		}
+	}
+};
+
+exports.notForwardCompatible = function (badVersion) {
+	return function (token) {
+		if (this.parser.options.cssLevel <= badVersion) {
+			this.addWarning('not_forward_compatible_' + badVersion, token);
+		}
+	};
+};
+
+exports.positiveValue = function () {
+	return function (tokenOrObject) {
+		var val = null;
+		var token = null;
+
+		if (typeof tokenOrObject.getValue == 'function') {
+			// One of the "value" objects
+			val = tokenOrObject.getValue();
+			token = tokenOrObject.firstToken();
+		} else {
+			// Token, from tokenizer
+			val = tokenOrObject.content;
+			token = tokenOrObject;
+		}
+
+		if (val.toString().charAt(0) == '-') {
+			this.addWarning('positive_value_required', token);
+		}
+	}
+};
+
+exports.suggestUsingRelativeUnits = function () {
+	return function (token) {
+		this.addWarning('suggest_using_relative_units', token);
+	};
+};
+
+exports.workingDraft = function () {
+	return function (token) {
+		this.addWarning('working_draft', token);
+	};
 };
 
 });
@@ -2397,82 +2482,43 @@ exports.parse = function (unparsed, parser, container) {
 
 });
 
-require.define("/css/values/validate.js", function (require, module, exports, __dirname, __filename) {
-exports.browserQuirk = function (browserAndVersion) {
-	return function (token) {
-		this.addWarning('browser_quirk_' + browserAndVersion, token);
-	};
-};
+require.define("/css/values/clear.js", function (require, module, exports, __dirname, __filename) {
+/* clear
+ *
+ * CSS1:  none, left, right, both
+ * CSS2:  inherit
+ */
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
 
-exports.browserUnsupported = function (browserAndVersion) {
-	return function (token) {
-		this.addWarning('browser_unsupported_' + browserAndVersion, token);
-	};
-};
+var Clear = base.baseConstructor();
 
-exports.deprecated = function (deprecatedVersion, suggestion) {
-	return function (token) {
-		var warning = 'deprecated_css_version_3';
+util.extend(Clear.prototype, base.base, {
+	name: "clear",
 
-		if (suggestion) {
-			warning += '_use_' + suggestion;
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				'none',
+				'left',
+				'right',
+				'both'
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2)
+			],
+			values: [
+				"inherit"
+			]
 		}
+	]
+});
 
-		this.addWarning(warning, token);
-	}
-};
-
-exports.maximumCss = function (maxVersion) {
-	return function (token) {
-		if (this.parser.options.cssLevel > maxVersion) {
-			this.addWarning('maximum_css_version_' + maxVersion, token);
-		}
-	}
-};
-
-exports.minimumCss = function (minVersion) {
-	return function (token) {
-		if (this.parser.options.cssLevel < minVersion) {
-			this.addWarning('minimum_css_version_' + minVersion, token);
-		}
-	}
-};
-
-exports.notForwardCompatible = function (badVersion) {
-	return function (token) {
-		if (this.parser.options.cssLevel <= badVersion) {
-			this.addWarning('not_forward_compatible_' + badVersion, token);
-		}
-	};
-};
-
-exports.positiveValue = function () {
-	return function (token) {
-		var val = null;
-
-		if (typeof token.getValue == 'function') {
-			val = token.getValue();
-		} else {
-			val = token.content;
-		}
-
-		if (val.toString().charAt(0) == '-') {
-			this.addWarning('positive_value_required', token);
-		}
-	}
-};
-
-exports.suggestUsingRelativeUnits = function () {
-	return function (token) {
-		this.addWarning('suggest_using_relative_units', token);
-	};
-};
-
-exports.workingDraft = function () {
-	return function (token) {
-		this.addWarning('working_draft', token);
-	};
-};
+exports.parse = base.simpleParser(Clear);
 
 });
 
@@ -2813,7 +2859,11 @@ util.extend(Length.prototype, base.base, {
 				base.makeRegexp('[-+]?{n}(ch|rem|vw|vh|vm)')
 			]
 		}
-	]
+	],
+
+	getValue: function () {
+		return this.firstToken().content;
+	}
 });
 
 exports.parse = base.simpleParser(Length);
