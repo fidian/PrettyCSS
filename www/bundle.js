@@ -386,7 +386,7 @@ util.extend(PrettyCSS.prototype, {
 		}
 
 		return "";
-	},
+	}
 });
 
 exports.parse = function (str, options) {
@@ -413,12 +413,16 @@ exports.parseFile = function (filename, callback, options) {
 require.define("/shim.js", function (require, module, exports, __dirname, __filename) {
 if (! Array.prototype.every) {
 	Array.prototype.every = function (callback, context) {
+		var l = this.length;
+		var t = Object(this);
 		var keepGoing = true;
 
-		for (var i = 0; i < this.length; i ++) {
-			keepGoing = callback.call(context, this[i], i, this);
-			if (! keepGoing) {
-				return keepGoing;
+		for (var i = 0; i < l; i ++) {
+			if (i in t) {
+				keepGoing = callback.call(context, this[i], i, this);
+				if (! keepGoing) {
+					return keepGoing;
+				}
 			}
 		}
 
@@ -426,9 +430,25 @@ if (! Array.prototype.every) {
 	};
 }
 
+if (! Array.prototype.some) {
+	Array.prototype.some = function (callback, context) {
+		var l = this.length;
+		var t = Object(this);
+		for (var i = 0; i < l; i ++) {
+			if (i in t) {
+				if (callback.call(context, this[i], i, this)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	};
+}
+
 if (! Array.prototype.forEach) {
 	Array.prototype.forEach = function (callback, context) {
-		for (var i = 0; i < this.length; i ++) {
+		for (var i = 0; i < l; i ++) {
 			callback.call(context, this[i], i, this);
 		}
 	};
@@ -531,9 +551,11 @@ exports.base = {
 		var lead = "";
 		var ptr = this.container;
 
-		while (ptr.container) {
-			lead += "....";
-			ptr = ptr.container;
+		if (ptr) {
+			while (ptr.container) {
+				lead += "....";
+				ptr = ptr.container;
+			}
 		}
 
 		message = lead + "[" + this.name + "] " + message;
@@ -880,7 +902,11 @@ exports.setOptions = function (override) {
 		topcomment_pre: "",
 		topcomment_post: "\n\n",
 		comment_pre: "  ",
-		comment_post: ""
+		comment_post: "",
+		cssLevel: 3,
+		propertiesLowerCase: true,
+		valuesLowerCase: true,
+		functionComma: ", " // Must contain comma
 	};
 
 	return exports.extend({}, options, override);
@@ -890,11 +916,17 @@ exports.setOptions = function (override) {
 // Code based heavily on jQuery's version with far less error checking
 exports.extend = (function (undefined) {
 	var exProp = function (dest, name, src) {
+		if (! src.hasOwnProperty(name)) {
+			return;
+		}
+
+		var srcName = src[name];
+
 		// Recurse if merging objects, but not arrays nor functions
-		if (typeof src == "object" && ! src instanceof Function && ! src instanceof Array) {
-			dest[name] = exObj(dest[name], src);
-		} else if (src !== undefined) {
-			dest[name] = src;
+		if (typeof srcName == "object" && ! srcName instanceof Function && ! srcName instanceof Array) {
+			dest[name] = exObj(dest[name], srcName);
+		} else if (srcName !== undefined) {
+			dest[name] = srcName;
 		}
 	};
 
@@ -907,12 +939,12 @@ exports.extend = (function (undefined) {
 			var addMe = arguments[i];
 
 			for (var name in addMe) {
-				exProp(target, name, addMe[name]);
+				exProp(target, name, addMe);
 			}
 
-			exProp(target, "constructor", addMe.constructor);
-			exProp(target, "toString", addMe.toString);
-			exProp(target, "valueOf", addMe.valueOf);
+			exProp(target, "constructor", addMe);
+			exProp(target, "toString", addMe);
+			exProp(target, "valueOf", addMe);
 
 			i ++;
 		}
@@ -922,6 +954,22 @@ exports.extend = (function (undefined) {
 
 	return exObj;
 })();
+
+// Expand a pattern into a RegExp object
+var subPat = /{([a-z][a-z0-9_]*)}/ig;
+exports.expandIntoRegExpPattern = function (pattern, expansion) {
+	while (subPat.test(pattern)) {
+		pattern = pattern.replace(subPat, function (str, p) {
+			if (expansion[p]) {
+				return "(" + expansion[p] + ")";
+			}
+
+			throw "Invalid pattern referenced: " + p;
+		});
+	}
+
+	return pattern;
+};
 
 });
 
@@ -989,6 +1037,23 @@ var property = require('./property');
 var util = require('../util');
 var value = require('./value');
 
+// Mapping properties to value types
+var propertyMapping = {
+	'background-color': require('./values/background-color'),
+	'color': require('./values/color'),
+	'display': require('./values/display'),
+	'float': require('./values/float'),
+	'font-size': require('./values/font-size'),
+	'font-weight': require('./values/font-weight'),
+	'height': require('./values/height'),
+	'margin-bottom': require('./values/margin-width'),
+	'margin-left': require('./values/margin-width'),
+	'margin-right': require('./values/margin-width'),
+	'margin-top': require('./values/margin-width'),
+	'text-align': require('./values/text-align'),
+	'width': require('./values/width')
+};
+
 var Declaration = base.baseConstructor();
 
 util.extend(Declaration.prototype, base.base, {
@@ -1052,6 +1117,39 @@ exports.parse = function (tokens, parser, container) {
 
 	tokens.next();
 	declaration.value = value.parse(tokens, parser, declaration);
+
+	// See if we can map properties to something we can validate
+	var propertyName = declaration.property.getPropertyName().toLowerCase();
+
+	if (! propertyMapping[propertyName]) {
+		// Not a known property
+		parser.addWarning('unknown_property', declaration.property.list[0]);
+		return declaration;
+	}
+
+	if (declaration.value.getLength() == 0) {
+		parser.addWarning("no_value_for_property", declaration.property.list[0]);
+		return declaration;
+	}
+
+	// Attempt to map the value
+	var valueType = propertyMapping[propertyName];
+	var result = valueType.parse(declaration.value.getTokens(), parser, declaration);
+
+	if (! result) {
+		// Value did not match expected patterns
+		parser.addWarning("invalid_value", declaration.value.firstToken());
+		return declaration;
+	}
+
+	result.doWarnings();
+	result.unparsed.skipWhitespace();
+
+	if (result.unparsed.length()) {
+		parser.addWarning("extra_tokens_after_value", result.unparsed.firstToken());
+	}
+
+	declaration.value.setTokens([ result, result.unparsed ]);
 	return declaration;
 };
 
@@ -1066,9 +1164,19 @@ var Property = base.baseConstructor();
 util.extend(Property.prototype, base.base, {
 	name: "property",
 
+	getPropertyName: function () {
+		return this.list[0].toString();
+	},
+
 	toString: function () {
 		this.debug('toString', this.list);
-		return this.addWhitespace('property', this.list);
+		var propertyName = this.getPropertyName();
+
+		if (this.parser.options.propertiesLowerCase) {
+			propertyName = propertyName.toLowerCase();
+		}
+		
+		return this.addWhitespace('property', propertyName);
 	}
 });
 
@@ -1095,12 +1203,34 @@ require.define("/css/value.js", function (require, module, exports, __dirname, _
 var base = require('./base');
 var block = require('./block');
 var util = require('../util');
+var unparsed = require('./values/unparsed');
 
 var Value = base.baseConstructor();
 
 util.extend(Value.prototype, base.base, {
 	important: false,
 	name: "value",
+
+	firstToken: function () {
+		return this.list[0];
+	},
+
+	getTokens: function () {
+		var t = new unparsed.constructor(this.list, this.parser, this);
+		return t;
+	},
+
+	/* Sets flags on the object if this has a priority */
+	handlePriority: function () {
+		var last = this.lastToken();
+
+		if (last && last.type == "IMPORTANT") {
+			this.list.pop();
+			this.length = this.list.length;
+			this.important = true;
+			this.removeWhitespaceAtEnd();
+		}
+	},
 
 	lastToken: function () {
 		if (! this.list.length) {
@@ -1110,15 +1240,12 @@ util.extend(Value.prototype, base.base, {
 		return this.list[this.list.length - 1];
 	},
 
-	/* Sets flags on the object if this has a priority */
-	handlePriority: function () {
-		var last = this.lastToken();
+	getLength: function () {
+		return this.list.length;
+	},
 
-		if (last && last.type == "IMPORTANT") {
-			this.list.pop();
-			this.important = true;
-			this.removeWhitespaceAtEnd();
-		}
+	prepend: function (value) {
+		this.list.unshift(value);
 	},
 
 	/* Whitespace at the end can be safely removed */
@@ -1127,7 +1254,17 @@ util.extend(Value.prototype, base.base, {
 
 		if (last && last.type == "S") {
 			this.list.pop();
+			this.length = this.list.length;
 		}
+	},
+
+	setTokens: function (list) {
+		this.list = list;
+		this.length = this.list.length;
+	},
+
+	shift: function () {
+		return this.list.shift();
 	},
 
 	toString: function () {
@@ -1138,7 +1275,7 @@ util.extend(Value.prototype, base.base, {
 				// Token object
 				out += v.content;
 			} else {
-				// Block
+				// Block or parsed value
 				out += v.toString();
 			}
 		});
@@ -1199,6 +1336,2018 @@ exports.parse = function (tokens, parser, container) {
 
 });
 
+require.define("/css/values/unparsed.js", function (require, module, exports, __dirname, __filename) {
+var base = require('./base');
+var util = require('../../util');
+
+var Unparsed = function (list, parser, container) {
+	this.list = list;
+	this.parser = parser;
+	this.container = container;
+};
+
+util.extend(Unparsed.prototype, base.base, {
+	name: 'unparsed',
+
+	advance: function () {
+		if (! this.list.length) {
+			return null;
+		}
+
+		var out = this.list.shift();
+
+		this.skipWhitespace();
+		return out;
+	},
+
+	canMatch: function (possibilities, container) {
+		if (! (possibilities instanceof Array)) {
+			possibilities = [ possibilities ];
+		}
+
+		while (possibilities.length) {
+			var t = possibilities.shift();
+			if (typeof t == 'string') {
+				if (this.list[0].content.toLowerCase() == t.toLowerCase()) {
+					var tokens = this.clone();
+					var v = tokens.advance();
+					return {
+						tokens: tokens,
+						value: v
+					};
+				}
+			} else if (typeof t == 'object') {
+				if (typeof t.parse == 'function') {
+					var parse = t.parse(this, container.parser, container);
+
+					if (parse) {
+						return parse;
+					}
+				} else {
+					throw "canMatch against object without parse";
+				}
+			} else {
+				throw "canMatch against " + (typeof t);
+			}
+		}
+
+		return null;
+	},
+
+	clone: function () {
+		return new Unparsed(this.list.slice(0), this.parser, this.container);
+	},
+
+	length: function () {
+		return this.list.length;
+	},
+
+	getTokens: function () {
+		return this.list;
+	},
+
+	isContent: function (content) {
+		return this.list.length && this.list[0].content == content;
+	},
+
+	isTypeContent: function (type, content) {
+		return this.list.length && this.list[0].type == type && this.list[0].content.toLowerCase() == content;
+	},
+
+	isType: function (type) {
+		return this.list.length && this.list[0].type == type;
+	},
+
+	shift: function () {
+		return this.list.shift();
+	},
+
+	skipWhitespace: function () {
+		if (this.list.length && this.list[0].type == 'S') {
+			this.list.shift();
+		}
+	}
+});
+
+exports.constructor = Unparsed;
+
+});
+
+require.define("/css/values/base.js", function (require, module, exports, __dirname, __filename) {
+var util = require('../../util');
+
+exports.base = {
+	add: function (t) {
+		this.list.push(t);
+	},
+
+	addWarning: function (warningCode, token) {
+		this.warningList.push([warningCode, token]);
+	},
+
+	debug: function (message, tokens) {
+		if (! this.parser || ! this.parser.options.debug) {
+			return;
+		}
+
+		// Count depth
+		var lead = "";
+		var ptr = this.container;
+
+		while (ptr.container) {
+			lead += "....";
+			ptr = ptr.container;
+		}
+
+		message = lead + "[" + this.name + "] " + message;
+		this.parser.debug(message);
+
+		if (typeof tokens != "undefined") {
+			if (typeof tokens.getTokens != "undefined") {
+				this.parser.debug(tokens.getTokens());
+			} else {
+				this.parser.debug(tokens);
+			}
+		}
+	},
+
+	doWarnings: function () {
+		var myself = this;
+		this.warningList.forEach(function (warningInfo) {
+			myself.parser.addWarning.apply(myself.parser, warningInfo);
+		});
+
+		this.list.forEach(function (item) {
+			if (item.doWarnings instanceof Function) {
+				item.doWarnings();
+			}
+		});
+	},
+
+	firstToken: function () {
+		if (this.list.length) {
+			return this.list[0];
+		}
+
+		return null;
+	},
+
+	functionParser: function () {
+		if (arguments.length < 1) {
+			// Must have function name
+			return null;
+		}
+
+		var args = Array.prototype.slice.call(arguments);
+		var unparsed = this.unparsed.clone()
+		var matchCount = 0;
+		this.isFunction = true;
+
+		while (args.length) {
+			if (matchCount > 1) {
+				// No comma after function name and first argument
+				if (! unparsed.isTypeContent('OPERATOR', ',')) {
+					return false;
+				}
+
+				unparsed.advance();  // Skip comma and possibly whitespace
+			}
+
+			var parsed = unparsed.canMatch(args.shift(), this);
+
+			if (! parsed) {
+				return false;
+			}
+
+			unparsed = parsed.unparsed.clone();
+			this.add(parsed);
+			matchCount ++;
+		}
+
+		if (! unparsed.isTypeContent('PAREN_CLOSE', ')')) {
+			return false;
+		}
+
+		unparsed.advance();
+		this.unparsed = unparsed;
+
+		return true;
+	},
+	
+	isInherit: function () {
+		// Check if any are "inherit"
+		return this.list.some(function (value) {
+			// If a "value" object
+			if (value.isInherit) {
+				return value.isInherit();
+			}
+
+			// Must be a token
+			return value.content != 'inherit';
+		});
+	},
+
+	scanRules: function () {
+		var unparsed = this.unparsed.clone();
+		var tokenContent = unparsed.firstToken().content.toLowerCase();
+		var rules = this.allowed;
+
+		for (var i = 0; i < rules.length; i ++) {
+			var rule = rules[i];
+			var values = rule.values;
+
+			for (var j = 0; j < values.length; j ++) {
+				var result = this.testRuleValue(values[j], tokenContent, unparsed, rule);
+
+				if (result) {
+					this.debug('parse success', result.unparsed);
+					return result;
+				}
+			}
+		}
+
+		this.debug('parse fail');
+		return null;
+	},
+
+	testRuleValueSuccess: function (unparsedReal, rule) {
+		var unparsed = unparsedReal.clone();
+		var token = unparsed.advance();
+		this.add(token);
+		var myself = this;
+
+		rule.validation.forEach(function (validationFunction) {
+			validationFunction.call(myself, token);
+		});
+
+		this.unparsed = unparsed;
+		return this;
+	},
+
+	testRuleValue: function (value, tokenContent, unparsed, rule) {
+		if (value instanceof RegExp) {
+			this.debug('testRuleValue vs RegExp ' + value.toString());
+
+			if (value.test(tokenContent)) {
+				return this.testRuleValueSuccess(unparsed, rule);
+			}
+		} else if (value.parse instanceof Function) {
+			this.debug('testRuleValue vs func ' + value.toString());
+			var ret = value.parse(unparsed, this.parser, this);
+
+			if (ret) {
+				return ret;
+			}
+		} else {
+			this.debug('testRuleValue vs string ' + value.toString());
+
+			if (value == tokenContent) {
+				return this.testRuleValueSuccess(unparsed, rule);
+			}
+		}
+
+		return null;
+	},
+
+	toString: function () {
+		this.debug('toString');
+		var out = [];
+
+		this.list.forEach(function (value) {
+			out.push(value.toString());
+		});
+
+		if (this.isFunction) {
+			var fn = out.shift();
+			out = fn + out.join(this.parser.options.functionComma) + ')';
+		} else {
+			out = out.join(' ');  // TODO: configurable whitespace?
+
+			if (this.parser.options.valuesLowerCase) {
+				out = out.toLowerCase();
+			}
+		}
+
+		return out;
+	},
+
+	warnIfNotInteger: function (token, value) {
+		if (arguments.length < 2) {
+			value = token.content;
+		}
+
+		if (! /^[-+]?[0-9]+$/.test(value)) {
+			console.log('fidian');
+			this.addWarning('only_integers_allowed', token);
+		}
+	},
+
+	warnIfMixingPercents: function (token, valueList) {
+		var listCountPercent = 0;
+
+		valueList.forEach(function (val) {
+			if (val.name == 'percent') {
+				listCountPercent ++;
+			}
+		});
+
+		if (listCountPercent != 0 && listCountPercent != valueList.length) {
+			this.addWarning('mixing_percents_and_values', token);
+		}
+	},
+
+	warnIfOutsideRange: function (token, min, max, value) {
+		if (arguments.length < 4) {
+			value = token.content;
+		}
+
+		var v = (+value);
+
+		if (v > max) {
+			this.addWarning('out_of_range_max_' + max, token);
+			v = min;
+		}
+		if (v < min) {
+			this.addWarning('out_of_range_min_' + min, token);
+			v = min;
+		}
+
+		return v;
+	}
+};
+
+exports.baseConstructor = function () {
+	return function (parser, container, unparsed) {
+		this.container = container;
+		this.list = [];
+		this.parser = parser;
+		this.warningList = [];
+		this.unparsed = unparsed;
+	};
+};
+
+var regexpExpansions = {
+	'n': "[0-9]*\\.?[0-9]+",
+	'w': "[ \\n\\r\\f\\t]"
+};
+
+exports.makeRegexp = function (pattern) {
+	// All token pattern matches start at the beginning of the string
+	// and must match the entire token
+	pattern = "^" + pattern + "$";
+	pattern = util.expandIntoRegExpPattern(pattern, regexpExpansions);
+
+	// CSS tokens match insensitively
+	return new RegExp(pattern, 'i');
+};
+
+exports.simpleParser = function (baseObj) {
+	return function (unparsed, parser, container) {
+		var simpleObj = new baseObj(parser, container, unparsed);
+		simpleObj.debug('parse', unparsed);
+		return simpleObj.scanRules();
+	};
+};
+
+});
+
+require.define("/css/values/background-color.js", function (require, module, exports, __dirname, __filename) {
+/* background-color
+ *
+ * CSS1:  <color> | transparent
+ * CSS2:  <color> | transparent | inherit
+ * CSS2.1:  Same as CSS2
+ * CSS3:  <color>     transparent is part of <color> and inherit was removed
+ */
+var base = require('./base');
+var color = require('./color');
+var util = require('../../util');
+var validate = require('./validate');
+
+var BackgroundColor = base.baseConstructor();
+
+util.extend(BackgroundColor.prototype, base.base, {
+	name: "background-color",
+
+	allowed: [
+		{
+			validation: [
+				validate.minimumCss(2),
+				validate.browserUnsupported('IE7'),
+				validate.browserQuirk('IE8')  // Requires !DOCTYPE
+			],
+			values: [
+				"inherit"  // Also matches inherit in <color>, so list this first
+			]
+		},
+		{
+			validation: [],
+			values: [ 
+				color,
+				'transparent'
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(3)
+			],
+			values: [
+				"initial"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(BackgroundColor);
+
+});
+
+require.define("/css/values/color.js", function (require, module, exports, __dirname, __filename) {
+/* <color>
+ *
+ * Colors can be one of 18-ish basic colors, extended colors from CSS3, rgb,
+ * rgba, hsl, hsla, 3-digit or 6-digit hex codes.
+ */
+
+var base = require('./base');
+var hsl = require('./hsl');
+var hsla = require('./hsla');
+var rgb = require('./rgb');
+var rgba = require('./rgba');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Color = base.baseConstructor();
+
+var colormap = {
+	'aliceblue': '#f0f8ff',
+	'antiquewhite': '#faebd7',
+	'aqua': '#00ffff',
+	'aquamarine': '#7fffd4',
+	'azure': '#f0ffff',
+	'beige': '#f5f5dc',
+	'bisque': '#ffe4c4',
+	'black': '#000000',
+	'blanchedalmond': '#ffebcd',
+	'blue': '#0000ff',
+	'blueviolet': '#8a2be2',
+	'brown': '#a52a2a',
+	'burlywood': '#deb887',
+	'cadetblue': '#5f9ea0',
+	'chartreuse': '#7fff00',
+	'chocolate': '#d2691e',
+	'coral': '#ff7f50',
+	'cornflowerblue': '#6495ed',
+	'cornsilk': '#fff8dc',
+	'crimson': '#dc143c',
+	'cyan': '#00ffff',
+	'darkblue': '#00008b',
+	'darkcyan': '#008b8b',
+	'darkgoldenrod': '#b8860b',
+	'darkgray': '#a9a9a9',
+	'darkgreen': '#006400',
+	'darkgrey': '#a9a9a9',
+	'darkkhaki': '#bdb76b',
+	'darkmagenta': '#8b008b',
+	'darkolivegreen': '#556b2f',
+	'darkorange': '#ff8c00',
+	'darkorchid': '#9932cc',
+	'darkred': '#8b0000',
+	'darksalmon': '#e9967a',
+	'darkseagreen': '#8fbc8f',
+	'darkslateblue': '#483d8b',
+	'darkslategray': '#2f4f4f',
+	'darkslategrey': '#2f4f4f',
+	'darkturquoise': '#00ced1',
+	'darkviolet': '#9400d3',
+	'deeppink': '#ff1493',
+	'deepskyblue': '#00bfff',
+	'dimgray': '#696969',
+	'dimgrey': '#696969',
+	'dodgerblue': '#1e90ff',
+	'firebrick': '#b22222',
+	'floralwhite': '#fffaf0',
+	'forestgreen': '#228b22',
+	'fuchsia': '#ff00ff',
+	'gainsboro': '#dcdcdc',
+	'ghostwhite': '#f8f8ff',
+	'gold': '#ffd700',
+	'goldenrod': '#daa520',
+	'gray': '#808080',
+	'green': '#008000',
+	'greenyellow': '#adff2f',
+	'grey': '#808080',
+	'honeydew': '#f0fff0',
+	'hotpink': '#ff69b4',
+	'indianred': '#cd5c5c',
+	'indigo': '#4b0082',
+	'ivory': '#fffff0',
+	'khaki': '#f0e68c',
+	'lavender': '#e6e6fa',
+	'lavenderblush': '#fff0f5',
+	'lawngreen': '#7cfc00',
+	'lemonchiffon': '#fffacd',
+	'lightblue': '#add8e6',
+	'lightcoral': '#f08080',
+	'lightcyan': '#e0ffff',
+	'lightgoldenrodyellow': '#fafad2',
+	'lightgray': '#d3d3d3',
+	'lightgreen': '#90ee90',
+	'lightgrey': '#d3d3d3',
+	'lightpink': '#ffb6c1',
+	'lightsalmon': '#ffa07a',
+	'lightseagreen': '#20b2aa',
+	'lightskyblue': '#87cefa',
+	'lightslategray': '#778899',
+	'lightslategrey': '#778899',
+	'lightsteelblue': '#b0c4de',
+	'lightyellow': '#ffffe0',
+	'lime': '#00ff00',
+	'limegreen': '#32cd32',
+	'linen': '#faf0e6',
+	'magenta': '#ff00ff',
+	'maroon': '#800000',
+	'mediumaquamarine': '#66cdaa',
+	'mediumblue': '#0000cd',
+	'mediumorchid': '#ba55d3',
+	'mediumpurple': '#9370db',
+	'mediumseagreen': '#3cb371',
+	'mediumslateblue': '#7b68ee',
+	'mediumspringgreen': '#00fa9a',
+	'mediumturquoise': '#48d1cc',
+	'mediumvioletred': '#c71585',
+	'midnightblue': '#191970',
+	'mintcream': '#f5fffa',
+	'mistyrose': '#ffe4e1',
+	'moccasin': '#ffe4b5',
+	'navajowhite': '#ffdead',
+	'navy': '#000080',
+	'oldlace': '#fdf5e6',
+	'olive': '#808000',
+	'olivedrab': '#6b8e23',
+	'orange': '#ffa500',
+	'orangered': '#ff4500',
+	'orchid': '#da70d6',
+	'palegoldenrod': '#eee8aa',
+	'palegreen': '#98fb98',
+	'paleturquoise': '#afeeee',
+	'palevioletred': '#db7093',
+	'papayawhip': '#ffefd5',
+	'peachpuff': '#ffdab9',
+	'peru': '#cd853f',
+	'pink': '#ffc0cb',
+	'plum': '#dda0dd',
+	'powderblue': '#b0e0e6',
+	'purple': '#800080',
+	'red': '#ff0000',
+	'rosybrown': '#bc8f8f',
+	'royalblue': '#4169e1',
+	'saddlebrown': '#8b4513',
+	'salmon': '#fa8072',
+	'sandybrown': '#f4a460',
+	'seagreen': '#2e8b57',
+	'seashell': '#fff5ee',
+	'sienna': '#a0522d',
+	'silver': '#c0c0c0',
+	'skyblue': '#87ceeb',
+	'slateblue': '#6a5acd',
+	'slategray': '#708090',
+	'slategrey': '#708090',
+	'snow': '#fffafa',
+	'springgreen': '#00ff7f',
+	'steelblue': '#4682b4',
+	'tan': '#d2b48c',
+	'teal': '#008080',
+	'thistle': '#d8bfd8',
+	'tomato': '#ff6347',
+	'turquoise': '#40e0d0',
+	'violet': '#ee82ee',
+	'wheat': '#f5deb3',
+	'white': '#ffffff',
+	'whitesmoke': '#f5f5f5',
+	'yellow': '#ffff00',
+	'yellowgreen': '#9acd32'
+};
+
+
+util.extend(Color.prototype, base.base, {
+	name: "color",
+
+	allowed: [
+		{
+			validation: [
+				validate.minimumCss(2),
+				validate.deprecated(3, 'appearance')
+			],
+			values: [ 
+				'activeborder',
+				'activecaption',
+				'appworkspace',
+				'background',
+				'buttonface',
+				'buttonhighlight',
+				'buttonshadow',
+				'buttontext',
+				'captiontext',
+				'graytext',
+				'highlight',
+				'highlighttext',
+				'inactiveborder',
+				'inactivecaption',
+				'inactivecaptiontext',
+				'infobackground',
+				'infotext',
+				'menu',
+				'menutext',
+				'scrollbar',
+				'threeddarkshadow',
+				'threedface',
+				'threedlightshadow',
+				'threedshadow',
+				'window',
+				'windowframe',
+				'windowtext'
+			]
+		},
+		{
+			validation: [],
+			values: [ 
+				'aqua',
+				'black',
+				'blue',
+				'fuchsia',
+				'gray',
+				'green',
+				'lime',
+				'maroon',
+				'navy',
+				'olive',
+				'red',
+				'silver',
+				'teal',
+				'white',
+				'yellow',
+				'inherit',
+				base.makeRegexp('#[0-9a-f]{3}'),
+				base.makeRegexp('#[0-9a-f]{6}'),
+				rgb
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2)
+			],
+			values: [ 
+				'purple'
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2.1)
+			],
+			values: [ 
+				'orange'
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(3)
+			],
+			values: [
+				rgba,
+				'currentcolor',
+				'transparent',
+				hsl,
+				hsla
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(3)
+			],
+			values: [
+				'aliceblue',
+				'antiquewhite',
+				'aquamarine',
+				'azure',
+				'beige',
+				'bisque',
+				'blanchedalmond',
+				'blueviolet',
+				'brown',
+				'burlywood',
+				'cadetblue',
+				'chartreuse',
+				'chocolate',
+				'coral',
+				'cornflowerblue',
+				'cornsilk',
+				'crimson',
+				'cyan',
+				'darkblue',
+				'darkcyan',
+				'darkgoldenrod',
+				'darkgray',
+				'darkgreen',
+				'darkgrey',
+				'darkkhaki',
+				'darkmagenta',
+				'darkolivegreen',
+				'darkorange',
+				'darkorchid',
+				'darkred',
+				'darksalmon',
+				'darkseagreen',
+				'darkslateblue',
+				'darkslategray',
+				'darkslategrey',
+				'darkturquoise',
+				'darkviolet',
+				'deeppink',
+				'deepskyblue',
+				'dimgray',
+				'dimgrey',
+				'dodgerblue',
+				'firebrick',
+				'floralwhite',
+				'forestgreen',
+				'gainsboro',
+				'ghostwhite',
+				'gold',
+				'goldenrod',
+				'greenyellow',
+				'grey',
+				'honeydew',
+				'hotpink',
+				'indianred',
+				'indigo',
+				'ivory',
+				'khaki',
+				'lavender',
+				'lavenderblush',
+				'lawngreen',
+				'lemonchiffon',
+				'lightblue',
+				'lightcoral',
+				'lightcyan',
+				'lightgoldenrodyellow',
+				'lightgray',
+				'lightgreen',
+				'lightgrey',
+				'lightpink',
+				'lightsalmon',
+				'lightseagreen',
+				'lightskyblue',
+				'lightslategray',
+				'lightslategrey',
+				'lightsteelblue',
+				'lightyellow',
+				'limegreen',
+				'linen',
+				'magenta',
+				'mediumaquamarine',
+				'mediumblue',
+				'mediumorchid',
+				'mediumpurple',
+				'mediumseagreen',
+				'mediumslateblue',
+				'mediumspringgreen',
+				'mediumturquoise',
+				'mediumvioletred',
+				'midnightblue',
+				'mintcream',
+				'mistyrose',
+				'moccasin',
+				'navajowhite',
+				'oldlace',
+				'olivedrab',
+				'orangered',
+				'orchid',
+				'palegoldenrod',
+				'palegreen',
+				'paleturquoise',
+				'palevioletred',
+				'papayawhip',
+				'peachpuff',
+				'peru',
+				'pink',
+				'plum',
+				'powderblue',
+				'rosybrown',
+				'royalblue',
+				'saddlebrown',
+				'salmon',
+				'sandybrown',
+				'seagreen',
+				'seashell',
+				'sienna',
+				'skyblue',
+				'slateblue',
+				'slategray',
+				'slategrey',
+				'snow',
+				'springgreen',
+				'steelblue',
+				'tan',
+				'thistle',
+				'tomato',
+				'turquoise',
+				'violet',
+				'wheat',
+				'whitesmoke',
+				'yellowgreen'
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Color);
+
+});
+
+require.define("/css/values/hsl.js", function (require, module, exports, __dirname, __filename) {
+/* hsl( {w} {n} %? {w} , {w} {n} %? {w} , {w} {n} %? {w} )
+ *
+ * Used to define colors
+ */
+
+var base = require('./base');
+var number = require('./number');
+var percent = require('./percent');
+var util = require('../../util');
+
+var HSL = base.baseConstructor();
+
+util.extend(HSL.prototype, base.base, {
+	name: "hsl"
+});
+
+exports.parse = function (unparsed, parser, container) {
+	var hsl = new HSL(parser, container, unparsed);
+	hsl.debug('parse', unparsed);
+
+	if (! hsl.functionParser('hsl(', 
+		[ number, percent ],
+		[ number, percent ],
+		[ number, percent ])) {
+		return null;
+	}
+
+	hsl.warnIfMixingPercents(hsl.list[0], [hsl.list[1], hsl.list[2], hsl[3]]);
+	hsl.debug('parse success');
+	return hsl;
+};
+
+});
+
+require.define("/css/values/number.js", function (require, module, exports, __dirname, __filename) {
+/* <number>
+ *
+ * Numbers can be negative or positive numbers and may be floats.
+ */
+
+var base = require('./base');
+var util = require('../../util');
+
+var Num = base.baseConstructor();
+
+util.extend(Num.prototype, base.base, {
+	name: "number",
+
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				base.makeRegexp('[-+]?{n}')
+			]
+		}
+	],
+
+	getValue: function () {
+		return (+ this.list[0]);
+	}
+});
+
+exports.parse = base.simpleParser(Num);
+
+});
+
+require.define("/css/values/percent.js", function (require, module, exports, __dirname, __filename) {
+/* <percent>
+ *
+ * Percents should be integer values from 0 to 100%.  CSS1 allows floating
+ * point numbers, but CSS2 does not.  Allow reading them, but round to the
+ * nearest integer.
+ */
+
+var base = require('./base');
+var util = require('../../util');
+
+var Percent = base.baseConstructor();
+
+util.extend(Percent.prototype, base.base, {
+	name: "percent",
+
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				base.makeRegexp('[-+]?{n}%')
+			]
+		}
+	],
+
+	getValue: function () {
+		var v = this.list[0].content;
+		v = v.substring(0, v.length - 2);
+		v = Math.round(+ v);
+		return v;
+	},
+
+	toString: function () {
+		this.debug('toString');
+		return this.getValue() + '%';
+	}
+});
+
+exports.parse = function (unparsed, parser, container) {
+	var percent = new Percent(parser, container, unparsed);
+	percent.debug('parse', unparsed);
+
+	if (! percent.scanRules()) {
+		return null;
+	}
+
+	percent.warnIfNotInteger(percent.firstToken(), percent.getValue());
+	return percent;
+};
+
+});
+
+require.define("/css/values/hsla.js", function (require, module, exports, __dirname, __filename) {
+/* hsla( {w} {n} %? {w} , {w} {n} %? {w} , {w} {n} %? {w} , {w} {n} {w})
+ *
+ * Used to define colors
+ */
+
+var base = require('./base');
+var number = require('./number');
+var percent = require('./percent');
+var util = require('../../util');
+
+var HSLA = base.baseConstructor();
+
+util.extend(HSLA.prototype, base.base, {
+	name: "hsla"
+});
+
+exports.parse = function (unparsed, parser, container) {
+	var hsla = new HSLA(parser, container, unparsed);
+	hsla.debug('parse', unparsed);
+
+	if (! hsla.functionParser('hsla(', 
+		[ number, percent ],
+		[ number, percent ],
+		[ number, percent ],
+		number)) {
+		return null;
+	}
+
+	// Make sure alpha is 0-1
+	hsla.warnIfMixingPercents(hsla.list[0], [hsla.list[1], hsla.list[2], hsla[3]]);
+	var alpha = hsla.list[4];
+	alpha.content = hsla.warnIfOutsideRange(alpha, 0, 1);
+	hsla.debug('parse success');
+	return hsla;
+};
+
+});
+
+require.define("/css/values/rgb.js", function (require, module, exports, __dirname, __filename) {
+/* rgb( {w} {n} %? {w} , {w} {n} %? {w} , {w} {n} %? {w} )
+ *
+ * Used to define colors
+ */
+
+var base = require('./base');
+var number = require('./number');
+var percent = require('./percent');
+var util = require('../../util');
+
+var RGB = base.baseConstructor();
+
+util.extend(RGB.prototype, base.base, {
+	name: "rgb"
+});
+
+exports.parse = function (unparsed, parser, container) {
+	var rgb = new RGB(parser, container, unparsed);
+	rgb.debug('parse', unparsed);
+
+	if (! rgb.functionParser('rgb(', 
+		[ number, percent ],
+		[ number, percent ],
+		[ number, percent ])) {
+		return null;
+	}
+
+	rgb.warnIfMixingPercents(rgb.list[0], [rgb.list[1], rgb.list[2], rgb[3]]);
+	rgb.debug('parse success');
+	return rgb;
+};
+
+});
+
+require.define("/css/values/rgba.js", function (require, module, exports, __dirname, __filename) {
+/* rgba( {w} {n} %? {w} , {w} {n} %? {w} , {w} {n} %? {w} , {w} {n} {w})
+ *
+ * Used to define colors
+ */
+
+var base = require('./base');
+var number = require('./number');
+var percent = require('./percent');
+var util = require('../../util');
+
+var RGBA = base.baseConstructor();
+
+util.extend(RGBA.prototype, base.base, {
+	name: "rgba"
+});
+
+exports.parse = function (unparsed, parser, container) {
+	var rgba = new RGBA(parser, container, unparsed);
+	rgba.debug('parse', unparsed);
+	
+	if (! rgba.functionParser('rgba(', 
+		[ number, percent ],
+		[ number, percent ],
+		[ number, percent ],
+		number)) {
+		return null;
+	}
+
+	// Make sure alpha is 0-1
+	rgba.warnIfMixingPercents(rgba.list[0], [rgba.list[1], rgba.list[2], rgba[3]]);
+	var alpha = rgba.list[4];
+	alpha.content = rgba.warnIfOutsideRange(alpha, 0, 1);
+	rgba.debug('parse success');
+	return rgba;
+};
+
+});
+
+require.define("/css/values/validate.js", function (require, module, exports, __dirname, __filename) {
+exports.browserQuirk = function (browserAndVersion) {
+	return function (token) {
+		this.addWarning('browser_quirk_' + browserAndVersion, token);
+	};
+};
+
+exports.browserUnsupported = function (browserAndVersion) {
+	return function (token) {
+		this.addWarning('browser_unsupported_' + browserAndVersion, token);
+	};
+};
+
+exports.deprecated = function (deprecatedVersion, suggestion) {
+	return function (token) {
+		var warning = 'deprecated_css_version_3';
+
+		if (suggestion) {
+			warning += '_use_' + suggestion;
+		}
+
+		this.addWarning(warning, token);
+	}
+};
+
+exports.maximumCss = function (maxVersion) {
+	return function (token) {
+		if (this.parser.options.cssLevel > maxVersion) {
+			this.addWarning('maximum_css_version_' + maxVersion, token);
+		}
+	}
+};
+
+exports.minimumCss = function (minVersion) {
+	return function (token) {
+		if (this.parser.options.cssLevel < minVersion) {
+			this.addWarning('minimum_css_version_' + minVersion, token);
+		}
+	}
+};
+
+exports.notForwardCompatible = function (badVersion) {
+	return function (token) {
+		if (this.parser.options.cssLevel <= badVersion) {
+			this.addWarning('not_forward_compatible_' + badVersion, token);
+		}
+	};
+};
+
+exports.positiveValue = function () {
+	return function (token) {
+		var val = null;
+
+		if (typeof token.getValue == 'function') {
+			val = token.getValue();
+		} else {
+			val = token.content;
+		}
+
+		if (val.toString().charAt(0) == '-') {
+			this.addWarning('positive_value_required', token);
+		}
+	}
+};
+
+exports.suggestUsingRelativeUnits = function () {
+	return function (token) {
+		this.addWarning('suggest_using_relative_units', token);
+	};
+};
+
+exports.workingDraft = function () {
+	return function (token) {
+		this.addWarning('working_draft', token);
+	};
+};
+
+});
+
+require.define("/css/values/display.js", function (require, module, exports, __dirname, __filename) {
+/* <display>
+ *
+ * In CSS1 - CSS2.1, it is just <display-type>
+ * In CSS3 it is <display-type>? && <template>
+ */
+
+var base = require('./base');
+var displayType = require('./display-type');
+var template = require('./template');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Display = base.baseConstructor();
+
+util.extend(Display.prototype, base.base, {
+	name: "display"
+});
+
+
+exports.parse = function (unparsedReal, parser, container) {
+	var display = new Display(parser, container, unparsedReal);
+	var displayTypeCount = 0;
+	var templateCount = 0;
+	var result = true;
+	var unparsed = display.unparsed.clone();
+
+	while (unparsed.length() && result) {
+		var result = displayType.parse(unparsed, parser, display);
+
+		if (result) {
+			displayTypeCount ++;
+			
+			if (parser.options.cssLevel < 3 && displayTypeCount > 1) {
+				display.addWarning('display_multiple_types_css3', result.firstToken());
+			}
+		} else {
+			result = template.parse(unparsed, parser, display);
+
+			if (result) {
+				templateCount ++;
+
+				if (parser.options.cssLevel < 3) {
+					display.addWarning('display_template_css3', result.firstToken());
+				}
+			}
+		}
+
+		if (result) {
+			display.add(result);
+			unparsed = result.unparsed.clone();
+		}
+	}
+
+	if (displayTypeCount == 0 && templateCount == 0) {
+		display.debug('parse fail');
+		return null;
+	}
+
+	display.debug('parse success', unparsed);
+	display.unparsed = unparsed;
+	return display;
+};
+
+});
+
+require.define("/css/values/display-type.js", function (require, module, exports, __dirname, __filename) {
+/* <display-type>
+ *
+ * Per CSS3, this is just a list of possible values.
+ */
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var DisplayType = base.baseConstructor();
+
+util.extend(DisplayType.prototype, base.base, {
+	name: "display-type",
+
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				'block',
+				'inline',
+				'list-item',
+				'none'
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2),
+				validate.maximumCss(2),
+				validate.notForwardCompatible(2.1)
+			],
+			values: [
+				"compact",
+				"marker",
+				"run-in"
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2),
+				validate.browserUnsupported('IE7'),
+				validate.browserQuirk('IE8') // !DOCTYPE required
+			],
+			values: [
+				"inherit",
+				"inline-table",
+				"table",
+				"table-caption",
+				"table-cell",
+				"table-column",
+				"table-column-group",
+				"table-row",
+				"table-row-group"
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2)
+			],
+			values: [
+				"table-footer-group",
+				"table-header-group"
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2.1)
+			],
+			values: [
+				"inline-block"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(DisplayType);
+
+});
+
+require.define("/css/values/template.js", function (require, module, exports, __dirname, __filename) {
+/* <template>
+ *
+ * Used by <display> for creating templates
+ * [ <string> [ / <row-height> ]? ]+ <col-width>*
+ */
+
+var base = require('./base');
+var colWidth = require('./col-width');
+var rowHeight = require('./row-height');
+var util = require('../../util');
+
+var Template = base.baseConstructor();
+
+util.extend(Template.prototype, base.base, {
+	name: "template",
+
+	toString: function () {
+		this.debug('toString');
+		var out = [];
+
+		this.rows.forEach(function (rowDef) {
+			var rowOut = "";
+			rowDef.forEach(function (rowDefPart) {
+				rowOut += rowDefPart.toString();
+			});
+			out.push(rowOut);
+		});
+
+		this.columns.forEach(function (colDef) {
+			out.push(colDef.toString());
+		});
+
+		return out.join(' ');
+	}
+});
+
+exports.parse = function (unparsedReal, parser, container) {
+	var template = new Template(parser, container, unparsedReal);
+	var unparsed = unparsedReal.clone();
+	template.debug('parse', unparsed);
+	template.rows = [];
+	template.columns = [];
+	template.addWarning('working_draft', unparsed.firstToken());
+
+	// TODO:  Validate that number of columns are consistent
+	// TODO:  Validate that there aren't more column widths than defined
+	// TODO:  Should warn if fewer column widths are found (except 0 widths)
+	// TODO:  If widths are all percentages, they must add to 100%, keeping
+	// in mind that percentages are rounded
+	// TODO:  Could trim * at end of column widths or add * to match columns
+	while (unparsed.isType('STRING')) {
+		// <string>
+		var rowDef = [ unparsed.advance() ];
+
+		// Look for the "/" - we might need to undo this
+		if (unparsed.isContent('/')) {
+			var unparsedBackup = unparsed.clone();
+			var slashToken = unparsed.advance();
+			var result = rowHeight.parse(unparsed, parser, template);
+
+			if (result) {
+				// Successful row height parsing
+				rowDef.push(slashToken);
+				rowDef.push(result.value);
+				template.add(result.value);  // for warnings
+				template.rows.push(rowDef);
+				unparsed = result.unparsed.clone();
+			} else {
+				// Need to undo our changes to unparsed tokens
+				unparsed = unparsedBackup;
+			}
+		} else {
+			template.rows.push(rowDef);
+		}
+	}
+
+	// Done parsing [ <string> [ / <row-height> ]? ]+
+	if (template.rows.length == 0) {
+		// Not a template - no strings found
+		template.debug('parse fail');
+		return null;
+	}
+
+	// Continue with <col-width>*
+	var result = true;
+
+	while (unparsed.length() && result) {
+		result = colWidth.parse(unparsed, parser, template);
+
+		if (result) {
+			template.columns.push(result.value);
+			template.add(result.value); // for warnings
+			unparsed = result.unparsed.clone();
+		}
+	}
+
+	template.debug('parse success', unparsed);
+	return template;
+};
+
+});
+
+require.define("/css/values/col-width.js", function (require, module, exports, __dirname, __filename) {
+/* <col-width>
+ *
+ * CSS3 allows a non-negative <length>, "auto", "fit-content", "max-content",
+ * "min-content", "*", or the minmax function (I'm implementing as <minmax>)
+ * No other CSS versions do something like this that I've found
+ */
+
+var base = require('./base');
+var length = require('./length');
+var minmax = require('./minmax');
+var util = require('../../util');
+var validate = require('./validate');
+
+var ColWidth = base.baseConstructor();
+
+util.extend(ColWidth.prototype, base.base, {
+	name: "col-width",
+
+	allowed: [
+		{
+			validation: [
+				validate.minimumCss(3)
+			],
+			values: [ 
+				"auto",
+				"fit-content",
+				"max-content",
+				"min-content",
+				"*",
+				minmax
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(3),
+				validate.positiveValue()
+			],
+			values: [ 
+				length
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(ColWidth);
+
+});
+
+require.define("/css/values/length.js", function (require, module, exports, __dirname, __filename) {
+/* <length>
+ *
+ * Lengths can be 0 (without a unit identifier) or a UNIT token that represents
+ * either an absolute or relative length.
+ */
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Length = base.baseConstructor();
+
+util.extend(Length.prototype, base.base, {
+	name: "length",
+
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				"0",
+				base.makeRegexp('[-+]?{n}(em|ex)')
+			]
+		},
+		{
+			validation: [
+				validate.suggestUsingRelativeUnits()
+			],
+			values: [ 
+				// px were made an absolute length as of CSS2.1
+				base.makeRegexp('[-+]?{n}(in|cm|mm|pt|pc|px)')
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(3)
+			],
+			values: [ 
+				base.makeRegexp('[-+]?{n}(ch|rem|vw|vh|vm)')
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Length);
+
+});
+
+require.define("/css/values/minmax.js", function (require, module, exports, __dirname, __filename) {
+/* <minmax>
+ *
+ * Used by <col-width>
+ * minmax( WS? p WS? , WS? q WS? )
+ */
+
+var base = require('./base');
+var util = require('../../util');
+
+var Minmax = base.baseConstructor();
+
+util.extend(Minmax.prototype, base.base, {
+	name: "minmax"
+});
+
+
+exports.parse = function (unparsed, parser, container) {
+	var minmax = new Minmax(parser, container, unparsed);
+	minmax.debug('parse', unparsed);
+
+	if (! minmax.functionParser('minmax(',
+		[ length, "max-content", "min-content", "*" ])) {
+		return null;
+	}
+
+	// TODO:  If P > Q then assume minmax(P,P) - add warning
+	minmax.debug('parse success', minmax.unparsed);
+	(validate.minimumCss())(3);
+	return minmax;
+};
+
+});
+
+require.define("/css/values/row-height.js", function (require, module, exports, __dirname, __filename) {
+/* <row-height>
+ *
+ * CSS3 allows a non-negative <length>, "auto" or "*"
+ * No other CSS versions do something like this that I've found
+ */
+
+var base = require('./base');
+var length = require('./length');
+var util = require('../../util');
+var validate = require('./validate');
+
+var RowHeight = base.baseConstructor();
+
+util.extend(RowHeight.prototype, base.base, {
+	name: "row-height",
+
+	allowed: [
+		{
+			validation: [
+				validate.minimumCss(3)
+			],
+			values: [ 
+				"auto",
+				"*"
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(3),
+				validate.positiveValue()
+			],
+			values: [ 
+				length
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(RowHeight);
+
+});
+
+require.define("/css/values/float.js", function (require, module, exports, __dirname, __filename) {
+/* float
+ *
+ * CSS1:  left | right | none
+ * CSS2:  left | right | none | inherit
+ * CSS2.1:  Same as CSS2
+ * CSS3:  [[ left | right | inside | outside ] || [ top | bottom ] || next ] ] | none | inherit
+ */
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Float = base.baseConstructor();
+
+util.extend(Float.prototype, base.base, {
+	name: "float"
+});
+
+exports.parse = function (unparsedReal, parser, container) {
+	var f = new Float(parser, container, unparsedReal);
+	var unparsed = unparsedReal.clone();
+	f.debug('parse', unparsed);
+	var lrio = false;
+	var tb = false;
+	var n = false;
+	var ni = false;
+	var keepParsing = true;
+	var css3 = false;
+
+	while (keepParsing) {
+		if (unparsed.isContent('left') || unparsed.isContent('right')) {
+			if (ni || lrio) {
+				return null;
+			}
+
+			lrio = true;
+			f.add(unparsed.advance());
+		} else if (unparsed.isContent('inside') || unparsed.isContent('outside')) {
+			if (ni || lrio) {
+				return null;
+			}
+
+			lrio = true;
+			css3 = true;
+			f.add(unparsed.advance());
+		} else if (unparsed.isContent('top') || unparsed.isContent('bottom')) {
+			if (ni || tb) {
+				return null;
+			}
+
+			tb = true;
+			css3 = true;
+			f.add(unparsed.advance());
+		} else if (unparsed.isContent('next')) {
+			if (ni || n) {
+				return null;
+			}
+
+			n = true;
+			css3 = true;
+			f.add(unparsed.advance());
+		} else if (unparsed.isContent('none')) {
+			if (ni || lrio || tb || n) {
+				return null;
+			}
+
+			ni = true;
+			f.add(unparsed.advance());
+		} else if (unparsed.isContent('inherit')) {
+			if (ni || lrio || tb || n) {
+				return null;
+			}
+
+			ni = true;
+			f.add(unparsed.advance());
+			(validate.browserQuirk())('IE8'); // !DOCTYPE
+			(validate.browserUnsupported())('IE7');
+		} else {
+			keepParsing = false;
+		}
+	}
+
+	if (! f.list.length) {
+		// No tokens parsed
+		return null;
+	}
+
+	if (css3) {
+		(validate.minimumCss())(3);
+	}
+
+	f.debug('parse success', unparsed);
+	f.unparsed = unparsed;
+	return f;
+};
+
+});
+
+require.define("/css/values/font-size.js", function (require, module, exports, __dirname, __filename) {
+/* <font-size>
+ *
+ * CSS1:  xx-small | x-small | small | medium | large | x-large | xx-large
+ * CSS1:  larger | smaller | <length> | <percent>
+ * CSS2:  inherit
+ */
+var base = require('./base');
+var length = require('./length');
+var percent = require('./percent');
+var util = require('../../util');
+var validate = require('./validate');
+
+var FontSize = base.baseConstructor();
+
+util.extend(FontSize.prototype, base.base, {
+	name: "font-size",
+
+	allowed: [
+		{
+			validation: [
+				validate.positiveValue()
+			],
+			values: [ 
+				length
+			]
+		},
+		{
+			validation: [],
+			values: [ 
+				// absolute
+				base.makeRegexp('(x?x-)?(small|large)'),
+				'medium',
+				// relative
+				'larger',
+				'smaller',
+				// Other options
+				percent
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2)
+			],
+			values: [
+				"inherit"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(FontSize);
+
+});
+
+require.define("/css/values/font-weight.js", function (require, module, exports, __dirname, __filename) {
+/* <font-weight>
+ *
+ * CSS1:  normal | bold | bolder | lighter
+ * CSS1:  100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
+ * CSS2:  inherit
+ */
+var base = require('./base');
+var length = require('./length');
+var percent = require('./percent');
+var util = require('../../util');
+var validate = require('./validate');
+
+var FontSize = base.baseConstructor();
+
+// TODO:  "normal" == "400" and "bold" == "700"
+util.extend(FontSize.prototype, base.base, {
+	name: "font-size",
+
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				'normal',
+				'bold',
+				'bolder',
+				'lighter',
+				base.makeRegexp('[0-9]00')
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2)
+			],
+			values: [
+				"inherit"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(FontSize);
+
+});
+
+require.define("/css/values/height.js", function (require, module, exports, __dirname, __filename) {
+/* <height>
+ *
+ * <length> | <percentage> | auto | inherit
+ * CSS2.1 adds inherit
+ */
+var base = require('./base');
+var length = require('./length');
+var percent = require('./percent');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Height = base.baseConstructor();
+
+util.extend(Height.prototype, base.base, {
+	name: "display-type",
+
+	allowed: [
+		{
+			validation: [
+				validate.positiveValue()
+			],
+			values: [ 
+				length
+			]
+		},
+		{
+			validation: [],
+			values: [ 
+				'auto'
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2)
+			],
+			values: [ 
+				percent
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2.1)
+			],
+			values: [
+				"inherit"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Height);
+
+});
+
+require.define("/css/values/margin-width.js", function (require, module, exports, __dirname, __filename) {
+/* <margin-width>
+ *
+ * Used for matching margin and margin-* properties.
+ *
+ * CSS1: <length> | <percentage> | auto
+ * CSS2: inherit
+ */
+var base = require('./base');
+var length = require('./length');
+var percent = require('./percent');
+var util = require('../../util');
+var validate = require('./validate');
+
+var MarginWidth = base.baseConstructor();
+
+util.extend(MarginWidth.prototype, base.base, {
+	name: "margin-width",
+
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				length,
+				percent,
+				'auto'
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2)
+			],
+			values: [
+				'inherit'
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(MarginWidth);
+
+});
+
+require.define("/css/values/text-align.js", function (require, module, exports, __dirname, __filename) {
+/* text-align
+ *
+ * CSS1:  left | right | center | justify
+ * CSS2:  <string> | inherit
+ * CSS2.1:  Removed <string>
+ * CSS3:  [ [ start | end | left | right | center ] || <string> ] | justify | match-parent | start end | inherit
+ */
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var TextAlign = base.baseConstructor();
+
+util.extend(TextAlign.prototype, base.base, {
+	name: "text-align"
+});
+
+exports.parse = function (unparsedReal, parser, container) {
+	var textalign = new TextAlign(parser, container, unparsedReal);
+	var unparsed = unparsedReal.clone();
+	textalign.debug('parse', unparsed);
+	var selrc = false;
+	var s = false;
+	var jmsi = false;
+	var keepParsing = true;
+	var css3 = false;
+
+	while (keepParsing) {
+		if (unparsed.isContent('left') || unparsed.isContent('right') || unparsed.isContent('center')) {
+			if (jmsi || selrc) {
+				return null;
+			}
+
+			selrc = true;
+			textalign.add(unparsed.advance());
+		} else if (unparsed.isContent('justify') || unparsed.isContent('inherit')) {
+			if (jmsi || s || selrc) {
+				return null;
+			}
+
+			jmsi = true;
+			textalign.add(unparsed.advance());
+		} else if (unparsed.isType('STRING')) {
+			if (jmsi || s) {
+				return null;
+			}
+
+			var token = unparsed.advance();
+
+			if (token.content.length > 1) {
+				textalign.addWarning('invalid_string', token);
+			}
+
+			css3 = true;  // Yes, this could be CSS2, but not CSS2.1
+			s = true;
+			textalign.add(token);
+		} else if (unparsed.isContent('match-parent')) {
+			if (jmsi || selrc || s) {
+				return null;
+			}
+
+			jmsi = true;
+			css3 = true;
+			textalign.add(unparsed.advance());
+		} else if (unparsed.isContent('start')) {
+			if (jmsi || selrc) {
+				return null;
+			}
+
+			css3 = true;
+			textalign.add(unparsed.advance());
+			if (unparsed.isContent('end')) {
+				textalign.add(unparsed.advance());
+				jmsi = true;
+			} else {
+				selrc = true;
+			}
+		} else if (unparsed.isContent('end')) {
+			if (jmsi || selrc) {
+				return null;
+			}
+
+			selrc = true;
+			css3 = true;
+			textalign.add(unparsed.advance());
+		} else {
+			keepParsing = false;
+		}
+	}
+
+	if (! textalign.list.length) {
+		// No tokens parsed
+		return null;
+	}
+
+	if (css3) {
+		(validate.minimumCss())(3);
+	}
+
+	textalign.debug('parse success', unparsed);
+	textalign.unparsed = unparsed;
+	return textalign;
+};
+
+});
+
+require.define("/css/values/width.js", function (require, module, exports, __dirname, __filename) {
+/* <height>
+ *
+ * <length> | <percentage> | auto | inherit
+ * CSS2.1 adds inherit
+ */
+var base = require('./base');
+var length = require('./length');
+var percent = require('./percent');
+var util = require('../../util');
+var validate = require('./validate');
+
+var DisplayType = base.baseConstructor();
+
+util.extend(DisplayType.prototype, base.base, {
+	name: "display-type",
+
+	allowed: [
+		{
+			validation: [
+				validate.positiveValue()
+			],
+			values: [ 
+				length
+			]
+		},
+		{
+			validation: [],
+			values: [ 
+				percent,
+				'auto'
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2.1)
+			],
+			values: [
+				"inherit"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(DisplayType);
+
+});
+
 require.define("/css/whitespace.js", function (require, module, exports, __dirname, __filename) {
 var base = require('./base');
 var util = require('../util');
@@ -1234,22 +3383,13 @@ var util = require('./util');
 var wsPatternString = "[ \\t\\r\\n\\f]";
 
 var expandPatternToRegExp = function (pattern, expansion) {
-	var subPat = /{([a-z][a-z0-9_]*)}/ig;
-	pattern += "{w}";  // Also match additional whitespace at the end
-
-	while (pattern.match(subPat)) {
-		pattern = pattern.replace(subPat, function (str, p1) {
-			if (expansion[p1]) {
-				return "(" + expansion[p1] + ")";
-			}
-
-			throw "Invalid pattern referenced: " + p1;
-		});
-	}
-
 	// All tokens match the beginning of the string
+	// Also match additional whitespace at the end
+	pattern = "^" + pattern + "{w}";
+	pattern = util.expandIntoRegExpPattern(pattern, expansion);
+
 	// CSS is case insensitive, mostly
-	return new RegExp("^" + pattern, 'i');
+	return new RegExp(pattern, 'i');
 };
 
 var getTokenDefs = function () {
@@ -1262,7 +3402,7 @@ var getTokenDefs = function () {
 		nmchar: "[_a-z0-9-]|{nonascii}|{escape}",
 		nmstart: "[_a-z]|{nonascii}|{escape}",
 		nonascii: "[\\x80-\\xd7ff\\xe000\\xfffd]",  // Can't include \x10000-\x10ffff -- too high for JavaScript
-		num: "[0-9]+|[0-9]*\\.[0-9]+",
+		num: "[0-9]*\\.?[0-9]+",
 		string: "\\\"({stringchar}|\\')*\\\"|\\'({stringchar}|\\\")*\\'",
 		stringchar: "{urlchar}| |\\\\{nl}",
 		unicode: "\\\\{h}{1,6}({nl}|{wc})?",
@@ -1287,7 +3427,7 @@ var getTokenDefs = function () {
 		UNIT: {
 			leading: ".0123456789-", 
 			all: false,
-			pattern: "[-]?{num}({ident}|%)?"
+			pattern: "[-+]?{num}({ident}|%)?"
 		},  // All forms of numbers and units
 		UNICODE_RANGE: {
 			leading: "U", 
