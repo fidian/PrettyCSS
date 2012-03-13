@@ -1039,7 +1039,10 @@ var value = require('./value');
 
 // Mapping properties to value types
 var propertyMapping = {
+	'background-attachment': require('./values/background-attachment'),
 	'background-color': require('./values/background-color'),
+	'background-image': require('./values/background-image'),
+	'background-repeat': require('./values/background-repeat'),
 	'clear': require('./values/clear'),
 	'color': require('./values/color'),
 	'display': require('./values/display'),
@@ -1047,10 +1050,16 @@ var propertyMapping = {
 	'font-size': require('./values/font-size'),
 	'font-weight': require('./values/font-weight'),
 	'height': require('./values/height'),
+	'margin': require('./values/margin'),
 	'margin-bottom': require('./values/margin-width'),
 	'margin-left': require('./values/margin-width'),
 	'margin-right': require('./values/margin-width'),
 	'margin-top': require('./values/margin-width'),
+	'padding': require('./values/padding'),
+	'padding-bottom': require('./values/padding-width'),
+	'padding-left': require('./values/padding-width'),
+	'padding-right': require('./values/padding-width'),
+	'padding-top': require('./values/padding-width'),
 	'text-align': require('./values/text-align'),
 	'width': require('./values/width')
 };
@@ -1534,7 +1543,7 @@ exports.base = {
 
 		return true;
 	},
-	
+
 	isInherit: function () {
 		// Check if any are "inherit"
 		return this.list.some(function (value) {
@@ -1546,6 +1555,38 @@ exports.base = {
 			// Must be a token
 			return value.content != 'inherit';
 		});
+	},
+
+	repeatParser: function (possibilities) {
+		var myself = this;
+
+		if (! (possibilities instanceof Array)) {
+			possibilities = [ possibilities ];
+		}
+
+		while (this.unparsed.length()) {
+			if (! possibilities.some(function (tryMe) {
+				if (tryMe.parse) {
+					var obj = tryMe.parse(myself.unparsed, myself.parser, myself);
+					if (obj) {
+						myself.add(obj);
+						myself.unparsed = obj.unparsed;
+						return true;
+					}
+
+					return false;
+				}
+
+				if (myself.unparsed.isContent(tryMe)) {
+					myself.add(myself.unparsed.advance());
+					return true;
+				}
+
+				return false;
+			})) {
+				return;
+			}
+		}
 	},
 
 	scanRules: function () {
@@ -1640,6 +1681,29 @@ exports.base = {
 		return out;
 	},
 
+	warnIfInherit: function () {
+		var myself = this;
+		this.list.forEach(function (value) {
+			if (value.isInherit()) {
+				myself.addWarning('inherit_not_allowed', value.firstToken());
+			}
+		});
+	},
+
+	warnIfMixingPercents: function (token, valueList) {
+		var listCountPercent = 0;
+
+		valueList.forEach(function (val) {
+			if (val.name == 'percentage') {
+				listCountPercent ++;
+			}
+		});
+
+		if (listCountPercent != 0 && listCountPercent != valueList.length) {
+			this.addWarning('mixing_percentages_and_values', token);
+		}
+	},
+
 	warnIfNotInteger: function (token, value) {
 		if (arguments.length < 2) {
 			value = token.content;
@@ -1647,20 +1711,6 @@ exports.base = {
 
 		if (! /^[-+]?[0-9]+$/.test(value)) {
 			this.addWarning('only_integers_allowed', token);
-		}
-	},
-
-	warnIfMixingPercents: function (token, valueList) {
-		var listCountPercent = 0;
-
-		valueList.forEach(function (val) {
-			if (val.name == 'percent') {
-				listCountPercent ++;
-			}
-		});
-
-		if (listCountPercent != 0 && listCountPercent != valueList.length) {
-			this.addWarning('mixing_percents_and_values', token);
 		}
 	},
 
@@ -1714,6 +1764,199 @@ exports.simpleParser = function (baseObj) {
 		var simpleObj = new baseObj(parser, container, unparsed);
 		simpleObj.debug('parse', unparsed);
 		return simpleObj.scanRules();
+	};
+};
+
+});
+
+require.define("/css/values/background-attachment.js", function (require, module, exports, __dirname, __filename) {
+/* background-attachment
+ *
+ * CSS1:  <attachment>
+ * CSS3:  [ <attachment> , ]* <attachment>
+ */
+
+var attachment = require('./attachment');
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var BackgroundAttachment = base.baseConstructor();
+
+util.extend(BackgroundAttachment.prototype, base.base, {
+	name: "background-attachment"
+});
+
+
+exports.parse = function (unparsedReal, parser, container) {
+	var ba = new BackgroundAttachment(parser, container, unparsedReal);
+	ba.debug('parse', unparsedReal);
+	ba.repeatParser(attachment);
+
+	if (ba.list.length < 1) {
+		ba.debug('parse fail');
+		return null;
+	}
+
+	if (ba.list.length > 1) {
+		(validate.minimumCss())(3);
+		ba.warnIfInherit();
+	}
+
+	ba.debug('parse success', ba.unparsed);
+	return ba;
+};
+
+});
+
+require.define("/css/values/attachment.js", function (require, module, exports, __dirname, __filename) {
+/* <attachment>
+ *
+ * CSS1:  scroll | fixed
+ * CSS2:  inherit
+ * CSS3:  local
+ * Helper for background-attachment in CSS3
+ */
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Attachment = base.baseConstructor();
+
+util.extend(Attachment.prototype, base.base, {
+	name: "attachment",
+
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				"scroll",
+				"fixed"
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2)
+			],
+			values: [ 
+				"inherit"
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(3)
+			],
+			values: [ 
+				"local"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Attachment);
+
+});
+
+require.define("/css/values/validate.js", function (require, module, exports, __dirname, __filename) {
+var getTokenAndValue = function (tokenOrObject) {
+	var val = null;
+	var token = null;
+
+	if (typeof tokenOrObject.getValue == 'function') {
+		// One of the "value" objects
+		val = tokenOrObject.getValue();
+		token = tokenOrObject.firstToken();
+	} else {
+		// Token, from tokenizer
+		val = tokenOrObject.content;
+		token = tokenOrObject;
+	}
+
+	return {
+		token: token,
+		value: val
+	}
+};
+
+exports.browserQuirk = function (browserAndVersion) {
+	return function (token) {
+		this.addWarning('browser_quirk_' + browserAndVersion, token);
+	};
+};
+
+exports.browserUnsupported = function (browserAndVersion) {
+	return function (token) {
+		this.addWarning('browser_unsupported_' + browserAndVersion, token);
+	};
+};
+
+exports.deprecated = function (deprecatedVersion, suggestion) {
+	return function (token) {
+		var warning = 'deprecated_css_version_3';
+
+		if (suggestion) {
+			warning += '_use_' + suggestion;
+		}
+
+		this.addWarning(warning, token);
+	}
+};
+
+exports.maximumCss = function (maxVersion) {
+	return function (token) {
+		if (this.parser.options.cssLevel > maxVersion) {
+			this.addWarning('maximum_css_version_' + maxVersion, token);
+		}
+	}
+};
+
+exports.minimumCss = function (minVersion) {
+	return function (token) {
+		if (this.parser.options.cssLevel < minVersion) {
+			this.addWarning('minimum_css_version_' + minVersion, token);
+		}
+	}
+};
+
+exports.notForwardCompatible = function (badVersion) {
+	return function (token) {
+		if (this.parser.options.cssLevel <= badVersion) {
+			this.addWarning('not_forward_compatible_' + badVersion, token);
+		}
+	};
+};
+
+exports.numberPortionIsInteger = function () {
+	return function (tokenOrObject) {
+		var tv = getTokenAndValue(tokenOrObject);
+		var num = tv.value.toString().match(/^[-+]?[0-9]*\.?[0-9]+/);
+		
+		if (! num || num.indexOf('.') != -1) {
+			this.addWarning('integer_value_required', tv.token);
+		}
+	};
+};
+
+exports.positiveValue = function () {
+	return function (tokenOrObject) {
+		var tv = getTokenAndValue(tokenOrObject);
+
+		if (tv.value.toString().charAt(0) == '-') {
+			this.addWarning('positive_value_required', tv.token);
+		}
+	};
+};
+
+exports.suggestUsingRelativeUnits = function () {
+	return function (token) {
+		this.addWarning('suggest_using_relative_units', token);
+	};
+};
+
+exports.workingDraft = function () {
+	return function (token) {
+		this.addWarning('working_draft', token);
 	};
 };
 
@@ -2181,7 +2424,7 @@ require.define("/css/values/hsl.js", function (require, module, exports, __dirna
 
 var base = require('./base');
 var number = require('./number');
-var percent = require('./percent');
+var percentage = require('./percentage');
 var util = require('../../util');
 
 var HSL = base.baseConstructor();
@@ -2195,9 +2438,9 @@ exports.parse = function (unparsed, parser, container) {
 	hsl.debug('parse', unparsed);
 
 	if (! hsl.functionParser('hsl(', 
-		[ number, percent ],
-		[ number, percent ],
-		[ number, percent ])) {
+		[ number, percentage ],
+		[ number, percentage ],
+		[ number, percentage ])) {
 		return null;
 	}
 
@@ -2240,10 +2483,10 @@ exports.parse = base.simpleParser(Num);
 
 });
 
-require.define("/css/values/percent.js", function (require, module, exports, __dirname, __filename) {
-/* <percent>
+require.define("/css/values/percentage.js", function (require, module, exports, __dirname, __filename) {
+/* <percentage>
  *
- * Percents should be integer values from 0 to 100%.  CSS1 allows floating
+ * Percentages should be integer values from 0.  CSS1 allows floating
  * point numbers, but CSS2 does not.  Allow reading them, but round to the
  * nearest integer.
  */
@@ -2252,15 +2495,16 @@ var base = require('./base');
 var util = require('../../util');
 var validate = require('./validate');
 
-var Percent = base.baseConstructor();
+var Percentage = base.baseConstructor();
 
-util.extend(Percent.prototype, base.base, {
-	name: "percent",
+util.extend(Percentage.prototype, base.base, {
+	name: "percentage",
 
 	allowed: [
 		{
 			validation: [
-				validate.positiveValue()
+				validate.positiveValue(),
+				validate.numberPortionIsInteger()
 			],
 			values: [ 
 				base.makeRegexp('[-+]?{n}%')
@@ -2270,7 +2514,7 @@ util.extend(Percent.prototype, base.base, {
 
 	getValue: function () {
 		var v = this.list[0].content;
-		v = v.substring(0, v.length - 2);
+		v = v.substr(0, v.length - 2);
 		v = Math.round(+ v);
 		return v;
 	},
@@ -2281,91 +2525,7 @@ util.extend(Percent.prototype, base.base, {
 	}
 });
 
-exports.parse = base.simpleParser(Percent);
-
-});
-
-require.define("/css/values/validate.js", function (require, module, exports, __dirname, __filename) {
-exports.browserQuirk = function (browserAndVersion) {
-	return function (token) {
-		this.addWarning('browser_quirk_' + browserAndVersion, token);
-	};
-};
-
-exports.browserUnsupported = function (browserAndVersion) {
-	return function (token) {
-		this.addWarning('browser_unsupported_' + browserAndVersion, token);
-	};
-};
-
-exports.deprecated = function (deprecatedVersion, suggestion) {
-	return function (token) {
-		var warning = 'deprecated_css_version_3';
-
-		if (suggestion) {
-			warning += '_use_' + suggestion;
-		}
-
-		this.addWarning(warning, token);
-	}
-};
-
-exports.maximumCss = function (maxVersion) {
-	return function (token) {
-		if (this.parser.options.cssLevel > maxVersion) {
-			this.addWarning('maximum_css_version_' + maxVersion, token);
-		}
-	}
-};
-
-exports.minimumCss = function (minVersion) {
-	return function (token) {
-		if (this.parser.options.cssLevel < minVersion) {
-			this.addWarning('minimum_css_version_' + minVersion, token);
-		}
-	}
-};
-
-exports.notForwardCompatible = function (badVersion) {
-	return function (token) {
-		if (this.parser.options.cssLevel <= badVersion) {
-			this.addWarning('not_forward_compatible_' + badVersion, token);
-		}
-	};
-};
-
-exports.positiveValue = function () {
-	return function (tokenOrObject) {
-		var val = null;
-		var token = null;
-
-		if (typeof tokenOrObject.getValue == 'function') {
-			// One of the "value" objects
-			val = tokenOrObject.getValue();
-			token = tokenOrObject.firstToken();
-		} else {
-			// Token, from tokenizer
-			val = tokenOrObject.content;
-			token = tokenOrObject;
-		}
-
-		if (val.toString().charAt(0) == '-') {
-			this.addWarning('positive_value_required', token);
-		}
-	}
-};
-
-exports.suggestUsingRelativeUnits = function () {
-	return function (token) {
-		this.addWarning('suggest_using_relative_units', token);
-	};
-};
-
-exports.workingDraft = function () {
-	return function (token) {
-		this.addWarning('working_draft', token);
-	};
-};
+exports.parse = base.simpleParser(Percentage);
 
 });
 
@@ -2377,7 +2537,7 @@ require.define("/css/values/hsla.js", function (require, module, exports, __dirn
 
 var base = require('./base');
 var number = require('./number');
-var percent = require('./percent');
+var percentage = require('./percentage');
 var util = require('../../util');
 
 var HSLA = base.baseConstructor();
@@ -2391,9 +2551,9 @@ exports.parse = function (unparsed, parser, container) {
 	hsla.debug('parse', unparsed);
 
 	if (! hsla.functionParser('hsla(', 
-		[ number, percent ],
-		[ number, percent ],
-		[ number, percent ],
+		[ number, percentage ],
+		[ number, percentage ],
+		[ number, percentage ],
 		number)) {
 		return null;
 	}
@@ -2416,7 +2576,7 @@ require.define("/css/values/rgb.js", function (require, module, exports, __dirna
 
 var base = require('./base');
 var number = require('./number');
-var percent = require('./percent');
+var percentage = require('./percentage');
 var util = require('../../util');
 
 var RGB = base.baseConstructor();
@@ -2430,9 +2590,9 @@ exports.parse = function (unparsed, parser, container) {
 	rgb.debug('parse', unparsed);
 
 	if (! rgb.functionParser('rgb(', 
-		[ number, percent ],
-		[ number, percent ],
-		[ number, percent ])) {
+		[ number, percentage ],
+		[ number, percentage ],
+		[ number, percentage ])) {
 		return null;
 	}
 
@@ -2451,7 +2611,7 @@ require.define("/css/values/rgba.js", function (require, module, exports, __dirn
 
 var base = require('./base');
 var number = require('./number');
-var percent = require('./percent');
+var percentage = require('./percentage');
 var util = require('../../util');
 
 var RGBA = base.baseConstructor();
@@ -2465,9 +2625,9 @@ exports.parse = function (unparsed, parser, container) {
 	rgba.debug('parse', unparsed);
 	
 	if (! rgba.functionParser('rgba(', 
-		[ number, percent ],
-		[ number, percent ],
-		[ number, percent ],
+		[ number, percentage ],
+		[ number, percentage ],
+		[ number, percentage ],
 		number)) {
 		return null;
 	}
@@ -2479,6 +2639,204 @@ exports.parse = function (unparsed, parser, container) {
 	rgba.debug('parse success');
 	return rgba;
 };
+
+});
+
+require.define("/css/values/background-image.js", function (require, module, exports, __dirname, __filename) {
+/* background-image
+ *
+ * CSS1:  <bg-image>
+ * CSS3:  [ <bg-image> , ]* <bg-image>
+ */
+
+var base = require('./base');
+var bgImage = require('./bg-image');
+var util = require('../../util');
+var validate = require('./validate');
+
+var BackgroundImage = base.baseConstructor();
+
+util.extend(BackgroundImage.prototype, base.base, {
+	name: "background-image"
+});
+
+
+exports.parse = function (unparsedReal, parser, container) {
+	var bg = new BackgroundImage(parser, container, unparsedReal);
+	bg.debug('parse', unparsedReal);
+	bg.repeatParser(bgImage);
+
+	if (bg.list.length < 1) {
+		bg.debug('parse fail');
+		return null;
+	}
+
+	if (bg.list.length > 1) {
+		(validate.minimumCss())(3);
+		bg.warnIfInherit();
+	}
+
+	bg.debug('parse success', bg.unparsed);
+	return bg;
+};
+
+});
+
+require.define("/css/values/bg-image.js", function (require, module, exports, __dirname, __filename) {
+/* <bg-image>
+ *
+ * CSS1:  <url> | none
+ * CSS2:  inherit
+ * Helper for background-image in CSS3
+ */
+
+var base = require('./base');
+var url = require('./url');
+var util = require('../../util');
+var validate = require('./validate');
+
+var BgImage = base.baseConstructor();
+
+util.extend(BgImage.prototype, base.base, {
+	name: "bg-image",
+
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				url,
+				"none"
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2)
+			],
+			values: [ 
+				"inherit"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(BgImage);
+
+});
+
+require.define("/css/values/url.js", function (require, module, exports, __dirname, __filename) {
+/* <url>
+ *
+ * url( WS? literal_url WS? )
+ * url( WS? STRING WS? )
+ */
+
+var base = require('./base');
+var util = require('../../util');
+
+var Url = base.baseConstructor();
+
+util.extend(Url.prototype, base.base, {
+	name: "url"
+
+	// TODO:  Can remove quotes since URLs should have spaces and close
+	// parenthesis changed into hex codes
+});
+
+
+exports.parse = function (unparsed, parser, container) {
+	var url = new Url(parser, container, unparsed);
+	url.debug('parse', unparsed);
+
+	if (! url.unparsed.isType('URL')) {
+		url.debug('parse fail', url.unparsed);
+		return null;
+	}
+
+	url.add(url.unparsed.advance());
+	return url;
+};
+
+});
+
+require.define("/css/values/background-repeat.js", function (require, module, exports, __dirname, __filename) {
+/* background-repeat
+ *
+ * CSS1:  <repeat-style>
+ * CSS3:  [ <repeat-style> , ]* <repeat-style>
+ */
+
+var base = require('./base');
+var repeatStyle = require('./repeat-style');
+var util = require('../../util');
+var validate = require('./validate');
+
+var BackgroundRepeat = base.baseConstructor();
+
+util.extend(BackgroundRepeat.prototype, base.base, {
+	name: "background-repeat"
+});
+
+
+exports.parse = function (unparsedReal, parser, container) {
+	var br = new BackgroundRepeat(parser, container, unparsedReal);
+	br.debug('parse', unparsedReal);
+	br.repeatParser(repeatStyle);
+
+	if (br.list.length < 1) {
+		br.debug('parse fail');
+		return null;
+	}
+
+	if (br.list.length > 1) {
+		(validate.minimumCss())(3);
+		br.warnIfInherit();
+	}
+
+	br.debug('parse success', br.unparsed);
+	return br;
+};
+
+});
+
+require.define("/css/values/repeat-style.js", function (require, module, exports, __dirname, __filename) {
+/* <repeat-style>
+ *
+ * CSS1:  repeat | repeat-x | repeat-y | no-repeat
+ * CSS2:  inherit
+ * Helper for background-repeat in CSS3
+ */
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var RepeatStyle = base.baseConstructor();
+
+util.extend(RepeatStyle.prototype, base.base, {
+	name: "repeat-style",
+
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				"repeat",
+				"repeat-x",
+				"repeat-y",
+				"no-repeat"
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2)
+			],
+			values: [ 
+				"inherit"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(RepeatStyle);
 
 });
 
@@ -2548,6 +2906,7 @@ exports.parse = function (unparsedReal, parser, container) {
 	var templateCount = 0;
 	var result = true;
 	var unparsed = display.unparsed.clone();
+	display.debug('parse', unparsedReal);
 
 	while (unparsed.length() && result) {
 		var result = displayType.parse(unparsed, parser, display);
@@ -2715,7 +3074,8 @@ exports.parse = function (unparsedReal, parser, container) {
 	// TODO:  Validate that there aren't more column widths than defined
 	// TODO:  Should warn if fewer column widths are found (except 0 widths)
 	// TODO:  If widths are all percentages, they must add to 100%, keeping
-	// in mind that percentages are rounded
+	// in mind that percentages might round poorly (do they round or are
+	// they trimmed?  Spec doesn't say)
 	// TODO:  Could trim * at end of column widths or add * to match columns
 	while (unparsed.isType('STRING')) {
 		// <string>
@@ -2878,6 +3238,7 @@ require.define("/css/values/minmax.js", function (require, module, exports, __di
  */
 
 var base = require('./base');
+var length = require('./length');
 var util = require('../../util');
 
 var Minmax = base.baseConstructor();
@@ -2892,6 +3253,7 @@ exports.parse = function (unparsed, parser, container) {
 	minmax.debug('parse', unparsed);
 
 	if (! minmax.functionParser('minmax(',
+		[ length, "max-content", "min-content", "*" ],
 		[ length, "max-content", "min-content", "*" ])) {
 		return null;
 	}
@@ -3049,12 +3411,12 @@ require.define("/css/values/font-size.js", function (require, module, exports, _
 /* <font-size>
  *
  * CSS1:  xx-small | x-small | small | medium | large | x-large | xx-large
- * CSS1:  larger | smaller | <length> | <percent>
+ * CSS1:  larger | smaller | <length> | <percentage>
  * CSS2:  inherit
  */
 var base = require('./base');
 var length = require('./length');
-var percent = require('./percent');
+var percentage = require('./percentage');
 var util = require('../../util');
 var validate = require('./validate');
 
@@ -3082,7 +3444,7 @@ util.extend(FontSize.prototype, base.base, {
 				'larger',
 				'smaller',
 				// Other options
-				percent
+				percentage
 			]
 		},
 		{
@@ -3109,7 +3471,6 @@ require.define("/css/values/font-weight.js", function (require, module, exports,
  */
 var base = require('./base');
 var length = require('./length');
-var percent = require('./percent');
 var util = require('../../util');
 var validate = require('./validate');
 
@@ -3153,7 +3514,7 @@ require.define("/css/values/height.js", function (require, module, exports, __di
  */
 var base = require('./base');
 var length = require('./length');
-var percent = require('./percent');
+var percentage = require('./percentage');
 var util = require('../../util');
 var validate = require('./validate');
 
@@ -3182,7 +3543,7 @@ util.extend(Height.prototype, base.base, {
 				validate.minimumCss(2)
 			],
 			values: [ 
-				percent
+				percentage
 			]
 		},
 		{
@@ -3200,6 +3561,51 @@ exports.parse = base.simpleParser(Height);
 
 });
 
+require.define("/css/values/margin.js", function (require, module, exports, __dirname, __filename) {
+/* margin
+ *
+ * CSS1:  <margin-width>{1,4}
+ * CSS2:  inherit
+ */
+
+var base = require('./base');
+var marginWidth= require('./margin-width');
+var template = require('./template');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Margin = base.baseConstructor();
+
+util.extend(Margin.prototype, base.base, {
+	name: "margin"
+});
+
+
+exports.parse = function (unparsedReal, parser, container) {
+	var margin = new Margin(parser, container, unparsedReal);
+	margin.debug('parse', unparsedReal);
+	margin.repeatParser(marginWidth);
+
+	if (margin.list.length < 1) {
+		margin.debug('parse fail - too few widths');
+		return null;
+	}
+
+	if (margin.list.length > 4) {
+		margin.debug('parse fail - too many widths');
+		return null;
+	}
+
+	if (margin.list.length > 1) {
+		margin.warnIfInherit();
+	}
+
+	margin.debug('parse success', margin.unparsed);
+	return margin;
+};
+
+});
+
 require.define("/css/values/margin-width.js", function (require, module, exports, __dirname, __filename) {
 /* <margin-width>
  *
@@ -3210,7 +3616,7 @@ require.define("/css/values/margin-width.js", function (require, module, exports
  */
 var base = require('./base');
 var length = require('./length');
-var percent = require('./percent');
+var percentage = require('./percentage');
 var util = require('../../util');
 var validate = require('./validate');
 
@@ -3224,7 +3630,7 @@ util.extend(MarginWidth.prototype, base.base, {
 			validation: [],
 			values: [ 
 				length,
-				percent,
+				percentage,
 				'auto'
 			]
 		},
@@ -3240,6 +3646,94 @@ util.extend(MarginWidth.prototype, base.base, {
 });
 
 exports.parse = base.simpleParser(MarginWidth);
+
+});
+
+require.define("/css/values/padding.js", function (require, module, exports, __dirname, __filename) {
+/* padding
+ *
+ * CSS1:  <padding-width>{1,4}
+ * CSS2:  inherit
+ */
+
+var base = require('./base');
+var paddingWidth= require('./padding-width');
+var template = require('./template');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Padding = base.baseConstructor();
+
+util.extend(Padding.prototype, base.base, {
+	name: "padding"
+});
+
+
+exports.parse = function (unparsedReal, parser, container) {
+	var padding = new Padding(parser, container, unparsedReal);
+	padding.debug('parse', unparsedReal);
+	padding.repeatParser(paddingWidth);
+
+	if (padding.list.length < 1) {
+		padding.debug('parse fail - too few widths');
+		return null;
+	}
+
+	if (padding.list.length > 4) {
+		padding.debug('parse fail - too many widths');
+		return null;
+	}
+
+	if (padding.list.length > 1) {
+		padding.warnIfInherit();
+	}
+
+	padding.debug('parse success', padding.unparsed);
+	return padding;
+};
+
+});
+
+require.define("/css/values/padding-width.js", function (require, module, exports, __dirname, __filename) {
+/* <padding-width>
+ *
+ * Used for matching padding and padding-* properties.
+ *
+ * CSS1: <length> | <percentage> | auto
+ * CSS2: inherit
+ */
+var base = require('./base');
+var length = require('./length');
+var percentage = require('./percentage');
+var util = require('../../util');
+var validate = require('./validate');
+
+var PaddingWidth = base.baseConstructor();
+
+util.extend(PaddingWidth.prototype, base.base, {
+	name: "padding-width",
+
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				length,
+				percentage,
+				'auto'
+			]
+		},
+		{
+			validation: [
+				validate.minimumCss(2)
+			],
+			values: [
+				'inherit'
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(PaddingWidth);
 
 });
 
@@ -3358,7 +3852,7 @@ require.define("/css/values/width.js", function (require, module, exports, __dir
  */
 var base = require('./base');
 var length = require('./length');
-var percent = require('./percent');
+var percentage = require('./percentage');
 var util = require('../../util');
 var validate = require('./validate');
 
@@ -3379,7 +3873,7 @@ util.extend(DisplayType.prototype, base.base, {
 		{
 			validation: [],
 			values: [ 
-				percent,
+				percentage,
 				'auto'
 			]
 		},
@@ -3922,6 +4416,20 @@ exports.parse = function (tokens, parser, container) {
 	// Add additional selectors
 	var nextToken = tokens.getToken();
 
+	var makeInvalid = function () {
+		var invalidCss = invalid.parse(null, parser, container);
+
+		for (var s in ruleset.selectors) {
+			invalidCss.addList(ruleset.selectors[s].list);
+		}
+
+		if (nextToken) {
+			invalidCss.consume(tokens);
+		}
+
+		return invalidCss;
+	};
+
 	while (nextToken && nextToken.type == 'OPERATOR' && nextToken.content == ',') {
 		// Consume comma
 		nextToken = tokens.nextToken();
@@ -3932,7 +4440,8 @@ exports.parse = function (tokens, parser, container) {
 
 		// After commas come another selector
 		if (! selector.canStartWith(nextToken)) {
-			base.unexpectedToken("expected_selector", nextToken);
+			parser.addError("selector_expected", nextToken);
+			return makeInvalid();
 		}
 
 		ruleset.selectors.push(selector.parse(tokens, parser, ruleset));
@@ -3947,17 +4456,7 @@ exports.parse = function (tokens, parser, container) {
 
 	if (! nextToken || nextToken.type != 'BLOCK_OPEN') {
 		parser.addError('block_expected', nextToken);
-		var invalidCss = invalid.parse(null, parser, container);
-
-		for (var s in ruleset.selectors) {
-			invalidCss.addList(ruleset.selectors[s].list);
-		}
-
-		if (nextToken) {
-			invalidCss.consume(tokens);
-		}
-
-		return invalidCss;
+		return makeInvalid();
 	}
 
 	ruleset.block = block.parse(tokens, parser, ruleset);
