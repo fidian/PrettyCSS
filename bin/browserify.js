@@ -10,11 +10,13 @@ var fs = require('fs');
 var args = process.argv;
 args.shift(); // Remove "node"
 args.shift(); // Remove current script
-for (var i = 0; i < args; i ++) {
+
+for (var i = 0; i < args.length; i ++) {
 	switch (args[i]) {
 		case '-m':
 		case '--minify':
 			minify = true;
+			break;
 
 		default:
 			console.log("Unknown option: " + args[i]);
