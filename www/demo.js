@@ -23,9 +23,11 @@ function showCodeList(target, list) {
 		var token = list[i].token;
 		var li = $('<li />');
 		var message = codeToMessage[code] || code;
+		var line = null;
 
 		if (token) {
 			message += " (" + token.type + ", line " + token.line + ")";
+			line = token.line;
 		} else {
 			message += " (no token supplied)";
 		}
@@ -61,13 +63,16 @@ function addOptions() {
 		var v = options[i];
 		v = addslashes(v);
 		var inp = $('<input type="text" name="' + i + '" id="' + i + '" class="option"/>').val(v);
-		var opt = $('<div />');
-		opt.append($('<span class="optionLabel" />').text(i + ":")).append(inp);
+		var opt = $('<div class="optionWrapper" />');
+		opt.append(inp);
+		opt.append($('<div class="optionLabel" />').text(i + ":"));
+		opt.append($('<div class="optionClear" />'));
 		$dest.append(opt);
 	}
 }
 
 function addslashes(v) {
+	v = v.toString();
 	v = v.replace(/\\/g, "\\");
 	v = v.replace(/\r/g, "\\r");
 	v = v.replace(/\t/g, "\\t");
@@ -91,16 +96,12 @@ $(function () {
 	var $cssIn = $('#cssIn');
 	var $cssOut = $('#cssOut');
 	var dirty = false;
-	var force = false;
+	var force = true;  // Force the initial call to set up the form
 	var setFlag = function () {
 		dirty = true;
 	};
-	var setFlagForce = function () {
-		dirty = true;
-		force = true;
-	};
 	var update = function () {
-		if (! dirty) {
+		if (! dirty && ! force) {
 			return;
 		}
 
@@ -126,14 +127,24 @@ $(function () {
 		showCodeList('#errorList', pp.errors);
 		showCodeList('#warningList', pp.warnings);
 
-		if (pp.errors) {
-			$cssOut.addClass('error');
-		} else {
-			$cssOut.removeClass('error');
-		}
+		var updateClasses = function (hasErrOrWarn, target, className) {
+			var $t = $(target);
+
+			if (hasErrOrWarn) {
+				$t.removeClass('no_' + className);
+				$t.addClass(className);
+			} else {
+				$t.addClass('no_' + className);
+				$t.removeClass(className);
+			}
+		};
+
+		updateClasses(pp.errors.length, '.update', 'error');
+		updateClasses(pp.warnings.length, '.update', 'warning');
 	};
 
 	window.setInterval(update, 100);
+	update();
 	anyUpdate($cssIn, setFlag);
 	addOptions();
 
@@ -163,16 +174,17 @@ $(function () {
 		opt.at_post = "\n";
 		opt.important = "!important";
 		setOptions(opt);
-		setFlagForce();
+		force = true;
 		return false;
 	});
 	$('#presetDefault').click(function () {
 		setOptions(defaultOptions());
-		setFlagForce();
+		force = true;
 		return false;
 	});
-});
-
-$(function () {
-	$('#tabs').tabs();
+	$('#cssIn').focus();
+	var $tabs = $('#tabs').tabs();
+	$('.warningsAndErrors').live('click', function () {
+		$tabs.tabs('select', 1);
+	});
 });

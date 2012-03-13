@@ -14,14 +14,23 @@
 <div id="tabs">
   <ul>
     <li><a href="#tabs-1">Live Demo</a></li>
-    <li><a href="#tabs-2">Errors / Warnings</a></li>
+    <li><a href="#tabs-2" class="boldIfEither update">Errors / Warnings</a></li>
     <li><a href="#tabs-3">Options</a></li>
   </ul>
   <div id="tabs-1">
-    <b>Before</b> - <a href="" id="presetMinify">Minify</a> - <a href="" id="presetDefault">Default</a><br />
-    <textarea id="cssIn"></textarea><br />
-    <b>After</b> - Invalid CSS grammar is automatically removed<br />
-    <textarea id="cssOut" readonly="true"></textarea>
+    <b>Before</b>
+	- <a href="" id="presetMinify">Minify</a>
+	- <a href="" id="presetDefault">Default</a>
+	<br>
+    <textarea id="cssIn" wrap="off"></textarea><br />
+    <b>After</b> - 
+	<span class="update showIfClean">Invalid CSS grammar is automatically removed</span>
+	<span class="update showIfWarning">Warnings detected</span>
+	<span class="update showIfError">Errors detected</span>
+	<span class="update showIfBoth">Errors and warnings detected</span>
+	<span class="update showIfEither"> - go to <a class="warningsAndErrors" href="#" onclick="return false">Errors and Warnings tab</a></span>
+	<br />
+    <textarea id="cssOut" class="update" readonly="true" wrap="off"></textarea>
   </div>
   <div id="tabs-2">
     <p><b>Errors:</b><br /><span id="errorList"></span></p>

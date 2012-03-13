@@ -1,2 +1,17 @@
+.boldIfEither.error, .boldIfEither.warning { font-weight: bold; }
+
 textarea { width: 100%; height: 11em; }
-.error { background-color: #FCC; }
+
+#cssOut.error { background-color: #FCC; }
+#cssOut.warning { background-color: #CCF; }
+#cssOut.error.warning { background-color: #FCC; }
+
+.showIfClean.error, .showIfClean.warning { display: none; }
+.showIfWarning.no_warning, .showIfWarning.error { display: none; }
+.showIfError.no_error, .showIfError.warning { display: none; }
+.showIfBoth.no_error, .showIfBoth.no_warning { display: none; }
+.showIfEither.no_error.no_warning { display: none; }
+
+.optionWrapper { width: 49%; text-align: right; display: inline-block; }
+.option { float: right; margin-left: 0.5em; }
+.optionClear { clear: both; }
