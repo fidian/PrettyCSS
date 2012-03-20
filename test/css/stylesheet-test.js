@@ -1,5 +1,6 @@
+"use strict";
 var vows = require('vows');
-var stylesheet = require('../../lib/css/stylesheet')
+var stylesheet = require('../../lib/css/stylesheet');
 var util = require('./util');
 
 vows.describe('lib/css/stylesheet.js').addBatch({

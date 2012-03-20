@@ -1,5 +1,6 @@
+"use strict";
 var vows = require('vows');
-var atRule = require('../../lib/css/at-rule')
+var atRule = require('../../lib/css/at-rule');
 var util = require('./util');
 
 vows.describe('lib/css/at-rule.js').addBatch({

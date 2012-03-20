@@ -1,3 +1,4 @@
+"use strict";
 var assert = require('assert');
 var fs = require('fs');
 var diff = require('diff');
@@ -107,7 +108,7 @@ exports.compareResult = function compareTokens(against) {
 				var e = result.list[i];
 
 				if (e.name) {
-					tokenList.push(e.name)
+					tokenList.push(e.name);
 				} else {
 					tokenList.push(e.type);
 				}

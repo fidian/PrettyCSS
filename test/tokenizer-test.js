@@ -1,6 +1,7 @@
+"use strict";
 var vows = require('vows');
 var assert = require('assert');
-var tokenizer = require('../lib/tokenizer')
+var tokenizer = require('../lib/tokenizer');
 var fs = require('fs');
 var diff = require('diff');
 

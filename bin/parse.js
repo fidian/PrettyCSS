@@ -1,4 +1,6 @@
 #!/usr/bin/node
+
+"use strict";
 var prettycss = require('../lib/prettycss');
 var fs = require('fs');
 var filenames = process.argv;
@@ -42,6 +44,7 @@ for (var i = 0; i < filenames.length; i ++) {
 
 			default:
 				parseThisFile = true;
+				break;
 		}
 	}
 
@@ -115,7 +118,7 @@ for (var i = 0; i < filenames.length; i ++) {
 	}
 }
 
-if (count == 0) {
+if (count === 0) {
 	console.log('Please pass filenames on the command line');
 }
 

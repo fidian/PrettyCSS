@@ -1,5 +1,6 @@
+"use strict";
 var vows = require('vows');
-var pseudo = require('../../lib/css/pseudoclass')
+var pseudo = require('../../lib/css/pseudoclass');
 var util = require('./util');
 
 vows.describe('lib/css/pseudoclass.js').addBatch({

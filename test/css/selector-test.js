@@ -1,5 +1,6 @@
+"use strict";
 var vows = require('vows');
-var selector = require('../../lib/css/selector')
+var selector = require('../../lib/css/selector');
 var util = require('./util');
 
 vows.describe('lib/css/selector.js').addBatch({

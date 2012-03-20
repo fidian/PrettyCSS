@@ -1,5 +1,6 @@
+"use strict";
 var vows = require('vows');
-var comment = require('../../lib/css/comment')
+var comment = require('../../lib/css/comment');
 var util = require('./util');
 
 vows.describe('lib/css/comment.js').addBatch({

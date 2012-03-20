@@ -1,4 +1,6 @@
 #!/usr/bin/node
+
+"use strict";
 var filename = process.argv;
 filename.shift(); // Remove "node"
 filename.shift(); // Remove current script

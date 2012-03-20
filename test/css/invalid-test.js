@@ -1,5 +1,6 @@
+"use strict";
 var vows = require('vows');
-var invalid = require('../../lib/css/invalid')
+var invalid = require('../../lib/css/invalid');
 var util = require('./util');
 
 vows.describe('lib/css/invalid.js').addBatch({

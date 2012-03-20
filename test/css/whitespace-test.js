@@ -1,5 +1,6 @@
+"use strict";
 var vows = require('vows');
-var whitespace = require('../../lib/css/whitespace')
+var whitespace = require('../../lib/css/whitespace');
 var util = require('./util');
 
 vows.describe('lib/css/whitespace.js').addBatch({

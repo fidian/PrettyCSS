@@ -1,5 +1,6 @@
 #!/usr/bin/node
 
+"use strict";
 var minify = false;
 var http = require('http');
 var path = require('path');
@@ -24,6 +25,7 @@ for (var i = 0; i < args.length; i ++) {
 			console.log("Available options:");
 			console.log("-m / --minify = also minify the file");
 			process.exit();
+			break;
 	}
 }
 
@@ -81,16 +83,16 @@ var postReq = http.request(postOptions, function(res) {
 		}
 
 		if (result.warnings) {
-			for (var i = 0; i < result.warnings.length; i ++) {
-				var item = result.warnings[i];
-				console.log("WARNING line " + item.lineno + ": " + item.warning);
+			for (var i1 = 0; i1 < result.warnings.length; i1 ++) {
+				var item1 = result.warnings[i];
+				console.log("WARNING line " + item1.lineno + ": " + item1.warning);
 			}
 		}
 
 		if (result.errors) {
-			for (var i = 0; i < result.errors.length; i ++) {
-				var item = result.errors[i];
-				console.log("ERRORS line " + item.lineno + ": " + item.error);
+			for (var i2 = 0; i2 < result.errors.length; i2 ++) {
+				var item2 = result.errors[j];
+				console.log("ERRORS line " + item2.lineno + ": " + item2.error);
 			}
 		}
 	});

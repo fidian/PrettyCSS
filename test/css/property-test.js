@@ -1,5 +1,6 @@
+"use strict";
 var vows = require('vows');
-var property = require('../../lib/css/property')
+var property = require('../../lib/css/property');
 var util = require('./util');
 
 vows.describe('lib/css/property.js').addBatch({

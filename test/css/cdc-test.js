@@ -1,5 +1,6 @@
+"use strict";
 var vows = require('vows');
-var cdc = require('../../lib/css/cdc')
+var cdc = require('../../lib/css/cdc');
 var util = require('./util');
 
 vows.describe('lib/css/cdc.js').addBatch({

@@ -1,5 +1,6 @@
+"use strict";
 var vows = require('vows');
-var ruleset = require('../../lib/css/ruleset')
+var ruleset = require('../../lib/css/ruleset');
 var util = require('./util');
 
 vows.describe('lib/css/ruleset.js').addBatch({
@@ -14,5 +15,5 @@ vows.describe('lib/css/ruleset.js').addBatch({
 	}),
 	'ruleset-no-close-block.css': util.tokenizeFile({
 		'ruleset-no-close-block.json': util.compareResult(ruleset)
-	}),
+	})
 }).export(module);
