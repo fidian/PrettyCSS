@@ -9,6 +9,7 @@ filenames.shift(); // Remove current script
 var count = 0;
 var parseOptions = true;
 var parseFiles = true;
+var quiet = false;
 var options = {
 	debug: false,
 	extendedInfo: false
@@ -38,6 +39,11 @@ for (var i = 0; i < filenames.length; i ++) {
 				parseFiles = false;
 				break;
 
+			case '--quiet':
+			case '-q':
+				quiet = true;
+				break;
+
 			case '--':
 				parseOptions = false;
 				break;
@@ -62,7 +68,9 @@ for (var i = 0; i < filenames.length; i ++) {
 			console.log('/' + stars + stars + '/');
 		}
 
-		console.log(resultString);
+		if (! quiet) {
+			console.log(resultString);
+		}
 
 		if (options.extendedInfo) {
 			var showProblem = function (problemInfo) {
