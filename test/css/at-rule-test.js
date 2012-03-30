@@ -3,7 +3,7 @@ var vows = require('vows');
 var atRule = require('../../lib/css/at-rule');
 var util = require('./util');
 
-vows.describe('lib/css/at-rule.js').addBatch({
+exports.batch = vows.describe('lib/css/at-rule.js').addBatch({
 	'at-rule-charset.css': util.tokenizeFile({
 		'at-rule-charset.json': util.compareResult(atRule)
 	}),
@@ -16,4 +16,4 @@ vows.describe('lib/css/at-rule.js').addBatch({
 	'at-rule-media-bad.css': util.tokenizeFile({
 		'at-rule-media-bad.json': util.compareResult(atRule)
 	})
-}).export(module);
+});

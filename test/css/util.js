@@ -66,7 +66,7 @@ exports.fakeParser = function () {
 };
 
 exports.compareResult = function compareTokens(against) {
-	context = {
+	var context = {
 		topic: function (tokenizerObj) {
 			var topicCallback = this.callback;
 			var filename = this.context.name.split(' ')[0];

@@ -1,7 +1,7 @@
 {
 	"errors": ["invalid_token:UNIT@1"],
 	"name": "invalid",
-	"tokenList": ["UNIT", "UNIT", "BLOCK_CLOSE", "STRING", "S"],
+	"tokenList": ["UNIT", "BLOCK_CLOSE", "STRING", "S"],
 	"tokensRemaining": 0,
 	"toString": ""
 }

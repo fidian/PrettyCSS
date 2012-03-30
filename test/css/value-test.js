@@ -3,7 +3,7 @@ var vows = require('vows');
 var value = require('../../lib/css/value');
 var util = require('./util');
 
-vows.describe('lib/css/value.js').addBatch({
+exports.batch = vows.describe('lib/css/value.js').addBatch({
 	'value-simple.css': util.tokenizeFile({
 		'value-simple.json': util.compareResult(value)
 	}),
@@ -13,4 +13,4 @@ vows.describe('lib/css/value.js').addBatch({
 	'value-ws-eof.css': util.tokenizeFile({
 		'value-ws-eof.json': util.compareResult(value)
 	})
-}).export(module);
+});

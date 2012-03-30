@@ -3,7 +3,7 @@ var vows = require('vows');
 var declaration = require('../../lib/css/declaration');
 var util = require('./util');
 
-vows.describe('lib/css/declaration.js').addBatch({
+exports.batch = vows.describe('lib/css/declaration.js').addBatch({
 	'declaration.css': util.tokenizeFile({
 		'declaration.json': util.compareResult(declaration)
 	}),
@@ -22,4 +22,4 @@ vows.describe('lib/css/declaration.js').addBatch({
 	'declaration-novalue.css': util.tokenizeFile({
 		'declaration-novalue.json': util.compareResult(declaration)
 	})
-}).export(module);
+});

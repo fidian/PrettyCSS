@@ -3,7 +3,7 @@ var vows = require('vows');
 var selector = require('../../lib/css/selector');
 var util = require('./util');
 
-vows.describe('lib/css/selector.js').addBatch({
+exports.batch = vows.describe('lib/css/selector.js').addBatch({
 	'selector-single.css': util.tokenizeFile({
 		'selector-single.json': util.compareResult(selector)
 	}),
@@ -34,4 +34,4 @@ vows.describe('lib/css/selector.js').addBatch({
 	'selector-error-colon-ident.css': util.tokenizeFile({
 		'selector-error-colon-ident.json': util.compareResult(selector)
 	})
-}).export(module);
+});

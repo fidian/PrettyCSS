@@ -3,7 +3,7 @@ var vows = require('vows');
 var property = require('../../lib/css/property');
 var util = require('./util');
 
-vows.describe('lib/css/property.js').addBatch({
+exports.batch = vows.describe('lib/css/property.js').addBatch({
 	'property.css': util.tokenizeFile({
 		'property.json': util.compareResult(property)
 	}),
@@ -13,4 +13,4 @@ vows.describe('lib/css/property.js').addBatch({
 	'property-ws.css': util.tokenizeFile({
 		'property-ws.json': util.compareResult(property)
 	})
-}).export(module);
+});

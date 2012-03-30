@@ -16,7 +16,7 @@ var tokenizeFile = function (context) {
 };
 
 var compareTokens = function compareTokens() {
-	context = {
+	var context = {
 		topic: function (tokenizerObj) {
 			var topicCallback = this.callback;
 			var filename = this.context.name.split(' ')[0];
@@ -50,7 +50,7 @@ var compareTokens = function compareTokens() {
 	return context;
 };
 
-vows.describe('lib/tokenizer.js').addBatch({
+exports.batch = vows.describe('lib/tokenizer.js').addBatch({
 	'comments.css': tokenizeFile({
 		'comments.json': compareTokens()
 	}),
@@ -60,4 +60,4 @@ vows.describe('lib/tokenizer.js').addBatch({
 	'simple.css': tokenizeFile({
 		'simple.json': compareTokens()
 	})
-}).export(module);
+});
