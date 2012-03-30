@@ -44,6 +44,7 @@ exports.testValue = function (expected) {
 			var parser = {
 				debug: function () {},
 				options: {
+					functionComma: ", ",
 					debug: false
 				}
 			};
