@@ -9,6 +9,8 @@ exports.batch = util.makeVows('background', {
 		'unparsed': [],
 		'warnings': []
 	},
+	// The bg-layer that specifies a background color must be the last one,
+	// thus the first three layers here cause problems
 	'#fff, #000, #f00, blue': {
 		'tokens': ['HASH', 'OPERATOR', 'S', 'HASH', 'OPERATOR', 'S', 'HASH', 'OPERATOR', 'S', 'IDENT'],
 		'toString': '#fff, #000, #f00, blue',
