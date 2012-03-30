@@ -2,9 +2,18 @@
 var assert = require('assert');
 var tokenizer = require('../../../lib/tokenizer');
 var unparsed = require('../../../lib/css/values/unparsed');
+var vows = require('vows');
 
-exports.obj = null;  // Must set this
-exports.name = '';  // Must set this
+exports.makeVows = function (name, batches) {
+	var obj = require('../../../lib/css/values/' + name);
+	var batchRework = {};
+
+	for (var i in batches) {
+		batchRework[i] = testValue(name, obj, batches[i]);
+	}
+
+	return vows.describe('lib/css/' + name + '.js').addBatch(batchRework);
+};
 
 var tokensToStringArray = function (list) {
 	var out = [];
@@ -26,8 +35,8 @@ var warningsToStringArray = function (list) {
 	return out;
 };
 
-exports.testValue = function (expected) {
-	expected.name = exports.name;
+var testValue = function (name, obj, expected) {
+	expected.name = name;
 
 	if (expected.toString === null) {
 		expected.warnings = null;
@@ -38,8 +47,7 @@ exports.testValue = function (expected) {
 		topic: function () {
 			var valueString = this.context.name;
 			var actualTokens = tokenizer.tokenize(valueString);
-
-
+			var actualTokensStringArray = tokensToStringArray(actualTokens.tokens);
 			var container = {};
 			var parser = {
 				debug: function () {},
@@ -49,9 +57,10 @@ exports.testValue = function (expected) {
 				}
 			};
 			var unparsedReal = new unparsed.constructor(actualTokens.tokens, parser, container);
-			var parseResult = exports.obj.parse(unparsedReal, parser, container);
+			var parseResult = obj.parse(unparsedReal, parser, container);
 			var actual = {
-				tokens: tokensToStringArray(actualTokens.tokens)
+				tokens: actualTokensStringArray,
+				tokensAfter: tokensToStringArray(actualTokens.tokens)
 			};
 
 			if (parseResult) {
@@ -87,6 +96,10 @@ exports.testValue = function (expected) {
 
 		'Warnings': function (actual) {
 			assert.deepEqual(actual.warnings, expected.warnings);
+		},
+
+		'Tokens are not changed': function (actual) {
+			assert.deepEqual(actual.tokensAfter, actual.tokens);
 		}
 	};
 
