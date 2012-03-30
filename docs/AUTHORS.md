@@ -1,1 +1,2 @@
-Tyler Akins <fidian@rumkin.com> - Main contributor
+Tyler Akins <fidian@rumkin.com> 
+Michael Plaxico <michaelplaxico@gmail.com>
