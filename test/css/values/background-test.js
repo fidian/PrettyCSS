@@ -26,5 +26,12 @@ exports.batch = util.makeVows('background', {
 		'toString': 'url(a)',
 		'unparsed': ['IDENT'],
 		'warnings': []
+	},
+	'ahaskdfhsdf ':{
+		'tokens': ['IDENT', 'S'],
+		'toString': null,
+		'unparsed': ['IDENT','S'],
+		'warnings': []
 	}
+	
 });
