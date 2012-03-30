@@ -36,10 +36,10 @@ exports.batch = vows.describe('lib/css/' + util.name + '.js').addBatch({
 		'unparsed': [],
 		'warnings': ['minimum_css_version_2.1']
 	}),
-	'inherit': util.testValue({
-		'tokens': ['IDENT'],
+	'inherit pinkeye 27': util.testValue({
+		'tokens': ['IDENT', 'S', 'IDENT', 'S', 'UNIT' ],
 		'toString': 'inherit',
-		'unparsed': [],
+		'unparsed': [ 'IDENT', 'S', 'UNIT' ],
 		'warnings': ['minimum_css_version_2', 'browser_unsupported_IE7', 'browser_quirk_IE8']
 	})	
 });
