@@ -6,7 +6,7 @@ exports.batch = util.makeVows('border-radius-single-deprecated', {
 		'tokens': ['UNIT'],
 		'toString': '5px',
 		'unparsed': [],
-		'warnings': ['deprecated_css_use_border-radius']
+		'warnings': ['deprecated_css_use_border-*-*-radius']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],
