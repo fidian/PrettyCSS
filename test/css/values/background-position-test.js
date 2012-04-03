@@ -14,5 +14,11 @@ exports.batch = util.makeVows('background-position', {
 		'toString': 'top right',
 		'unparsed': [],
 		'warnings': []
+	},
+	'ijai adfasdf ': {
+		'tokens': ['IDENT', 'S', 'IDENT', 'S'],
+		'toString': null,
+		'unparsed': ['IDENT', 'S', 'IDENT', 'S'],
+		'warnings': []
 	}
 });
