@@ -14,6 +14,12 @@ exports.batch = util.makeVows('cursor-keyword', {
 		'unparsed': [],
 		'warnings': ['minimum_css_version_2']
 	},
+	'progress': {
+		'tokens': ['IDENT'],
+		'toString': 'progress',
+		'unparsed': [],
+		'warnings': ['minimum_css_version_2.1']	
+	},
 	'none': {
 		'tokens': ['IDENT'],
 		'toString': 'none',
@@ -24,6 +30,12 @@ exports.batch = util.makeVows('cursor-keyword', {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
+		'warnings': ['minimum_css_version_2']
+	},
+	'inherit lkasjfklajsfkd': {
+		'tokens': ['IDENT', 'S', 'IDENT'],
+		'toString': 'inherit',
+		'unparsed': ['IDENT'],
 		'warnings': ['minimum_css_version_2']
 	},
 	'invalidValue': {
