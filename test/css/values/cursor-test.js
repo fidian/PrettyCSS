@@ -18,19 +18,25 @@ exports.batch = util.makeVows('cursor', {
 		'tokens': ['IDENT'],
 		'toString': 'none',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['minimum_css_version_2']
 	},
 	'url(http://www.cnn.com)': {
 		'tokens': ['URL'],
-		'toString': 'url(http://www.cnn.com)',
-		'unparsed': [],
-		'warnings': []
+		'toString': null,
+		'unparsed': ['URL'],
+		'warnings': null
 	},
-	'url(http://www.cnn.com/plate.jpg) url(http:/bestbuy.com/phone.jpg)': {
-        	'tokens': ['URL', 'S', 'URL'] ,
-        	'toString': 'url(http://www.cnn.com/plate.jpg) url(http:/bestbuy.com/phone.jpg)',
-        	'unparsed': [],
-        	'warnings': []
+	'url(http://www.cnn.com),none': {
+		'tokens': ['URL','OPERATOR','IDENT'],
+		'toString': 'url(http://www.cnn.com) , none',
+		'unparsed': [],
+		'warnings': ['minimum_css_version_2']
+	},
+	'url(http://www.cnn.com/plate.jpg) 5 10, url(http://bestbuy.com/phone.jpg),none lightning': {
+        	'tokens': ['URL', 'S', 'UNIT', 'S', 'UNIT', 'OPERATOR', 'S', 'URL', 'OPERATOR', 'IDENT', 'S', 'IDENT'] ,
+        	'toString': 'url(http://www.cnn.com/plate.jpg) 5 10 , url(http://bestbuy.com/phone.jpg) , none',
+        	'unparsed': ['IDENT'],
+        	'warnings': ['minimum_css_version_3']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
