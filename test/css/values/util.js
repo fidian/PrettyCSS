@@ -65,6 +65,7 @@ var testValue = function (name, obj, expected) {
 			};
 			var unparsedReal = new unparsed.constructor(actualTokens.tokens, valueBucket, container);
 			var parseResult = obj.parse(unparsedReal, valueBucket, container);
+
 			var actual = {
 				tokens: actualTokensStringArray,
 				tokensAfter: tokensToStringArray(actualTokens.tokens)
@@ -83,6 +84,12 @@ var testValue = function (name, obj, expected) {
 			}
 
 			return actual;
+		},
+
+		'No Exceptions': function (actual) {
+			if (actual instanceof Error) {
+				throw actual;
+			}
 		},
 
 		'Name': function (actual) {
