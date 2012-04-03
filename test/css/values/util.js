@@ -2,6 +2,7 @@
 var assert = require('assert');
 var tokenizer = require('../../../lib/tokenizer');
 var unparsed = require('../../../lib/css/values/unparsed');
+var valueBucket = require('../../../lib/css/valuebucket');
 var vows = require('vows');
 
 exports.makeVows = function (name, batches) {
@@ -56,8 +57,14 @@ var testValue = function (name, obj, expected) {
 					debug: false
 				}
 			};
-			var unparsedReal = new unparsed.constructor(actualTokens.tokens, parser, container);
-			var parseResult = obj.parse(unparsedReal, parser, container);
+			valueBucket.parser = parser;
+			valueBucket.options = parser.options;
+			valueBucket.cssBucket = {
+				parser: parser,
+				options: parser.options
+			};
+			var unparsedReal = new unparsed.constructor(actualTokens.tokens, valueBucket, container);
+			var parseResult = obj.parse(unparsedReal, valueBucket, container);
 			var actual = {
 				tokens: actualTokensStringArray,
 				tokensAfter: tokensToStringArray(actualTokens.tokens)
