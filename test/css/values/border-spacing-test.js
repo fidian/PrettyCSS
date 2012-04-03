@@ -14,6 +14,12 @@ exports.batch = util.makeVows('border-spacing', {
 		'unparsed': [],
 		'warnings': []
 	},
+	'inherit': {
+		'tokens': ['IDENT'],
+		'toString': 'inherit',
+		'unparsed': [],
+		'warnings': ['minimum_css_version_2']
+	},
 	'invalidValue': {
 		'tokens': ['IDENT'],
 		'toString': null,
