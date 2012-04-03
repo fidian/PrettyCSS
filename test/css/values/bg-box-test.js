@@ -2,7 +2,7 @@
 var util = require('./util');
 
 exports.batch = util.makeVows('bg-box', {
-	'pading-box': {
+	'padding-box': {
 		'tokens': ['IDENT'],
 		'toString': 'padding-box',
 		'unparsed': [],
