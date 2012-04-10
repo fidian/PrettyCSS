@@ -173,6 +173,11 @@ $(function () {
 		opt.ruleset_post = "\n";
 		opt.at_post = "\n";
 		opt.important = "!important";
+		opt.function_comma = ",";
+		opt.propertiesLowerCase = true;
+		opt.topcomment_post = "\n";
+		opt.cssLevel = 3;
+		opt.valuesLowerCase = true;
 		setOptions(opt);
 		force = true;
 		return false;
