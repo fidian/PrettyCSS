@@ -10,7 +10,7 @@ exports.makeVows = function (name, batches) {
 	var batchRework = {};
 
 	for (var i in batches) {
-		batchRework[i] = testValue(name, obj, batches[i]);
+		batchRework[name + '-test.js: ' + i] = testValue(name, obj, batches[i]);
 	}
 
 	return vows.describe('lib/css/' + name + '.js').addBatch(batchRework);
@@ -46,7 +46,8 @@ var testValue = function (name, obj, expected) {
 
 	var context = {
 		topic: function () {
-			var valueString = this.context.name;
+			var contextName = this.context.name;
+			var valueString = contextName.split(': ', 2)[1];
 			var actualTokens = tokenizer.tokenize(valueString);
 			var actualTokensStringArray = tokensToStringArray(actualTokens.tokens);
 			var container = {};
