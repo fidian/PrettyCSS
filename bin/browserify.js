@@ -32,7 +32,7 @@ for (var i = 0; i < args.length; i ++) {
 // bundle everything into a single file/string
 var libdir = path.resolve(__dirname, '../lib');
 var browserify = require('browserify');
-bundle = browserify();
+var bundle = browserify();
 process.chdir(libdir);
 bundle.require('./prettycss', {
 	root: libdir
