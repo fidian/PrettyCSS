@@ -7,6 +7,7 @@ var filenames = process.argv;
 filenames.shift(); // Remove "node"
 filenames.shift(); // Remove current script
 var count = 0;
+var lineNumbers = false;
 var parseOptions = true;
 var parseFiles = true;
 var quiet = false;
@@ -39,6 +40,11 @@ for (var i = 0; i < filenames.length; i ++) {
 				parseFiles = false;
 				break;
 
+			case '--line-numbers':
+			case '-l':
+				lineNumbers = true;
+				break;
+
 			case '--quiet':
 			case '-q':
 				quiet = true;
@@ -66,6 +72,22 @@ for (var i = 0; i < filenames.length; i ++) {
 
 		if (options.debug) {
 			console.log('/' + stars + stars + '/');
+		}
+
+		if (lineNumbers) {
+			var lines = resultString.split("\n");
+			lines.pop();  // Remove trailing newline
+			resultString = "";
+			var lineNumber = 1;
+			var digits = (lines.length + 1).toString().length;
+			lines.forEach(function (item) {
+				var ln = lineNumber.toString();
+				while (ln.length < digits) {
+					ln = " " + ln;
+				}
+				resultString += ln + ":\t" + item + "\n";
+				lineNumber ++;
+			});
 		}
 
 		if (! quiet) {
@@ -133,7 +155,9 @@ if (count === 0) {
 function help() {
 	console.log("Parse a CSS file");
 	console.log("Options:");
-	console.log(" -d = Debug mode");
-	console.log(" -e = Extended info - appends a comment with errors/warnings");
-	console.log(" -h = Help (what you are reading right now)");
+	console.log(" --debug / -d = Debug mode");
+	console.log(" --extended-info / -e = Appends a comment with errors/warnings");
+	console.log(" --help / -h = What you are reading right now");
+	console.log(" --line-numbers / -l = Show line numbers");
+	console.log(" --quiet / -q = Do not output pretty printed CSS file");
 }
