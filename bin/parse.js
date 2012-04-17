@@ -76,7 +76,6 @@ for (var i = 0; i < filenames.length; i ++) {
 
 		if (lineNumbers) {
 			var lines = resultString.split("\n");
-			lines.pop();  // Remove trailing newline
 			resultString = "";
 			var lineNumber = 1;
 			var digits = (lines.length + 1).toString().length;
