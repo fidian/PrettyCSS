@@ -17,6 +17,12 @@ exports.batch = util.makeVows('length', {
 		'unparsed': [],
 		'warnings': [ 'no_unit_needed_on_zero_value', 'suggest_using_relative_units' ]
 	},
+	'-0em': {
+		'tokens': [ 'UNIT' ],
+		'toString': '0',
+		'unparsed': [],
+		'warnings': [ 'no_unit_needed_on_zero_value' ]
+	},
 
 	// em and ex are relative units
 	'6em': {
