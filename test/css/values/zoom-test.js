@@ -6,19 +6,19 @@ exports.batch = util.makeVows('zoom', {
 		'tokens': ['UNIT'],
 		'toString': '1.0',
 		'unparsed': [],
-		'warnings': ['unofficial']
+		'warnings': []
 	},
 	'120% inherit': {
 		'tokens': ['UNIT', 'S', 'IDENT'],
 		'toString': '120%',
 		'unparsed': ['IDENT'],
-		'warnings': ['unofficial']
+		'warnings': []
 	},
 	'normal': {
 		'tokens': ['IDENT'],
 		'toString': 'normal',
 		'unparsed': [],
-		'warnings': ['unofficial']
+		'warnings': []
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

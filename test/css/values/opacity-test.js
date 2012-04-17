@@ -6,31 +6,31 @@ exports.batch = util.makeVows('opacity', {
 		'tokens': ['UNIT'],
 		'toString': '0.2',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'0': {
 		'tokens': ['UNIT'],
 		'toString': '0',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'1 0': {
 		'tokens': ['UNIT', 'S', 'UNIT'],
 		'toString': '1',
 		'unparsed': ['UNIT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'1.01': {
 		'tokens': ['UNIT'],
 		'toString': '1',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3', 'out_of_range_max_1']
+		'warnings': ['css-minimum:3', 'range-max:1']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

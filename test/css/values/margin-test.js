@@ -42,13 +42,13 @@ exports.batch = util.makeVows('margin', {
 		'tokens': ['UNIT', 'S', 'IDENT'],
 		'toString': '1em inherit',
 		'unparsed': [],
-		'warnings': ['inherit_not_allowed']
+		'warnings': ['inherit-not-allowed']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

@@ -6,25 +6,25 @@ exports.batch = util.makeVows('text-decoration-style', {
 		'tokens': ['IDENT'],
 		'toString': 'solid',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'double dotted': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'double',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'wavy inherit': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'wavy',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

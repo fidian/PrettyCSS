@@ -12,7 +12,7 @@ exports.batch = util.makeVows('height', {
 		'tokens': ['UNIT'],
 		'toString': '-7em',
 		'unparsed': [],
-		'warnings': ['positive_value_required']
+		'warnings': ['require-positive-value']
 	},
 	'auto': {
 		'tokens': ['IDENT'],
@@ -24,13 +24,13 @@ exports.batch = util.makeVows('height', {
 		'tokens': ['UNIT'],
 		'toString': '15%',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'-15%': {
 		'tokens': ['UNIT'],
 		'toString': '-15%',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2', 'positive_value_required']
+		'warnings': ['css-minimum:2', 'require-positive-value']
 	},
 	'10px inherit': {
 		'tokens': ['UNIT', 'S', 'IDENT'],
@@ -42,7 +42,7 @@ exports.batch = util.makeVows('height', {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2.1']
+		'warnings': ['css-minimum:2.1']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

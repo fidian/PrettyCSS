@@ -6,19 +6,19 @@ exports.batch = util.makeVows('offset', {
 		'tokens': ['IDENT'],
 		'toString': 'auto',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'-10% blah': {
 		'tokens': ['UNIT', 'S', 'IDENT'],
 		'toString': '-10%',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'none': {
 		'tokens': ['IDENT'],

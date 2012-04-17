@@ -24,13 +24,13 @@ exports.batch = util.makeVows('border-single', {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'solid inherit',
 		'unparsed': [],
-		'warnings': ['inherit_not_allowed']
+		'warnings': ['inherit-not-allowed']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

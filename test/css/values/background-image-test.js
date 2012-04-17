@@ -13,7 +13,7 @@ exports.batch = util.makeVows('background-image', {
 		'tokens': ['URL', 'OPERATOR', 'S', 'URL'],
 		'toString': 'url(google), url(yahoo)',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'url(a) cookie monster': {
 		'tokens': ['URL', 'S', 'IDENT', 'S', 'IDENT'],

@@ -15,7 +15,7 @@ exports.batch = util.makeVows('background', {
 		'tokens': ['HASH', 'OPERATOR', 'S', 'HASH', 'OPERATOR', 'S', 'HASH', 'OPERATOR', 'S', 'IDENT'],
 		'toString': '#fff, #000, #f00, blue',
 		'unparsed': [],
-		'warnings': ['illegal_value', 'illegal_value', 'illegal_value']
+		'warnings': ['illegal', 'illegal', 'illegal']
 	},
 	'url(a)': {
 		'tokens': ['URL'],

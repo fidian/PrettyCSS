@@ -6,25 +6,25 @@ exports.batch = util.makeVows('border-radius-single', {
 		'tokens': ['UNIT'],
 		'toString': '1em',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'3% -10pt': {
 		'tokens': ['UNIT', 'S', 'UNIT'],
 		'toString': '3% -10pt',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3', 'positive_value_required']
+		'warnings': ['css-minimum:3', 'require-positive-value']
 	},
 	'67% comma_and_garbage': {
 		'tokens': ['UNIT', 'S', 'IDENT'],
 		'toString': '67%',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

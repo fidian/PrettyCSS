@@ -6,19 +6,19 @@ exports.batch = util.makeVows('visibility', {
 		'tokens': ['IDENT'],
 		'toString': 'visible',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'hidden inherit': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'hidden',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

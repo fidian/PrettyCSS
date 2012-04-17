@@ -6,14 +6,14 @@ exports.batch = util.makeVows('overflow', {
 		'tokens': ['IDENT'],
 		'toString': 'visible',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	// Could be tricky, but should be parsed as CSS2
 	'visible garbage': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'visible',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	// The CSS3 warning is on overflow-dimension
 	'scroll scroll': {
@@ -33,7 +33,7 @@ exports.batch = util.makeVows('overflow', {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

@@ -6,7 +6,7 @@ exports.batch = util.makeVows('bg-box', {
 		'tokens': ['IDENT'],
 		'toString': 'padding-box',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3', 'working_draft']
+		'warnings': ['css-minimum:3', 'css-draft']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

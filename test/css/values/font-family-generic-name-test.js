@@ -12,19 +12,19 @@ exports.batch = util.makeVows('font-family-generic-name', {
 		'tokens': ['STRING'],
 		'toString': '"sans-serif"',
 		'unparsed': [],
-		'warnings': ['should_not_be_quoted']
+		'warnings': ['remove-quotes']
 	},
 	'initial': {
 		'tokens': ['IDENT'],
 		'toString': 'initial',
 		'unparsed': [],
-		'warnings': ['reserved_for_future_use']
+		'warnings': ['reserved']
 	},
 	'default inherit': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'default',
 		'unparsed': ['IDENT'],
-		'warnings': ['reserved_for_future_use']
+		'warnings': ['reserved']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

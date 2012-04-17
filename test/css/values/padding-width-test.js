@@ -12,7 +12,7 @@ exports.batch = util.makeVows('padding-width', {
 		'tokens': ['UNIT'],
 		'toString': '-24px',
 		'unparsed': [],
-		'warnings': ['positive_value_required']
+		'warnings': ['require-positive-value']
 	},
 	'50%': {
 		'tokens': ['UNIT'],
@@ -24,7 +24,7 @@ exports.batch = util.makeVows('padding-width', {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

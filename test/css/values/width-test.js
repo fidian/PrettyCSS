@@ -12,7 +12,7 @@ exports.batch = util.makeVows('width', {
 		'tokens': ['UNIT'],
 		'toString': '-7em',
 		'unparsed': [],
-		'warnings': ['positive_value_required']
+		'warnings': ['require-positive-value']
 	},
 	'auto': {
 		'tokens': ['IDENT'],
@@ -30,7 +30,7 @@ exports.batch = util.makeVows('width', {
 		'tokens': ['UNIT'],
 		'toString': '-15%',
 		'unparsed': [],
-		'warnings': ['positive_value_required']
+		'warnings': ['require-positive-value']
 	},
 	'10px inherit': {
 		'tokens': ['UNIT', 'S', 'IDENT'],
@@ -42,7 +42,7 @@ exports.batch = util.makeVows('width', {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2.1']
+		'warnings': ['css-minimum:2.1']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

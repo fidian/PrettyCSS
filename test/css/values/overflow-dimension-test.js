@@ -6,19 +6,19 @@ exports.batch = util.makeVows('overflow-dimension', {
 		'tokens': ['IDENT'],
 		'toString': 'visible',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'hidden auto': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'hidden',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

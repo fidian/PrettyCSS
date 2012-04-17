@@ -15,13 +15,13 @@ exports.batch = util.makeVows('length', {
 		'tokens': [ 'UNIT' ],
 		'toString': '0',
 		'unparsed': [],
-		'warnings': [ 'no_unit_needed_on_zero_value', 'suggest_using_relative_units' ]
+		'warnings': [ 'suggest-remove-unit:px', 'suggest-relative-unit:px' ]
 	},
 	'-0em': {
 		'tokens': [ 'UNIT' ],
 		'toString': '0',
 		'unparsed': [],
-		'warnings': [ 'no_unit_needed_on_zero_value' ]
+		'warnings': [ 'suggest-remove-unit:em' ]
 	},
 
 	// em and ex are relative units
@@ -43,7 +43,7 @@ exports.batch = util.makeVows('length', {
 		'tokens': [ 'UNIT' ],
 		'toString': '99px',
 		'unparsed': [],
-		'warnings': [ 'suggest_using_relative_units' ]
+		'warnings': [ 'suggest-relative-unit:px' ]
 	},
 
 	// CSS3 units, all of which are relative:  ch rem vw vh vm
@@ -51,7 +51,7 @@ exports.batch = util.makeVows('length', {
 		'tokens': [ 'UNIT' ],
 		'toString': '9090rem',
 		'unparsed': [],
-		'warnings': [ 'minimum_css_version_3' ]
+		'warnings': [ 'css-minimum:3' ]
 	},
 
 	// Not a valid input

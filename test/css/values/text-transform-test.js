@@ -6,7 +6,7 @@ exports.batch = util.makeVows('text-transform', {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'none': {
 		'tokens': ['IDENT'],
@@ -24,13 +24,13 @@ exports.batch = util.makeVows('text-transform', {
 		'tokens': ['IDENT', 'S', 'IDENT', 'S', 'IDENT'],
 		'toString': 'capitalize full-width',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'full-size-kana': {
 		'tokens': ['IDENT'],
 		'toString': 'full-size-kana',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

@@ -12,7 +12,7 @@ exports.batch = util.makeVows('font-size', {
 		'tokens': ['UNIT'],
 		'toString': '-7em',
 		'unparsed': [],
-		'warnings': ['positive_value_required']
+		'warnings': ['require-positive-value']
 	},
 	'xx-small': {
 		'tokens': ['IDENT'],
@@ -24,7 +24,7 @@ exports.batch = util.makeVows('font-size', {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'medium large': {
 		'tokens': ['IDENT', 'S', 'IDENT'],

@@ -34,6 +34,8 @@ exports.fakeBucket = function () {
 			errors: [],
 
 			options: {
+				debug: false,
+				autocorrect: true,
 				ruleset_pre: "",
 				ruleset_post: "",
 				combinator_pre: "",

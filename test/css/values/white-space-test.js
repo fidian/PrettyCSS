@@ -12,13 +12,13 @@ exports.batch = util.makeVows('white-space', {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'pre-wrap blue': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'pre-wrap',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

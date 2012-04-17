@@ -18,19 +18,19 @@ exports.batch = util.makeVows('vertical-align', {
 		'tokens': ['UNIT', 'S', 'IDENT'],
 		'toString': '44em',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'use-script': {
 		'tokens': ['IDENT'],
 		'toString': 'use-script',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

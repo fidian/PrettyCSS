@@ -54,6 +54,7 @@ var testValue = function (name, obj, expected) {
 			var parser = {
 				debug: function () {},
 				options: {
+					autocorrect: true,
 					functionComma: ", ",
 					debug: false
 				}

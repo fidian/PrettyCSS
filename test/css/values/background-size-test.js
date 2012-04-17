@@ -24,7 +24,7 @@ exports.batch = util.makeVows('background-size', {
 		'tokens': ['IDENT', 'OPERATOR', 'S', 'IDENT'],
 		'toString': 'inherit',
 		'unparsed': ['OPERATOR', 'S', 'IDENT'],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	// bg-size does not match "inherit"
 	'cover, inherit': {

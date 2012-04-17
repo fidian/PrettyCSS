@@ -6,25 +6,25 @@ exports.batch = util.makeVows('position', {
 		'tokens': ['IDENT'],
 		'toString': 'static',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'center': {
 		'tokens': ['IDENT'],
 		'toString': 'center',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'center akldjfakldj': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'center',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

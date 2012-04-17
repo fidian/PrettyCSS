@@ -12,25 +12,25 @@ exports.batch = util.makeVows('display', {
 		'tokens': ['IDENT', 'S', 'STRING'],
 		'toString': 'block "a"',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'"a" block': {
 		'tokens': ['STRING', 'S', 'IDENT'],
 		'toString': '"a" block',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'"a" blocker': {
 		'tokens': ['STRING', 'S', 'IDENT'],
 		'toString': '"a"',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

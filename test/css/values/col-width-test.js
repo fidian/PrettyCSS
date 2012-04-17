@@ -6,31 +6,31 @@ exports.batch = util.makeVows('col-width', {
 		'tokens': ['CHAR', 'S', 'IDENT'],
 		'toString': '*',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'minmax(1em,2px)': {
 		'tokens': ['FUNCTION', 'UNIT', 'OPERATOR', 'UNIT', 'PAREN_CLOSE'],
 		'toString': 'minmax(1em, 2px)',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'7em': {
 		'tokens': ['UNIT'],
 		'toString': '7em',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'-7em': {
 		'tokens': ['UNIT'],
 		'toString': '-7em',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3', 'positive_value_required']
+		'warnings': ['css-minimum:3', 'require-positive-value']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

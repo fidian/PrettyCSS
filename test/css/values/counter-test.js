@@ -12,7 +12,7 @@ exports.batch = util.makeVows('counter', {
 		'tokens': ['FUNCTION', 'S', 'IDENT', 'S', 'OPERATOR', 'S', 'STRING', 'S', 'PAREN_CLOSE'],
 		'toString': 'counters(inherit, "smacky")',
 		'unparsed': [],
-		'warnings': ['inherit_not_allowed']
+		'warnings': ['inherit-not-allowed']
 	},
 	'counter(mcmacken,square) balloon': {
 		'tokens': ['FUNCTION', 'IDENT', 'OPERATOR', 'IDENT', 'PAREN_CLOSE', 'S', 'IDENT'],

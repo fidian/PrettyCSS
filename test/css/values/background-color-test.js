@@ -18,13 +18,13 @@ exports.batch = util.makeVows('background-color', {
 		'tokens': ['IDENT'],	
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2', 'browser_unsupported_IE7', 'browser_quirk_IE8']
+		'warnings': ['css-minimum:2', 'browser-unsupported:ie7', 'browser-quirk:ie8']
 	},
 	'initial': {
 		'tokens': ['IDENT'],		
 		'toString': 'initial',  	
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},		          	
 	'klasdfkljsd': {
 		'tokens': ['IDENT'],

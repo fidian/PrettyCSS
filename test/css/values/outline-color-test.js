@@ -6,19 +6,19 @@ exports.batch = util.makeVows('outline-color', {
 		'tokens': ['IDENT'],
 		'toString': 'invert',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'blue green': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'blue',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

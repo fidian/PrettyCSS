@@ -6,7 +6,7 @@ exports.batch = util.makeVows('background-clip', {
 		'tokens': [ 'IDENT', 'S' ],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'content-box 77': {
 		'tokens': [ 'IDENT', 'S', 'UNIT' ],

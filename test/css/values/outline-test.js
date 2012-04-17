@@ -18,13 +18,13 @@ exports.batch = util.makeVows('outline', {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'groove inherit',
 		'unparsed': [],
-		'warnings': ['inherit_not_allowed']
+		'warnings': ['inherit-not-allowed']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

@@ -6,7 +6,7 @@ exports.batch = util.makeVows('text-decoration-blink', {
 		'tokens': ['IDENT'],
 		'toString': 'blink',
 		'unparsed': [],
-		'warnings': ['browser_unsupported_IE', 'browser_unsupported_Chrome', 'browser_unsupported_Safari'] 
+		'warnings': ['browser-unsupported:ie', 'browser-unsupported:c', 'browser-unsupported:s'] 
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

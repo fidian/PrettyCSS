@@ -6,7 +6,7 @@ exports.batch = util.makeVows('color', {
 		'tokens': ['IDENT'],
 		'toString': 'inactiveborder',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2', 'deprecated_css_v3_use_appearance']
+		'warnings': ['css-minimum:2', 'css-deprecated:3', 'suggest-using:appearance']
 	},
 	'#fed': {
 		'tokens': ['HASH'],
@@ -36,25 +36,25 @@ exports.batch = util.makeVows('color', {
 		'tokens': ['IDENT'],
 		'toString': 'purple',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'orange': {
 		'tokens': ['IDENT'],
 		'toString': 'orange',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2.1']
+		'warnings': ['css-minimum:2.1']
 	},
 	'transparent blah blah': {
 		'tokens': ['IDENT', 'S', 'IDENT', 'S', 'IDENT'],
 		'toString': 'transparent',
 		'unparsed': ['IDENT', 'S', 'IDENT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'burlywood': {
 		'tokens': ['IDENT'],
 		'toString': 'burlywood',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	// No minimum css version here since it's part of CSS1
 	'inherit': {

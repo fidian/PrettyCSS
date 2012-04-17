@@ -12,13 +12,13 @@ exports.batch = util.makeVows('float', {
 		'tokens': ['IDENT'],
 		'toString': 'outside',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2', 'browser_quirk_IE8', 'browser_unsupported_IE7']
+		'warnings': ['css-minimum:2', 'browser-quirk:ie8', 'browser-unsupported:ie7']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

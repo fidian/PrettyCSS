@@ -18,13 +18,13 @@ exports.batch = util.makeVows('border-width', {
 		'tokens': ['UNIT', 'S', 'IDENT', 'S', 'UNIT'],
 		'toString': '5px inherit 10em',
 		'unparsed': [],
-		'warnings': ['inherit_not_allowed']
+		'warnings': ['inherit-not-allowed']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

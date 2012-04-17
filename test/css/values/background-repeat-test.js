@@ -18,19 +18,19 @@ exports.batch = util.makeVows('background-repeat', {
 		'tokens': ['IDENT', 'OPERATOR', 'S', 'IDENT', 'OPERATOR', 'S', 'IDENT'],
 		'toString': 'no-repeat, repeat',
 		'unparsed': ['OPERATOR', 'S', 'IDENT'],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'inherit, repeat-x': {
 		'tokens': ['IDENT', 'OPERATOR', 'S', 'IDENT'],
 		'toString': 'inherit',
 		'unparsed': ['OPERATOR', 'S', 'IDENT'],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'repeat-x, inherit': {
 		'tokens': ['IDENT', 'OPERATOR', 'S', 'IDENT'],
 		'toString': 'repeat-x, inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3', 'inherit_not_allowed']
+		'warnings': ['css-minimum:3', 'inherit-not-allowed']
 	},
 	'code-monkey': {
 		'tokens': ['IDENT'],

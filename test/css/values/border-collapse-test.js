@@ -6,7 +6,7 @@ exports.batch = util.makeVows('border-collapse', {
 		'tokens': ['IDENT'],
 		'toString': 'collapse',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

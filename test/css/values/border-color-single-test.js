@@ -18,7 +18,7 @@ exports.batch = util.makeVows('border-color-single', {
 		'tokens': ['IDENT'],
 		'toString': 'transparent',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2.1']
+		'warnings': ['css-minimum:2.1']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

@@ -12,7 +12,7 @@ exports.batch = util.makeVows('clear', {
 		'tokens': ['IDENT', 'S', 'IDENT'],
 		'toString': 'inherit',
 		'unparsed': ['IDENT'],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

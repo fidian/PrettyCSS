@@ -12,19 +12,19 @@ exports.batch = util.makeVows('list-style-type', {
 		'tokens': ['IDENT'],
 		'toString': 'lower-latin',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2', 'maximum_css_version_2.1']
+		'warnings': ['css-minimum:2', 'css-maximum:2.1']
 	},
 	'arabic-indic': {
 		'tokens': ['IDENT'],
 		'toString': 'arabic-indic',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

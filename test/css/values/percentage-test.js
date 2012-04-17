@@ -12,19 +12,19 @@ exports.batch = util.makeVows('percentage', {
 		'tokens': ['UNIT'],
 		'toString': '13%',
 		'unparsed': [],
-		'warnings': ['integer_value_required']
+		'warnings': ['require-integer']
 	},
 	'13.12%': {
 		'tokens': ['UNIT'],
 		'toString': '13%',
 		'unparsed': [],
-		'warnings': ['integer_value_required']
+		'warnings': ['require-integer']
 	},
 	'.12%': {
 		'tokens': ['UNIT'],
 		'toString': '0%',
 		'unparsed': [],
-		'warnings': ['integer_value_required']
+		'warnings': ['require-integer']
 	},
 	'-12%': {
 		'tokens': ['UNIT'],

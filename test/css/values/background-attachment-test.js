@@ -13,13 +13,13 @@ exports.batch = util.makeVows('background-attachment', {
 		'tokens': [ 'IDENT', 'S', 'OPERATOR', 'S', 'IDENT', 'S', 'OPERATOR', 'S', 'IDENT' ],
 		'toString': 'scroll, fixed',
 		'unparsed': ['OPERATOR', 'S', 'IDENT'],
-		'warnings': [ 'minimum_css_version_3' ]
+		'warnings': [ 'css-minimum:3' ]
 	},
 	'scroll,fixed,scroll,fixed': {
 		'tokens': [ 'IDENT', 'OPERATOR', 'IDENT', 'OPERATOR', 'IDENT', 'OPERATOR', 'IDENT' ],
 		'toString': 'scroll, fixed, scroll, fixed',
 		'unparsed': [],
-		'warnings': [ 'minimum_css_version_3' ]
+		'warnings': [ 'css-minimum:3' ]
 	},
 	'moose': {
 		'tokens': [ 'IDENT' ],

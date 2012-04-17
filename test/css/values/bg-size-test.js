@@ -6,19 +6,19 @@ exports.batch = util.makeVows('bg-size', {
 		'tokens': ['IDENT', 'S', 'UNIT'],
 		'toString': 'auto 26%',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'50em': {
 		'tokens': ['UNIT'],
 		'toString': '50em',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'cover': {
 		'tokens': ['IDENT'],
 		'toString': 'cover',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

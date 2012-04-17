@@ -13,7 +13,7 @@ exports.batch = util.makeVows('filter', {
 		'tokens': ['FUNCTION', 'IDENT', 'MATCH', 'UNIT', 'PAREN_CLOSE'],
 		'toString': 'alpha(opacity=12)',
 		'unparsed': [],
-		'warnings': ['unofficial']
+		'warnings': []
 	},
 
 	// Wrong, but corrected
@@ -21,7 +21,7 @@ exports.batch = util.makeVows('filter', {
 		'tokens': ['FUNCTION', 'IDENT', 'COLON', 'UNIT', 'PAREN_CLOSE'],
 		'toString': 'alpha(opacity=12)',
 		'unparsed': [],
-		'warnings': ['unofficial', 'use_equals_instead']
+		'warnings': ['filter-use-equals-instead']
 	},
 
 	// Invalid, but they look good-ish
@@ -44,7 +44,7 @@ exports.batch = util.makeVows('filter', {
 		'tokens': ['FUNCTION', 'IDENT', 'MATCH', 'UNIT', 'PAREN_CLOSE'],
 		'toString': 'alpha(opacity=0.12)',
 		'unparsed': [],
-		'warnings': ['unofficial', 'only_integers_allowed']
+		'warnings': ['require-integer']
 	},
 
 	// Change : to =, and the browser should see this as opacity=0
@@ -52,7 +52,7 @@ exports.batch = util.makeVows('filter', {
 		'tokens': ['FUNCTION', 'IDENT', 'COLON', 'UNIT', 'PAREN_CLOSE'],
 		'toString': 'alpha(opacity=.12)',
 		'unparsed': [],
-		'warnings': ['unofficial', 'use_equals_instead', 'only_integers_allowed']
+		'warnings': ['filter-use-equals-instead', 'require-integer']
 	},
 
 	// Unsure if inherit is supported by IE.  Probably shouldn't be used.

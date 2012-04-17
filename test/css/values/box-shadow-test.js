@@ -6,19 +6,19 @@ exports.batch = util.makeVows('box-shadow', {
 		'tokens': ['IDENT','S','UNIT','S','UNIT','S','UNIT','S','UNIT'],
 		'toString': 'inset 8px 8px 8px 8px',
 		'unparsed': [],
-		'warnings':['minimum_css_version_3']
+		'warnings':['css-minimum:3']
 	},
 	'none': {
 		'tokens': ['IDENT'],
 		'toString': 'none',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_3']
+		'warnings': ['css-minimum:3']
 	},
 	'invalidValue': {
 		'tokens': ['IDENT'],

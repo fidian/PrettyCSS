@@ -6,19 +6,19 @@ exports.batch = util.makeVows('font-family', {
 		'tokens': ['IDENT'],
 		'toString': 'Times',
 		'unparsed': [],
-		'warnings': ['font_family_one_generic_at_end']
+		'warnings': ['font-family-one-generic']
 	},
 	'Times New Roman': {
 		'tokens': ['IDENT', 'S', 'IDENT', 'S', 'IDENT'],
 		'toString': 'Times New Roman',
 		'unparsed': [],
-		'warnings': ['font_family_one_generic_at_end']
+		'warnings': ['font-family-one-generic']
 	},
 	'serif, "Times New Roman"': {
 		'tokens': ['IDENT', 'OPERATOR', 'S', 'STRING'],
 		'toString': 'serif, "Times New Roman"',
 		'unparsed': [],
-		'warnings': ['font_family_one_generic_at_end']
+		'warnings': ['font-family-one-generic']
 	},
 	'"Times New Roman", serif': {
 		'tokens': ['STRING', 'OPERATOR', 'S', 'IDENT'],
@@ -36,19 +36,19 @@ exports.batch = util.makeVows('font-family', {
 		'tokens': ['STRING', 'S', 'IDENT'],
 		'toString': '"Times New Roman"',
 		'unparsed': ['IDENT'],
-		'warnings': ['font_family_one_generic_at_end']
+		'warnings': ['font-family-one-generic']
 	},
 	'valid, inherit': {
 		'tokens': ['IDENT', 'OPERATOR', 'S', 'IDENT'],
 		'toString': 'valid, inherit',
 		'unparsed': [],
-		'warnings': ['font_family_one_generic_at_end', 'inherit_not_allowed']
+		'warnings': ['font-family-one-generic', 'inherit-not-allowed']
 	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': 'inherit',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'76em': {
 		'tokens': ['UNIT'],

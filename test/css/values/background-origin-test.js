@@ -24,7 +24,7 @@ exports.batch = util.makeVows('background-origin', {
 		'tokens': ['IDENT', 'OPERATOR', 'S', 'IDENT'],
 		'toString': 'border-box, inherit',
 		'unparsed': [],
-		'warnings': ['inherit_not_allowed']
+		'warnings': ['inherit-not-allowed']
 	},
 	'url(a) alsjdjd': {
 		'tokens': ['URL', 'S', 'IDENT'],

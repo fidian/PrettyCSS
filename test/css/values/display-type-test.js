@@ -12,7 +12,7 @@ exports.batch = util.makeVows('display-type', {
 		'tokens': [ 'IDENT', 'S' ],
 		'toString': 'compact',
 		'unparsed': [],
-		'warnings': [ 'minimum_css_version_2', 'maximum_css_version_2', 'not_forward_compatible_2.1' ]
+		'warnings': [ 'css-minimum:2', 'css-maximum:2', 'not-forward-compatible:2.1' ]
 	},
 	'asdfjadfj': {
 		'tokens': ['IDENT'],
@@ -24,18 +24,18 @@ exports.batch = util.makeVows('display-type', {
 		'tokens': ['IDENT'],
 		'toString': 'table-footer-group',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2']
+		'warnings': ['css-minimum:2']
 	},
 	'inline-block': {
 		'tokens': ['IDENT'],
 		'toString': 'inline-block',
 		'unparsed': [],
-		'warnings': ['minimum_css_version_2.1']
+		'warnings': ['css-minimum:2.1']
 	},
 	'inherit pinkeye 27': {
 		'tokens': ['IDENT', 'S', 'IDENT', 'S', 'UNIT' ],
 		'toString': 'inherit',
 		'unparsed': [ 'IDENT', 'S', 'UNIT' ],
-		'warnings': ['minimum_css_version_2', 'browser_unsupported_IE7', 'browser_quirk_IE8']
+		'warnings': ['css-minimum:2', 'browser-unsupported:ie7', 'browser-quirk:ie8']
 	}
 });

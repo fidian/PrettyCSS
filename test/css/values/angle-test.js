@@ -35,19 +35,19 @@ exports.batch = util.makeVows('angle', {
 		'tokens': [ 'UNIT' ],
 		'toString': '348',
 		'unparsed': [],
-		'warnings': [ 'angle_between_0_and_360' ]
+		'warnings': [ 'angle' ]
 	},
 	'360': {
 		'tokens': [ 'UNIT' ],
 		'toString': '0',
 		'unparsed': [],
-		'warnings': [ 'angle_between_0_and_360' ]
+		'warnings': [ 'angle' ]
 	},
 	'722': {
 		'tokens': [ 'UNIT' ],
 		'toString': '2',
 		'unparsed': [],
-		'warnings': [ 'angle_between_0_and_360' ]
+		'warnings': [ 'angle' ]
 	},
 
 	// Not a valid input
