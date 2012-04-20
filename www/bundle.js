@@ -1134,7 +1134,8 @@ var util = require('../../util');
 // Mapping properties to value types
 var propertyMapping = {
 	'font-family': 'font-face-font-family',
-	'font-style': 'font-style'
+	'font-style': 'font-face-font-style',
+	'font-variant': 'font-face-font-variant'
 };
 
 var Declaration = base.baseConstructor();
@@ -1374,8 +1375,25 @@ exports['display'] = require('./values/display');
 exports['display-type'] = require('./values/display-type');
 exports['filter'] = require('./values/filter');
 exports['float'] = require('./values/float');
+exports['font-face-annotation'] = require('./values/font-face-annotation');
+exports['font-face-caps-values'] = require('./values/font-face-caps-values');
+exports['font-face-character-variant'] = require('./values/font-face-character-variant');
+exports['font-face-common-lig-values'] = require('./values/font-face-common-lig-values');
+exports['font-face-contextual-lig-values'] = require('./values/font-face-contextual-lig-values');
+exports['font-face-discretionary-lig-values'] = require('./values/font-face-discretionary-lig-values');
+exports['font-face-east-asian-variant-values'] = require('./values/font-face-east-asian-variant-values');
+exports['font-face-east-asian-width-values'] = require('./values/font-face-east-asian-width-values');
 exports['font-face-font-family'] = require('./values/font-face-font-family');
 exports['font-face-font-style'] = require('./values/font-face-font-style');
+exports['font-face-font-variant'] = require('./values/font-face-font-variant');
+exports['font-face-historical-lig-values'] = require('./values/font-face-historical-lig-values');
+exports['font-face-numeric-figure-values'] = require('./values/font-face-numeric-figure-values');
+exports['font-face-numeric-fraction-values'] = require('./values/font-face-numeric-fraction-values');
+exports['font-face-numeric-spacing-values'] = require('./values/font-face-numeric-spacing-values');
+exports['font-face-ornaments'] = require('./values/font-face-ornaments');
+exports['font-face-styleset'] = require('./values/font-face-styleset');
+exports['font-face-stylistic'] = require('./values/font-face-stylistic');
+exports['font-face-swash'] = require('./values/font-face-swash');
 exports['font-family-generic-name'] = require('./values/font-family-generic-name');
 exports['font-family'] = require('./values/font-family');
 exports['font-family-name'] = require('./values/font-family-name');
@@ -1622,6 +1640,18 @@ exports.base = {
 		return true;
 	},
 
+	handleAll: function () {
+		if (this.unparsed.isContent('all')) {
+			this.add(this.unparsed.advance());
+			validate.call(this, 'minimumCss', this.firstToken(), 2);
+			validate.call(this, 'maximumCss', this.firstToken(), 2);
+			validate.call(this, 'notForwardCompatible', this.firstToken(), 3);
+			return true;
+		}
+
+		return false;
+	},
+	
 	handleInherit: function (validator) {
 		if (this.unparsed.isContent('inherit')) {
 			this.add(this.unparsed.advance());
@@ -5079,6 +5109,291 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 });
 
+require.define("/css/values/font-face-annotation.js", function (require, module, exports, __dirname, __filename) {
+/* font-face-annotation
+ *
+ * annotation( WS? <feature-value-name> WS? )
+ *
+ * feature-value-name is <font-family-single>
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+
+var Func = base.baseConstructor();
+
+util.extend(Func.prototype, base.base, {
+	name: "font-face-annotation"
+});
+
+
+exports.parse = function (unparsedReal, bucket, container) {
+	var f = new Func(bucket, container, unparsedReal);
+	f.debug('parse', f.unparsed);
+
+	if (! f.functionParser('annotation(', bucket['font-family-single'])) {
+		f.debug('parse fail');
+		return null;
+	}
+
+	f.debug('parse success');
+	return f;
+};
+
+});
+
+require.define("/css/values/font-face-caps-values.js", function (require, module, exports, __dirname, __filename) {
+/* <font-face-caps-values>
+ *
+ * This does not emit a CSS3 warning
+ *
+ * CSS3: small-caps | all-small-caps | petite-caps | all-petite-caps | tilting-caps | unicase
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "font-face-historical-lig-values",
+
+	allowed: [
+		{
+			validation: [],
+			values: [
+				"historical-ligatures",
+				"no-historical-ligatures"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+
+});
+
+require.define("/css/values/font-face-character-variant.js", function (require, module, exports, __dirname, __filename) {
+/* font-face-character-variant
+ *
+ * character-variant( WS? <feature-value-name> WS? [ COMMA WS? <feature-value-name WS? ]* )
+ *
+ * feature-value-name is <font-family-single>
+ * With commas, this looks like character-variant(<font-family>)
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+
+var Func = base.baseConstructor();
+
+util.extend(Func.prototype, base.base, {
+	name: "font-face-character-variant"
+});
+
+
+exports.parse = function (unparsedReal, bucket, container) {
+	var f = new Func(bucket, container, unparsedReal);
+	f.debug('parse', f.unparsed);
+
+	if (! f.functionParser('character-variant(', bucket['font-family'])) {
+		f.debug('parse fail');
+		return null;
+	}
+
+	f.debug('parse success');
+	return f;
+};
+
+});
+
+require.define("/css/values/font-face-common-lig-values.js", function (require, module, exports, __dirname, __filename) {
+/* <font-face-common-lig-values>
+ *
+ * This does not emit a CSS3 warning
+ *
+ * CSS3: common-ligatures | no-common-ligatures
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "font-face-common-lig-values",
+
+	allowed: [
+		{
+			validation: [],
+			values: [
+				"common-ligatures",
+				"no-common-ligatures"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+
+});
+
+require.define("/css/values/font-face-contextual-lig-values.js", function (require, module, exports, __dirname, __filename) {
+/* <font-face-contextual-lig-values>
+ *
+ * This does not emit a CSS3 warning
+ *
+ * CSS3: contextual-ligatures | no-contextual-ligatures
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "font-face-conextual-lig-values",
+
+	allowed: [
+		{
+			validation: [],
+			values: [
+				"contextual-ligatures",
+				"no-contextual-ligatures"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+
+});
+
+require.define("/css/values/font-face-discretionary-lig-values.js", function (require, module, exports, __dirname, __filename) {
+/* <font-face-discretionary-lig-values>
+ *
+ * This does not emit a CSS3 warning
+ *
+ * CSS3: discretionary-ligatures | no-discretionary-ligatures
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "font-face-discretionary-lig-values",
+
+	allowed: [
+		{
+			validation: [],
+			values: [
+				"discretionary-ligatures",
+				"no-discretionary-ligatures"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+
+});
+
+require.define("/css/values/font-face-east-asian-variant-values.js", function (require, module, exports, __dirname, __filename) {
+/* <font-face-east-asian-variant-values>
+ *
+ * This does not emit a CSS3 warning
+ *
+ * CSS3: jis78 | jis83 | jis90 | jis04 | simplified | traditional
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "font-face-east-asian-variant-values",
+
+	allowed: [
+		{
+			validation: [],
+			values: [
+				"jis78",
+				"jis83",
+				"jis90",
+				"jis04",
+				"simplified",
+				"traditional"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+
+});
+
+require.define("/css/values/font-face-east-asian-width-values.js", function (require, module, exports, __dirname, __filename) {
+/* <font-face-east-asian-width-values>
+ *
+ * This does not emit a CSS3 warning
+ *
+ * CSS3: full-width | proportional-width
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "font-face-east-asian-width-values",
+
+	allowed: [
+		{
+			validation: [],
+			values: [
+				"full-width",
+				"proportional-width"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+
+});
+
 require.define("/css/values/font-face-font-family.js", function (require, module, exports, __dirname, __filename) {
 /* font-face-font-family
  *
@@ -5144,6 +5459,11 @@ util.extend(FontFaceFontStyle.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var fffs = new FontFaceFontStyle(bucket, container, unparsedReal);
 	fffs.debug('parse', unparsedReal);
+
+	if (fffs.handleAll()) {
+		return fffs;
+	}
+
 	fffs.repeatWithCommas = true;
 	var hits = fffs.repeatParser(bucket['font-style']);
 
@@ -5155,6 +5475,378 @@ exports.parse = function (unparsedReal, bucket, container) {
 	fffs.fontValidation(hits);
 	fffs.debug('parse success', fffs.unparsed);
 	return fffs;
+};
+
+});
+
+require.define("/css/values/font-face-font-variant.js", function (require, module, exports, __dirname, __filename) {
+/* font-face-font-variant
+ *
+ * Note:  inherit is not allowed
+ *
+ * CSS2:  [ normal | small-caps ]#
+ *   This matches <font-variant-css21>
+ * CSS3:  normal |
+ *        [ <font-face-common-lig-values> ||
+ *          <font-face-discretionary-lig-values> ||
+ *          <font-face-historical-lig-values> ||
+ *          <font-face-contextual-lig-values> ||
+ *          <font-face-stylistic> ||
+ *          historical-forms ||
+ *          <font-face-styleset> ||
+ *          <font-face-character-variant> ||
+ *          <font-face-swash> ||
+ *          <font-face-ornaments> ||
+ *          <font-face-annotation> ||
+ *          ruby ||
+ *          <font-face-caps-values> ||
+ *          <font-face-numeric-figure-values> ||
+ *          <font-face-numeric-spacing-values> ||
+ *          <font-face-numeric-fraction-values> ||
+ *          slashed-zero ||
+ *          <font-face-east-asian-variant-values> ||
+ *          <font-face-east-asian-width-values> ]
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var FontFaceFontVariant = base.baseConstructor();
+
+util.extend(FontFaceFontVariant.prototype, base.base, {
+	name: "font-face-font-variant"
+});
+
+
+exports.parse = function (unparsedReal, bucket, container) {
+	var fffv = new FontFaceFontVariant(bucket, container, unparsedReal);
+	fffv.debug('parse', unparsedReal);
+
+	fffv.repeatWithCommas = true;
+	var hits = fffv.repeatParser(bucket['font-variant-css21']);
+
+	if (hits) {
+		fffv.fontValidation(hits);
+		fffv.debug('parse success - css2', fffv.unparsed);
+		return fffv;
+	}
+
+	fffv = new FontFaceFontVariant(bucket, container, unparsedReal);
+	hits = fffv.unparsed.matchAnyOrder([
+		// Normal was already parsed
+		bucket['font-face-common-lig-values'],
+		bucket['font-face-discretionary-lig-values'],
+		bucket['font-face-historical-lig-values'],
+		bucket['font-face-contextual-lig-values'],
+		bucket['font-face-stylistic'],
+		'historical-forms',
+		bucket['font-face-styleset'],
+		bucket['font-face-character-variant'],
+		bucket['font-face-swash'],
+		bucket['font-face-ornaments'],
+		bucket['font-face-annotation'],
+		'ruby',
+		bucket['font-face-caps-values'],
+		bucket['font-face-numeric-figure-values'],
+		bucket['font-face-numeric-spacing-values'],
+		bucket['font-face-numeric-fraction-values'],
+		slashed-zero,
+		bucket['font-face-east-asian-variant-values'],
+		bucket['font-face-east-asian-width-values']
+	], fffv);
+
+	if (! hits) {
+		fffv.debug('parse fail');
+		return null;
+	}
+
+	fffv.fontValidation();
+	fffv.debug('parse success - css3', fffv.unparsed);
+	return fffv;
+};
+
+});
+
+require.define("/css/values/font-face-historical-lig-values.js", function (require, module, exports, __dirname, __filename) {
+/* <font-face-historical-lig-values>
+ *
+ * This does not emit a CSS3 warning
+ *
+ * CSS3: historical-ligatures | no-historical-ligatures
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "font-face-historical-lig-values",
+
+	allowed: [
+		{
+			validation: [],
+			values: [
+				"historical-ligatures",
+				"no-historical-ligatures"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+
+});
+
+require.define("/css/values/font-face-numeric-figure-values.js", function (require, module, exports, __dirname, __filename) {
+/* <font-face-numerical-figure-values>
+ *
+ * This does not emit a CSS3 warning
+ *
+ * CSS3: lining-nums | oldstyle-nums
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "font-face-numeric-figure-values",
+
+	allowed: [
+		{
+			validation: [],
+			values: [
+				"lining-nums",
+				"oldstyle-nums"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+
+});
+
+require.define("/css/values/font-face-numeric-fraction-values.js", function (require, module, exports, __dirname, __filename) {
+/* <font-face-numerical-fraction-values>
+ *
+ * This does not emit a CSS3 warning
+ *
+ * CSS3: diagonal-fractions | stacked-fractions
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "font-face-numeric-fraction-values",
+
+	allowed: [
+		{
+			validation: [],
+			values: [
+				"diagonal-fractions",
+				"stacked-fractions"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+
+});
+
+require.define("/css/values/font-face-numeric-spacing-values.js", function (require, module, exports, __dirname, __filename) {
+/* <font-face-numerical-spacing-values>
+ *
+ * This does not emit a CSS3 warning
+ *
+ * CSS3: proportional-nums | tabular-nums
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "font-face-numeric-spacing-values",
+
+	allowed: [
+		{
+			validation: [],
+			values: [
+				"proportional-nums",
+				"tabular-nums"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+
+});
+
+require.define("/css/values/font-face-ornaments.js", function (require, module, exports, __dirname, __filename) {
+/* font-face-ornaments
+ *
+ * ornaments( WS? <feature-value-name> WS? )
+ *
+ * feature-value-name is <font-family-single>
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+
+var Func = base.baseConstructor();
+
+util.extend(Func.prototype, base.base, {
+	name: "font-face-ornaments"
+});
+
+
+exports.parse = function (unparsedReal, bucket, container) {
+	var f = new Func(bucket, container, unparsedReal);
+	f.debug('parse', f.unparsed);
+
+	if (! f.functionParser('ornaments(', bucket['font-family-single'])) {
+		f.debug('parse fail');
+		return null;
+	}
+
+	f.debug('parse success');
+	return f;
+};
+
+});
+
+require.define("/css/values/font-face-styleset.js", function (require, module, exports, __dirname, __filename) {
+/* font-face-styleset
+ *
+ * styleset( WS? <feature-value-name> WS? [ COMMA WS? <feature-value-name WS? ]* )
+ *
+ * feature-value-name is <font-family-single>
+ * With commas, this looks like styleset(<font-family>)
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+
+var Func = base.baseConstructor();
+
+util.extend(Func.prototype, base.base, {
+	name: "font-face-styleset"
+});
+
+
+exports.parse = function (unparsedReal, bucket, container) {
+	var f = new Func(bucket, container, unparsedReal);
+	f.debug('parse', f.unparsed);
+
+	if (! f.functionParser('styleset(', bucket['font-family'])) {
+		f.debug('parse fail');
+		return null;
+	}
+
+	f.debug('parse success');
+	return f;
+};
+
+});
+
+require.define("/css/values/font-face-stylistic.js", function (require, module, exports, __dirname, __filename) {
+/* font-face-stylistic
+ *
+ * stylistic( WS? <feature-value-name> WS? )
+ *
+ * feature-value-name is <font-family-single>
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+
+var Func = base.baseConstructor();
+
+util.extend(Func.prototype, base.base, {
+	name: "font-face-stylistic"
+});
+
+
+exports.parse = function (unparsedReal, bucket, container) {
+	var f = new Func(bucket, container, unparsedReal);
+	f.debug('parse', f.unparsed);
+
+	if (! f.functionParser('stylistic(', bucket['font-family-single'])) {
+		f.debug('parse fail');
+		return null;
+	}
+
+	f.debug('parse success');
+	return f;
+};
+
+});
+
+require.define("/css/values/font-face-swash.js", function (require, module, exports, __dirname, __filename) {
+/* font-face-swash
+ *
+ * swash( WS? <feature-value-name> WS? )
+ *
+ * feature-value-name is <font-family-single>
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+
+var Func = base.baseConstructor();
+
+util.extend(Func.prototype, base.base, {
+	name: "font-face-swash"
+});
+
+
+exports.parse = function (unparsedReal, bucket, container) {
+	var f = new Func(bucket, container, unparsedReal);
+	f.debug('parse', f.unparsed);
+
+	if (! f.functionParser('swash(', bucket['font-family-single'])) {
+		f.debug('parse fail');
+		return null;
+	}
+
+	f.debug('parse success');
+	return f;
 };
 
 });
