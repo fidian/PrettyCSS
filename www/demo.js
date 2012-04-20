@@ -23,11 +23,9 @@ function showCodeList(target, list) {
 		var token = list[i].token;
 		var li = $('<li />');
 		var message = codeToMessage[code] || code;
-		var line = null;
 
 		if (token) {
-			message += " (" + token.type + ", line " + token.line + ")";
-			line = token.line;
+			message += " (" + token.type + ", line " + token.line + ", char " + token.charNum + ")";
 		} else {
 			message += " (no token supplied)";
 		}

@@ -10362,14 +10362,15 @@ var getDefsByLetter = function (tokens) {
 var defs = getTokenDefs();
 var defsByLetter = getDefsByLetter(defs);
 
-var Token = function (line, type, content) {
+var Token = function (line, charNum, type, content) {
 	this.line = line;
+	this.charNum = charNum; 
 	this.type = type;
 	this.content = content;
 };
 
 Token.prototype.clone = function () {
-	var newToken = new Token(this.line, this.type, this.content);
+	var newToken = new Token(this.line, this.charNum, this.type, this.content);
 	return newToken;
 };
 
@@ -10383,11 +10384,17 @@ var Tokenizer = function (options) {
 	this.tokens = [];
 };
 
-Tokenizer.prototype.addToken = function (line, type, content) {
-	var token = new Token(line, type, content);
+Tokenizer.prototype.addToken = function (tokenSpot, type, content) {
+	var token = new Token(tokenSpot.line, tokenSpot.charNum, type, content);
 	this.tokens.push(token);
 	defs[type].count ++;
-	return content.split(/\r?\n|\r/g).length - 1;
+	
+	var splitByLine = content.split(/\r?\n|\r/g);
+	if (splitByLine.length > 1) {
+		tokenSpot.line += splitByLine.length - 1;
+		tokenSpot.charNum = 1;
+	}
+	tokenSpot.charNum += splitByLine[splitByLine.length - 1].length;
 };
 
 Tokenizer.prototype.anyLeft = function () {
@@ -10431,7 +10438,10 @@ Tokenizer.prototype.tokenCounts = function () {
 };
 
 Tokenizer.prototype.tokenize = function (str) {
-	var lineNumber = 1;
+	var tokenSpot = {
+		line: 1,
+		charNum: 1
+	};
 	var wsAtEnd = new RegExp(wsPatternString + '+$');
 	var wsAtStart = new RegExp("^" + wsPatternString + "+");
 
@@ -10439,7 +10449,7 @@ Tokenizer.prototype.tokenize = function (str) {
 	
 	if (matches) {
 		str = str.substr(matches[0].length);
-		lineNumber += this.addToken(lineNumber, "S", matches[0]);
+		this.addToken(tokenSpot, "S", matches[0]);
 	}
 
 	while (str.length) {
@@ -10478,10 +10488,10 @@ Tokenizer.prototype.tokenize = function (str) {
 			}
 		}
 
-		lineNumber += this.addToken(lineNumber, type, match);
+		this.addToken(tokenSpot, type, match);
 
 		if (ws) {
-			lineNumber += this.addToken(lineNumber, "S", ws);
+			this.addToken(tokenSpot, "S", ws);
 		}
 	}
 };

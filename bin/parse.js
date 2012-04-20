@@ -98,7 +98,7 @@ for (var i = 0; i < filenames.length; i ++) {
 				var msg = "\t" + problemInfo.code + "  ";
 
 				if (problemInfo.token) {
-					msg += problemInfo.token.type + " (" + problemInfo.token.toString() + ") on line " + problemInfo.token.line;
+					msg += problemInfo.token.type + " (" + problemInfo.token.toString() + ") on line " + problemInfo.token.line + ", char " + problemInfo.token.charNum;
 				} else {
 					msg += "[no token]";
 				}
