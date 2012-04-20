@@ -493,12 +493,13 @@ exports.block = require('./css/block');
 exports.cdc = require('./css/cdc');
 exports.cdo = require('./css/cdo');
 exports.comment = require('./css/comment');
-exports.declaration = require('./css/declaration');
+exports.fontface = require('./css/fontface');
 exports.invalid = require('./css/invalid');
 exports.property = require('./css/property');
 exports.pseudoclass = require('./css/pseudoclass');
 exports.pseudoelement = require('./css/pseudoelement');
 exports.ruleset = require('./css/ruleset');
+exports.rule = require('./css/rule');
 exports.selector = require('./css/selector');
 exports.stylesheet = require('./css/stylesheet');
 exports.value = require('./css/value');
@@ -530,10 +531,8 @@ util.extend(At.prototype, base.base, {
 			}
 		});
 
-		if (this.stylesheet) {
-			var str = this.stylesheet.toString();
-			str = this.reindent(str);
-			out += this.addWhitespace('atblock', str);
+		if (this.block) {
+			out += this.block.toString();
 		}
 
 		return this.addWhitespace('at', out);
@@ -546,8 +545,13 @@ exports.canStartWith = function (token, tokens, bucket) {
 
 exports.parse = function (tokens, bucket, container) {
 	var at = new At(bucket, container);
+	at.block = null;
 	at.debug('parse', tokens);
 	var token = tokens.getToken();
+
+	if (token) {
+		var type = token.content.toLowerCase();
+	}
 
 	// Eat until the first semicolon or the ending of a block
 	while (token && token.type != 'SEMICOLON' && token.type != 'BLOCK_OPEN') {
@@ -556,6 +560,7 @@ exports.parse = function (tokens, bucket, container) {
 	}
 
 	if (! token) {
+		// Finished without hitting a semicolon nor a block
 		return at;
 	}
 
@@ -565,30 +570,23 @@ exports.parse = function (tokens, bucket, container) {
 		return at;
 	}
 
-	// Match braces and find the right closing block
-	var depth = 1;
-	token = tokens.nextToken();  // Consume BLOCK_OPEN
-	var blockTokens = [];
+	at.block = bucket.block.parse(tokens, bucket, at);
 
-	while (token && depth) {
-		if (token.type == 'BLOCK_OPEN') {
-			depth ++;
-		} else if (token.type == "BLOCK_CLOSE") {
-			depth --;
-		}
+	switch (type) {
+		case '@font-face':
+			// Add a font
+			at.block.reparseAs('fontface');
+			break;
 
-		if (depth) {
-			blockTokens.push(token);
-		}
+		case '@media':
+			// Stylesheet parser
+			at.block.reparseAs('stylesheet');
+			break;
 
-		token = tokens.nextToken();
+		default:
+			at.debug('Invalid type, so no block parsing for ' + type);
+			break;
 	}
-		
-	// Send the block through the stylesheet parser
-	// TODO:  pick different parser based on at-rule
-	var tempTokenizer = bucket.tokenizer.tokenize('', bucket.options);
-	tempTokenizer.tokens = blockTokens;
-	at.stylesheet = bucket.stylesheet.parse(tempTokenizer, bucket, at);
 
 	return at;
 };
@@ -621,8 +619,15 @@ exports.base = {
 			return token.type + "@" + token.line + ":" + JSON.stringify(token.content);
 		}
 
-		// It probably is not - use its toString() method
-		return token.toString();
+		// It is probably one of our value objects
+		// Avoid the "toString" method since that also calls debug
+		var out = token.name;
+
+		if (token.list instanceof Array) {
+			out += '(' + token.list.length + ')';
+		}
+
+		return out;
 	},
 
 	debug: function (message, info) {
@@ -645,12 +650,12 @@ exports.base = {
 
 		if (typeof info == "object") {
 			if (typeof info.getToken == "function") {
-				// Tokenizer object
-				message += "\n" + JSON.stringify(info.getToken());
+				// Tokenizer object - safe to call toString()
+				message += "\n" + JSON.stringify(info.getToken().toString());
 			} else if (info instanceof Array) {
 				// Array of tokens or CSS objects
 				var outArr = [];
-				message += "\n" + info.length;
+				message += "\narray(" + info.length + ")";
 				for (var i = 0; i < info.length; i ++) {
 					outArr.push(this.convertToString(info[i]));
 				}
@@ -693,7 +698,11 @@ exports.base = {
 		var myself = this;
 
 		var failed = this.parseTokenList.every(function (typeString) {
-			var type = myself.bucket[typeString];
+			var type = typeString;
+
+			if (myself.bucket[typeString]) {
+				type = myself.bucket[typeString];
+			}
 
 			if (type.canStartWith(token, tokens, myself.bucket)) {
 				myself.add(type.parse(tokens, myself.bucket, myself));
@@ -778,6 +787,7 @@ exports.setOptions = function (override) {
 
 	var options = {
 		debug: false,
+		autocorrect: true,
 		fileEncoding: "utf-8",
 		ruleset_pre: "",
 		ruleset_post: "\n\n",
@@ -899,14 +909,15 @@ var Block = function (bucket, container) {
 util.extend(Block.prototype, base.base, {
 	name: "block",
 
-	parseTokenList: [
-		'atRule',
-		'block',  // self-reference
-		'comment',
-		'whitespace',
-		'declaration',
-		'invalid' // Must be last
-	],
+	reparseAs: function (anotherThing) {
+		this.debug('reparse as ' + anotherThing, this.list);
+		var tempTokenizer = this.bucket.tokenizer.tokenize('', this.bucket.options);
+		tempTokenizer.tokens = this.list;
+		this.list = [
+			this.bucket[anotherThing].parse(tempTokenizer, this.bucket, this)
+		];
+		this.debug('reparse finish', this.list);
+	},
 
 	toString: function () {
 		this.debug('toString', this.list);
@@ -923,23 +934,29 @@ exports.canStartWith = function (token, tokens, bucket) {
 
 exports.parse = function (tokens, bucket, container) {
 	var block = new Block(bucket, container);
+	var depth = 1;
 	block.debug('parse', tokens);
 
-	if (container) {
-		// Consume open brace
-		tokens.next();
-	}
+	// Consume open brace
+	tokens.next();
 
 	while (tokens.anyLeft()) {
 		var token = tokens.getToken();
 
-		if (container && token.type == 'BLOCK_CLOSE') {
-			// Done with this block
-			tokens.next();
-			return block;
+		if (token.type == 'BLOCK_CLOSE') {
+			depth --;
+
+			if (! depth) {
+				// Done with this block
+				tokens.next();
+				return block;
+			}
+		} else if (token.type == 'BLOCK_OPEN') {
+			depth ++;
 		}
 
-		block.parseTokens(tokens);
+		block.add(token);
+		tokens.next();
 	}
 
 	return block;
@@ -1045,147 +1062,102 @@ exports.parse = function (tokens, bucket, container) {
 
 });
 
-require.define("/css/declaration.js", function (require, module, exports, __dirname, __filename) {
+require.define("/css/fontface.js", function (require, module, exports, __dirname, __filename) {
 "use strict";
 
 var base = require('./base');
+var declarationBucket = require('./declarationbucket');
 var util = require('../util');
-var valueBucket = require('./valuebucket');
+
+var FontFace = base.baseConstructor();
+
+util.extend(FontFace.prototype, base.base, {
+	name: "fontface",
+
+	parseTokenList: [
+		'comment',
+		'whitespace',
+		declarationBucket.fontface,
+		'invalid' // Must be last
+	],
+
+	toString: function () {
+		this.debug('toString');
+
+		var out = '';
+
+		this.list.forEach(function (item) {
+			out += item.toString();
+		});
+
+		return out;
+	}
+});
+
+exports.canStartWith = function (token, tokens, bucket) {
+	return false;  // Should not be used in auto-detection
+};
+
+exports.parse = function (tokens, bucket, container) {
+	var ff = new FontFace(bucket, container);
+	ff.debug('parse', tokens);
+
+	if (! bucket.parser.options.cssLevel || bucket.parser.options.cssLevel == 2.1) {
+		bucket.parser.addWarning('css-unsupported:2.1', tokens.getToken());
+	}
+
+	while (tokens.anyLeft()) {
+		ff.parseTokens(tokens);
+	}
+
+	return ff;
+};
+
+});
+
+require.define("/css/declarationbucket.js", function (require, module, exports, __dirname, __filename) {
+exports.fontface = require('./declarations/fontface');
+exports.rule = require('./declarations/rule');
+
+});
+
+require.define("/css/declarations/fontface.js", function (require, module, exports, __dirname, __filename) {
+// TODO:  Must specify font-family
+// TODO:  Must specify src
+// TODO:  inherit is not allowed
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
 
 // Mapping properties to value types
 var propertyMapping = {
-	'background': 'background',
-	'background-attachment': 'background-attachment',
-	'background-clip': 'background-clip',
-	'-khtml-background-clip': 'background-clip-deprecated',
-	'-moz-background-clip': 'background-clip-deprecated',
-	'-webkit-background-clip': 'background-clip-deprecated',
-	'background-color': 'background-color',
-	'background-image': 'background-image',
-	'background-origin': 'background-origin',
-	'background-position': 'background-position',
-	'background-repeat': 'background-repeat',
-	'background-size': 'background-size',
-	'border': 'border-single',
-	'border-bottom': 'border-single',
-	'border-bottom-left-radius': 'border-radius-single',
-	'-khtml-border-bottom-left-radius': 'border-radius-single-deprecated',
-	'-moz-border-radius-bottomleft': 'border-radius-single-deprecated',
-	'-webkit-border-bottom-left-radius': 'border-radius-single-deprecated',
-	'border-bottom-right-radius': 'border-radius-single',
-	'-khtml-border-bottom-right-radius': 'border-radius-single-deprecated',
-	'-moz-border-radius-bottomright': 'border-radius-single-deprecated',
-	'-webkit-border-bottom-right-radius': 'border-radius-single-deprecated',
-	'border-bottom-style': 'border-style',
-	'border-bottom-width': 'border-width-single',
-	'border-collapse': 'border-collapse',
-	'border-color': 'border-color',
-	'border-left': 'border-single',
-	'border-left-style': 'border-style',
-	'border-left-width': 'border-width-single',
-	'border-radius': 'border-radius',
-	'-khtml-border-radius': 'border-radius-deprecated',
-	'-moz-border-radius': 'border-radius-deprecated',
-	'-webkit-border-radius': 'border-radius-deprecated',
-	'border-right': 'border-single',
-	'border-right-style': 'border-style',
-	'border-right-width': 'border-width-single',
-	'border-spacing': 'border-spacing',
-	'border-style': 'border-style',
-	'border-top': 'border-single',
-	'border-top-left-radius': 'border-radius-single',
-	'-khtml-border-top-left-radius': 'border-radius-single-deprecated',
-	'-moz-border-radius-topleft': 'border-radius-single-deprecated',
-	'-webkit-border-top-left-radius': 'border-radius-single-deprecated',
-	'border-top-right-radius': 'border-radius-single',
-	'-khtml-border-top-right-radius': 'border-radius-single-deprecated',
-	'-moz-border-radius-topright': 'border-radius-single-deprecated',
-	'-webkit-border-top-right-radius': 'border-radius-single-deprecated',
-	'border-top-style': 'border-style',
-	'border-top-width': 'border-width-single',
-	'border-width': 'border-width',
-	'bottom': 'offset',
-	'box-shadow': 'box-shadow',
-	'-moz-box-shadow': 'box-shadow',
-	'-webkit-box-shadow': 'box-shadow',
-	'clear': 'clear',
-	'color': 'color',
-	'content': 'content',
-	'cursor': 'cursor',
-	'display': 'display',
-	'filter': 'filter',
-	'float': 'float',
-	'font': 'font',
-	'font-family': 'font-family',
-	'font-size': 'font-size',
-	'font-style': 'font-style',
-	'font-weight': 'font-weight',
-	'height': 'height',
-	'left': 'offset',
-	'line-height': 'line-height',
-	'list-style': 'list-style',
-	'list-style-image': 'list-style-image',
-	'list-style-position': 'list-style-position',
-	'list-style-type': 'list-style-type',
-	'margin': 'margin',
-	'margin-bottom': 'margin-width',
-	'margin-left': 'margin-width',
-	'margin-right': 'margin-width',
-	'margin-top': 'margin-width',
-	'max-height': 'max-length',
-	'max-width': 'max-length',
-	'min-height': 'min-length',
-	'min-width': 'min-length',
-	'opacity': 'opacity',
-	'outline': 'outline',
-	'outline-color': 'outline-color',
-	'outline-style': 'outline-style',
-	'outline-width': 'min-length',
-	'overflow': 'overflow',
-	'overflow-x': 'overflow-dimension',
-	'overflow-y': 'overflow-dimension',
-	'padding': 'padding',
-	'padding-bottom': 'padding-width',
-	'padding-left': 'padding-width',
-	'padding-right': 'padding-width',
-	'padding-top': 'padding-width',
-	'position': 'position',
-	'right': 'offset',
-	'text-align': 'text-align',
-	'text-decoration': 'text-decoration',
-	'text-decoration-color': 'text-decoration-color',
-	'text-decoration-line': 'text-decoration-line',
-	'text-decoration-style': 'text-decoration-style',
-	'text-indent': 'text-indent',
-	'text-overflow': 'text-overflow',
-	'text-shadow': 'text-shadow',
-	'-o-text-overflow': 'text-overflow',
-	'text-transform': 'text-transform',
-	'top': 'offset',
-	'vertical-align': 'vertical-align',
-	'visibility': 'visibility',
-	'white-space': 'white-space',
-	'width': 'width',
-	'z-index': 'z-index',
-	'zoom': 'zoom'
+	'font-family': 'font-face-font-family',
+	'font-style': 'font-style'
 };
 
 var Declaration = base.baseConstructor();
 
 util.extend(Declaration.prototype, base.base, {
-	name: "declaration",
-
-	toString: function () {
-		this.debug('toString');
-		var out = this.property.toString();
-		out += ":";
-		out += this.value.toString();
-		out += ";";
-		return this.addWhitespace('declaration', out);
-	}
+	name: "declaration-fontface"
 });
 
-exports.canStartWith = function (token, tokens, bucket) {
+
+exports.canStartWith = base.canStartWith;
+exports.parse = base.declarationParser(Declaration, propertyMapping);
+
+});
+
+require.define("/css/declarations/base.js", function (require, module, exports, __dirname, __filename) {
+"use strict";
+
+var cssBase = require('../base');
+var util = require('../../util');
+var valueBucket = require('../valuebucket');
+
+
+var canStartWith = function (token, tokens, bucket) {
 	// Needs to match property + S* + COLON
 	if (! bucket.property.canStartWith(token, tokens, bucket)) {
 		return false;
@@ -1202,7 +1174,30 @@ exports.canStartWith = function (token, tokens, bucket) {
 	if (t && t.type == 'COLON') {
 		return true;
 	}
+
+	return false;
 };
+
+
+var getParser = function (fromMe) {
+	switch (typeof fromMe) {
+		case 'function':  // eg. simpleWarningFunction('unofficial')
+			return fromMe;
+
+		case 'string':  // 'border-single'
+			if (! valueBucket[fromMe]) {
+				throw new Error('Invalid valueBucket property: ' + fromMe);
+			}
+			if (! valueBucket[fromMe].parse) {
+				throw new Error('Parser not defined for valueBucket[' + fromMe + ']');
+			}
+			return valueBucket[fromMe].parse;
+
+		default:
+			throw new Error('Unhandled "getParser" scenario: ' + typeof fromMe);
+	}
+};
+
 
 var isPartOfValue = function (token) {
 	if (! token) {
@@ -1216,66 +1211,123 @@ var isPartOfValue = function (token) {
 	return true;
 };
 
-exports.parse = function (tokens, bucket, container) {
-	var declaration = new Declaration(bucket, container);
-	declaration.debug('parse', tokens);
 
-	declaration.property = bucket.property.parse(tokens, bucket, declaration);
-	var nextToken = tokens.getToken();
+var remakeProperties = function (inObj) {
+	var outObj = {};
 
-	if (! nextToken || nextToken.type != "COLON") {
-		bucket.parser.addError('colon_expected', nextToken);
-		var invalidCss = bucket.invalid.parse(null, bucket, container);
-		invalidCss.addList(declaration.property.list);
-		invalidCss.consume(tokens);
-		return invalidCss;
+	for (var name in inObj) {
+		outObj[name] = getParser(inObj[name]);
 	}
 
-	tokens.next();
-	declaration.value = bucket.value.parse(tokens, bucket, declaration);
+	return outObj;
+};
 
-	// See if we can map properties to something we can validate
-	var propertyName = declaration.property.getPropertyName().toLowerCase();
 
-	if (! propertyMapping[propertyName]) {
-		// Not a known property
-		bucket.parser.addWarning('unknown_property', declaration.property.list[0]);
-		return declaration;
-	}
+var parser = function (Declaration, propertyMapping) {
+	propertyMapping = remakeProperties(propertyMapping);
+	return function (tokens, bucket, container) {
+		var declaration = new Declaration(bucket, container);
+		declaration.debug('parse', tokens);
 
-	if (declaration.value.getLength() === 0) {
-		bucket.parser.addWarning("no_value_for_property", declaration.property.list[0]);
-		return declaration;
-	}
+		declaration.property = bucket.property.parse(tokens, bucket, declaration);
+		var nextToken = tokens.getToken();
 
-	// Attempt to map the value
-	var valueTypeString = propertyMapping[propertyName];
-	valueBucket.setCssBucket(bucket);
-	var valueType = valueBucket[valueTypeString];
-	var result = valueType.parse(declaration.value.getTokens(), valueBucket, declaration);
-
-	if (! result) {
-		// Value did not match expected patterns
-		var tokenForError = declaration.value.firstToken();
-
-		if (! tokenForError) {
-			tokenForError = declaration.property.list[0];
+		if (! nextToken || nextToken.type != "COLON") {
+			bucket.parser.addError('colon-expected', nextToken);
+			var invalidCss = bucket.invalid.parse(null, bucket, container);
+			invalidCss.addList(declaration.property.list);
+			invalidCss.consume(tokens);
+			return invalidCss;
 		}
 
-		bucket.parser.addWarning("invalid_value", tokenForError);
+		tokens.next();
+		declaration.value = bucket.value.parse(tokens, bucket, declaration);
+
+		// See if we can map properties to something we can validate
+		var propertyName = declaration.property.getPropertyName().toLowerCase();
+
+		if (! propertyMapping[propertyName]) {
+			// Not a known property
+			bucket.parser.addWarning('unknown-property:' + propertyName, declaration.property.list[0]);
+			return declaration;
+		}
+
+		if (declaration.value.getLength() === 0) {
+			bucket.parser.addWarning("require-value", declaration.property.list[0]);
+			return declaration;
+		}
+
+		// Attempt to map the value
+		valueBucket.setCssBucket(bucket);
+		valueBucket.setDeclaration(declaration);
+		var valueParser = propertyMapping[propertyName];
+		var result = valueParser(declaration.value.getTokens(), valueBucket, declaration);
+
+		if (! result) {
+			// Value did not match expected patterns
+			var tokenForError = declaration.value.firstToken();
+
+			if (! tokenForError) {
+				tokenForError = declaration.property.list[0];
+			}
+
+			bucket.parser.addWarning("invalid-value", tokenForError);
+			return declaration;
+		}
+
+		result.doWarnings();
+
+		if (result.unparsed.length()) {
+			bucket.parser.addWarning("extra-tokens-after-value", result.unparsed.firstToken());
+		}
+
+		declaration.value.setTokens([ result, result.unparsed ]);
 		return declaration;
-	}
-
-	result.doWarnings();
-	result.unparsed.skipWhitespace();
-
-	if (result.unparsed.length()) {
-		bucket.parser.addWarning("extra_tokens_after_value", result.unparsed.firstToken());
-	}
-
-	declaration.value.setTokens([ result, result.unparsed ]);
-	return declaration;
+	};
 };
+
+
+var simpleWarningFunction = function (warning) {
+	return function (actualParser, extra) {
+		var realParser = getParser(actualParser);
+		return function (unparsedReal, bucket, container) {
+			var obj = realParser(unparsedReal, bucket, container);
+
+			if (obj) {
+				if ('undefined' != typeof useInstead) {
+					warning += ':' + useInstead;
+				}
+
+				obj.addWarning(warning, bucket.propertyToken);
+			}
+
+			return obj;
+		};
+	};
+};
+
+
+exports.base = {};
+
+util.extend(exports.base, cssBase.base, {
+	name: 'declaration-base',
+
+	toString: function () {
+		this.debug('toString');
+		var out = this.property.toString();
+		out += ":";
+		out += this.value.toString();
+		out += ":";
+		return this.addWhitespace("declaration", out);
+	}
+});
+
+exports.baseConstructor = cssBase.baseConstructor;
+exports.canStartWith = canStartWith;
+exports.declarationParser = parser;
+exports.deprecated = simpleWarningFunction('deprecated');
+exports.unofficial = simpleWarningFunction('unofficial');
+exports.wrongProperty = simpleWarningFunction('wrong-property');
 
 });
 
@@ -1283,7 +1335,6 @@ require.define("/css/valuebucket.js", function (require, module, exports, __dirn
 exports['angle'] = require('./values/angle');
 exports['attr'] = require('./values/attr');
 exports['background-attachment'] = require('./values/background-attachment');
-exports['background-clip-deprecated'] = require('./values/background-clip-deprecated');
 exports['background-clip'] = require('./values/background-clip');
 exports['background-color'] = require('./values/background-color');
 exports['background-image'] = require('./values/background-image');
@@ -1302,9 +1353,7 @@ exports['bg-size'] = require('./values/bg-size');
 exports['border-collapse'] = require('./values/border-collapse');
 exports['border-color'] = require('./values/border-color');
 exports['border-color-single'] = require('./values/border-color-single');
-exports['border-radius-deprecated'] = require('./values/border-radius-deprecated');
 exports['border-radius'] = require('./values/border-radius');
-exports['border-radius-single-deprecated'] = require('./values/border-radius-single-deprecated');
 exports['border-radius-single'] = require('./values/border-radius-single');
 exports['border-single'] = require('./values/border-single');
 exports['border-spacing'] = require('./values/border-spacing');
@@ -1325,9 +1374,12 @@ exports['display'] = require('./values/display');
 exports['display-type'] = require('./values/display-type');
 exports['filter'] = require('./values/filter');
 exports['float'] = require('./values/float');
+exports['font-face-font-family'] = require('./values/font-face-font-family');
+exports['font-face-font-style'] = require('./values/font-face-font-style');
 exports['font-family-generic-name'] = require('./values/font-family-generic-name');
 exports['font-family'] = require('./values/font-family');
 exports['font-family-name'] = require('./values/font-family-name');
+exports['font-family-single'] = require('./values/font-family-single');
 exports['font'] = require('./values/font');
 exports['font-size'] = require('./values/font-size');
 exports['font-style'] = require('./values/font-style');
@@ -1348,6 +1400,7 @@ exports['margin-width'] = require('./values/margin-width');
 exports['max-length'] = require('./values/max-length');
 exports['min-length'] = require('./values/min-length');
 exports['minmax'] = require('./values/minmax');
+exports['ms-progress-appearance'] = require('./values/ms-progress-appearance');
 exports['number'] = require('./values/number');
 exports['offset'] = require('./values/offset');
 exports['opacity'] = require('./values/opacity');
@@ -1393,6 +1446,12 @@ exports.setCssBucket = function (cssBucket) {
 	exports.parser = cssBucket.parser;
 	exports.options = cssBucket.options;
 };
+
+exports.setDeclaration = function (declaration) {
+	exports.declaration = declaration;
+	exports.propertyToken = declaration.property.list[0];
+};
+
 
 });
 
@@ -1502,6 +1561,18 @@ exports.base = {
 		}
 
 		return null;
+	},
+
+	fontValidation: function (hitsForCss2Only) {
+		var token = this.firstToken();
+
+		if (hitsForCss2Only && hitsForCss2Only > 1) {
+			validate.call(this, 'notForwardCompatible', token, 3);
+		}
+
+		validate.call(this, 'minimumCss', token, 2);
+		validate.call(this, 'unsupportedCss', token, 2.1);
+		this.warnIfInherit();
 	},
 
 	functionParser: function () {
@@ -1788,7 +1859,7 @@ exports.base = {
 		var token = this.isInherit();
 
 		if (token) {
-			this.addWarning('inherit_not_allowed', token);
+			this.addWarning('inherit-not-allowed', token);
 		}
 	},
 
@@ -1802,7 +1873,7 @@ exports.base = {
 		});
 
 		if (listCountPercent !== 0 && listCountPercent != valueList.length) {
-			this.addWarning('mixing_percentages_and_values', token);
+			this.addWarning('mixing-percentages', token);
 		}
 	},
 
@@ -1812,7 +1883,7 @@ exports.base = {
 		}
 
 		if (! (/^[-+]?[0-9]+$/).test(value)) {
-			this.addWarning('only_integers_allowed', token);
+			this.addWarning('require-integer', token);
 		}
 	},
 
@@ -1824,11 +1895,11 @@ exports.base = {
 		var v = (+value);
 
 		if (v > max) {
-			this.addWarning('out_of_range_max_' + max, token);
+			this.addWarning('range-max:' + max, token);
 			return max;
 		}
 		if (v < min) {
-			this.addWarning('out_of_range_min_' + min, token);
+			this.addWarning('range-min:' + min, token);
 			return min;
 		}
 
@@ -1902,7 +1973,7 @@ exports.angle = function () {
 		var a = +(token.content);
 
 		if (a < 0 || a >= 360) {
-			this.addWarning('angle_between_0_and_360', token);
+			this.addWarning('angle', token);
 		}
 
 		while (a < 0) {
@@ -1917,15 +1988,21 @@ exports.angle = function () {
 	};
 };
 
+exports.browserOnly= function (browserAndVersion) {
+	return function (token) {
+		this.addWarning('browser-only:' + browserAndVersion, token);
+	};
+};
+
 exports.browserQuirk = function (browserAndVersion) {
 	return function (token) {
-		this.addWarning('browser_quirk_' + browserAndVersion, token);
+		this.addWarning('browser-quirk:' + browserAndVersion, token);
 	};
 };
 
 exports.browserUnsupported = function (browserAndVersion) {
 	return function (token) {
-		this.addWarning('browser_unsupported_' + browserAndVersion, token);
+		this.addWarning('browser-unsupported:' + browserAndVersion, token);
 	};
 };
 
@@ -1945,14 +2022,10 @@ exports.call = function () {
 
 exports.deprecated = function (deprecatedVersion, suggestion) {
 	return function (tokenOrObject) {
-		var warning = 'deprecated_css';
+		var warning = 'css-deprecated';
 		
 		if (deprecatedVersion) {
-			warning += '_v' + deprecatedVersion;
-		}
-
-		if (suggestion) {
-			warning += '_use_' + suggestion;
+			warning += ':' + deprecatedVersion;
 		}
 
 		var token = tokenOrObject;
@@ -1968,7 +2041,7 @@ exports.deprecated = function (deprecatedVersion, suggestion) {
 exports.maximumCss = function (maxVersion) {
 	return function (token) {
 		if (! this.bucket.options.cssLevel || this.bucket.options.cssLevel > maxVersion) {
-			this.addWarning('maximum_css_version_' + maxVersion, token);
+			this.addWarning('css-maximum:' + maxVersion, token);
 		}
 	};
 };
@@ -1976,7 +2049,7 @@ exports.maximumCss = function (maxVersion) {
 exports.minimumCss = function (minVersion) {
 	return function (token) {
 		if (! this.bucket.options.cssLevel || this.bucket.options.cssLevel < minVersion) {
-			this.addWarning('minimum_css_version_' + minVersion, token);
+			this.addWarning('css-minimum:' + minVersion, token);
 		}
 	};
 };
@@ -1984,7 +2057,7 @@ exports.minimumCss = function (minVersion) {
 exports.notForwardCompatible = function (badVersion) {
 	return function (token) {
 		if (! this.bucket.options.cssLevel || this.bucket.options.cssLevel <= badVersion) {
-			this.addWarning('not_forward_compatible_' + badVersion, token);
+			this.addWarning('not-forward-compatible:' + badVersion, token);
 		}
 	};
 };
@@ -1995,7 +2068,7 @@ exports.numberPortionIsInteger = function () {
 		var num = tv.value.toString().match(/^[-+]?[0-9]*\.?[0-9]*/);
 		
 		if (! num || num.toString().indexOf('.') != -1) {
-			this.addWarning('integer_value_required', tv.token);
+			this.addWarning('require-integer', tv.token);
 		}
 	};
 };
@@ -2006,14 +2079,14 @@ exports.numberPortionIsNotZero = function () {
 		var num = tv.value.toString().match(/^[-+]?[0-9]*\.?[0-9]+/);
 		
 		if (+num === 0) {
-			this.addWarning('no_unit_needed_on_zero_value', tv.token);
+			this.addWarning('suggest-remove-unit:' + this.getUnit(), tv.token);
 		}
 	};
 };
 
 exports.shouldNotBeQuoted = function () {
 	return function (token) {
-		this.addWarning('should_not_be_quoted', token);
+		this.addWarning('remove-quotes', token);
 	};
 };
 
@@ -2022,35 +2095,34 @@ exports.positiveValue = function () {
 		var tv = getTokenAndValue(tokenOrObject);
 
 		if (tv.value.toString().charAt(0) == '-') {
-			this.addWarning('positive_value_required', tv.token);
+			this.addWarning('require-positive-value', tv.token);
 		}
 	};
 };
 
 exports.reserved = function () {
 	return function (token) {
-		this.addWarning('reserved_for_future_use', token);
+		this.addWarning('reserved', token);
+	};
+};
+
+exports.suggestUsing = function (propertyName) {
+	return function (token) {
+		this.addWarning('suggest-using:' + propertyName, token);
 	};
 };
 
 exports.suggestUsingRelativeUnits = function () {
 	return function (token) {
-		this.addWarning('suggest_using_relative_units', token);
+		this.addWarning('suggest-relative-unit:' + this.getUnit(), token);
 	};
 };
 
-
-exports.unofficial = function () {
-	return function (token) {
-		var tv = getTokenAndValue(token);
-		this.addWarning('unofficial', tv.token);
-	};
-};
 
 exports.unsupportedCss = function (badVersion) {
 	return function (token) {
 		if (! this.bucket.options.cssLevel || this.bucket.options.cssLevel == badVersion) {
-			this.addWarning('unsupported_css_version_' + badVersion, token);
+			this.addWarning('css-unsupported:' + badVersion, token);
 		}
 	};
 };
@@ -2063,7 +2135,7 @@ exports.withinRange = function (min, max) {
 
 exports.workingDraft = function () {
 	return function (token) {
-		this.addWarning('working_draft', token);
+		this.addWarning('css-draft', token);
 	};
 };
 
@@ -2149,39 +2221,6 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 });
 
-require.define("/css/values/background-clip-deprecated.js", function (require, module, exports, __dirname, __filename) {
-/* <background-clip-deprecated>
- *
- * Same as <background-clip> except emits deprecated notice
- */
-
-"use strict";
-
-var base = require('./base');
-var util = require('../../util');
-var validate = require('./validate');
-
-var BackgroundClipDeprecated = base.baseConstructor();
-
-util.extend(BackgroundClipDeprecated.prototype, base.base, {
-	name: "background-clip-deprecated",
-
-	allowed: [
-		{
-			validation: [
-				validate.deprecated(null, "background-clip")
-			],
-			valueObjects: [
-				'background-clip'
-			]
-		}
-	]
-});
-
-exports.parse = base.simpleParser(BackgroundClipDeprecated);
-
-});
-
 require.define("/css/values/background-clip.js", function (require, module, exports, __dirname, __filename) {
 /* background-clip
  *
@@ -2248,8 +2287,8 @@ util.extend(BackgroundColor.prototype, base.base, {
 		{
 			validation: [
 				validate.minimumCss(2),
-				validate.browserUnsupported('IE7'),
-				validate.browserQuirk('IE8')  // Requires !DOCTYPE
+				validate.browserUnsupported('ie7'),
+				validate.browserQuirk('ie8')  // Requires !DOCTYPE
 			],
 			values: [
 				"inherit"  // Also matches inherit in <color>, so list this first
@@ -2367,7 +2406,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		scanList.pop();
 		scanList.forEach(function (e) {
 			if (!! e.mustBeFinal) {
-				b.addWarning('illegal_value', e.firstToken());
+				b.addWarning('illegal', e.firstToken());
 			}
 		});
 	}
@@ -3331,39 +3370,6 @@ exports.parse = base.simpleParser(BorderColorSingle);
 
 });
 
-require.define("/css/values/border-radius-deprecated.js", function (require, module, exports, __dirname, __filename) {
-/* <border-radius-deprecated>
- *
- * Same as <border-radius> except emits deprecated notice
- */
-
-"use strict";
-
-var base = require('./base');
-var util = require('../../util');
-var validate = require('./validate');
-
-var BorderRadiusDeprecated = base.baseConstructor();
-
-util.extend(BorderRadiusDeprecated.prototype, base.base, {
-	name: "border-radius-deprecated",
-
-	allowed: [
-		{
-			validation: [
-				validate.deprecated(null, "border-radius")
-			],
-			valueObjects: [
-				'border-radius'
-			]
-		}
-	]
-});
-
-exports.parse = base.simpleParser(BorderRadiusDeprecated);
-
-});
-
 require.define("/css/values/border-radius.js", function (require, module, exports, __dirname, __filename) {
 /* <border-radius>
  *
@@ -3435,39 +3441,6 @@ exports.parse = function (unparsedReal, bucket, container) {
 	br.unparsed = unparsed;
 	return br;
 };
-
-});
-
-require.define("/css/values/border-radius-single-deprecated.js", function (require, module, exports, __dirname, __filename) {
-/* <border-radius-single-deprecated>
- *
- * Same as <border-radius-single> except emits deprecated notice
- */
-
-"use strict";
-
-var base = require('./base');
-var util = require('../../util');
-var validate = require('./validate');
-
-var BorderRadiusSingleDeprecated = base.baseConstructor();
-
-util.extend(BorderRadiusSingleDeprecated.prototype, base.base, {
-	name: "border-radius-single-deprecated",
-
-	allowed: [
-		{
-			validation: [
-				validate.deprecated(null, "border-*-*-radius")
-			],
-			valueObjects: [
-				'border-radius-single'
-			]
-		}
-	]
-});
-
-exports.parse = base.simpleParser(BorderRadiusSingleDeprecated);
 
 });
 
@@ -4112,7 +4085,8 @@ util.extend(Color.prototype, base.base, {
 		{
 			validation: [
 				validate.minimumCss(2),
-				validate.deprecated(3, 'appearance')
+				validate.deprecated(3),
+				validate.suggestUsing('appearance')
 			],
 			values: [ 
 				'activeborder',
@@ -4772,8 +4746,8 @@ util.extend(DisplayType.prototype, base.base, {
 		{
 			validation: [
 				validate.minimumCss(2),
-				validate.browserUnsupported('IE7'),
-				validate.browserQuirk('IE8') // !DOCTYPE required
+				validate.browserUnsupported('ie7'),
+				validate.browserQuirk('ie8') // !DOCTYPE required
 			],
 			values: [
 				"inherit",
@@ -4872,9 +4846,11 @@ var alphaParser = function (filter) {
 		filter.add(filter.unparsed.advance());
 	} else if (filter.unparsed.isContent(':')) {
 		var token = filter.unparsed.advance();
-		filter.addWarning('use_equals_instead', token);
-		token.content = '=';
-		filter.add(token);
+		filter.addWarning('filter-use-equals-instead', token);
+		var colonToken = token.clone();
+		colonToken.type = 'MATCH';
+		colonToken.content = '=';
+		filter.add(colonToken);
 	} else {
 		filter.debug('parse fail - alpha - equals');
 		return null;
@@ -4936,7 +4912,7 @@ var progidParser = function (filter) {
 		filter.add(filter.unparsed.advance());
 	} else if (filter.unparsed.isContent(':')) {
 		var token = filter.unparsed.advance();
-		filter.addWarning('use_equals_instead', token);
+		filter.addWarning('filter-use-equals-instead', token);
 		token.content = '=';
 		filter.add(token);
 	} else {
@@ -4966,7 +4942,7 @@ var progidParser = function (filter) {
 	filter.add(filter.unparsed.advance());
 
 	// Add warning - should use alpha(opacity=25)
-	filter.addWarning('should_use_alpha', filter.getFirstToken());
+	filter.addWarning('suggest-using:alpha(...)', filter.getFirstToken());
 
 	// TODO:  Warn to use zoom:1 or width:100% or another trick
 
@@ -4977,7 +4953,6 @@ var progidParser = function (filter) {
 exports.parse = function (unparsedReal, bucket, container) {
 	var filter = new Filter(bucket, container, unparsedReal);
 	filter.debug('parse', unparsedReal);
-	validate.call(filter, 'unofficial', filter.unparsed.firstToken());
 
 	while (filter.unparsed.length()) {
 		if (filter.unparsed.isContent('progid')) {
@@ -5080,8 +5055,8 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 			ni = true;
 			validate.call(f, 'minimumCss', f.firstToken(), 2);
-			validate.call(f, 'browserQuirk', f.firstToken(), 'IE8');  // !DOCTYPE
-			validate.call(f, 'browserUnsupported', f.firstToken(), 'IE7');  // !DOCTYPE
+			validate.call(f, 'browserQuirk', f.firstToken(), 'ie8');  // !DOCTYPE
+			validate.call(f, 'browserUnsupported', f.firstToken(), 'ie7');  // !DOCTYPE
 			f.add(unparsed.advance());
 		} else {
 			keepParsing = false;
@@ -5100,6 +5075,86 @@ exports.parse = function (unparsedReal, bucket, container) {
 	f.debug('parse success', unparsed);
 	f.unparsed = unparsed;
 	return f;
+};
+
+});
+
+require.define("/css/values/font-face-font-family.js", function (require, module, exports, __dirname, __filename) {
+/* font-face-font-family
+ *
+ * Note:  inherit is not allowed
+ *
+ * CSS2:  <font-family-single>#
+ * CSS3:  <font-family-single>
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var FontFaceFontFamily = base.baseConstructor();
+
+util.extend(FontFaceFontFamily.prototype, base.base, {
+	name: "font-face-font-family"
+});
+
+
+exports.parse = function (unparsedReal, bucket, container) {
+	var ffff = new FontFaceFontFamily(bucket, container, unparsedReal);
+	ffff.debug('parse', unparsedReal);
+	ffff.repeatWithCommas = true;
+	var hits = ffff.repeatParser(bucket['font-family-single']);
+
+	if (! hits) {
+		ffff.debug('parse fail');
+		return null;
+	}
+
+	ffff.fontValidation(hits);
+	ffff.debug('parse success', ffff.unparsed);
+	return ffff;
+};
+
+});
+
+require.define("/css/values/font-face-font-style.js", function (require, module, exports, __dirname, __filename) {
+/* font-face-font-family
+ *
+ * Note:  inherit is not allowed
+ *
+ * CSS2:  all | <font-style>#
+ * CSS3:  <font-style>
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var FontFaceFontStyle = base.baseConstructor();
+
+util.extend(FontFaceFontStyle.prototype, base.base, {
+	name: "font-face-font-style"
+});
+
+
+exports.parse = function (unparsedReal, bucket, container) {
+	var fffs = new FontFaceFontStyle(bucket, container, unparsedReal);
+	fffs.debug('parse', unparsedReal);
+	fffs.repeatWithCommas = true;
+	var hits = fffs.repeatParser(bucket['font-style']);
+
+	if (! hits) {
+		fffs.debug('parse fail');
+		return null;
+	}
+
+	fffs.fontValidation(hits);
+	fffs.debug('parse success', fffs.unparsed);
+	return fffs;
 };
 
 });
@@ -5214,7 +5269,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	});
 
 	if (! genericWasLast || genericCount != 1) {
-		ff.addWarning('font_family_one_generic_at_end', ff.firstToken());
+		ff.addWarning('font-family-one-generic', bucket.propertyToken);
 	}
 
 	ff.warnIfInherit();
@@ -5270,6 +5325,37 @@ exports.parse = function (unparsed, bucket, container) {
 	ffn.debug('parse success - ident');
 	return ffn;
 };
+
+});
+
+require.define("/css/values/font-family-single.js", function (require, module, exports, __dirname, __filename) {
+/* <font-family-single>
+ *
+ * CSS1:  [ <font-family-name> | <font-family-generic-name> ]
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+
+var FontFamilySingle = base.baseConstructor();
+
+util.extend(FontFamilySingle.prototype, base.base, {
+	name: "font-family-single",
+
+	allowed: [
+		{
+			validation: [],
+			valueObjects: [
+				"font-family-name",
+				"font-family-generic-name"
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(FontFamilySingle);
 
 });
 
@@ -5727,7 +5813,14 @@ util.extend(Length.prototype, base.base, {
 		{
 			validation: [],
 			values: [ 
-				"0",
+				"0"
+			]
+		},
+		{
+			validation: [
+				validate.numberPortionIsNotZero()
+			],
+			values: [
 				base.makeRegexp('[-+]?{n}(em|ex)')
 			]
 		},
@@ -5772,11 +5865,15 @@ util.extend(Length.prototype, base.base, {
 		this.debug('toString');
 		var unit = this.firstToken().content;
 
-		if (unit.match(/^0+([a-z]+)?$/)) {
-			return '0';  // No need for a unit designator - may actually cause problems
+		if (this.bucket.options.autocorrect) {
+			if (unit.match(/^[-+]?0+([a-z]+)?$/)) {
+				unit = '0';  // No need for a unit designator - may actually cause problems
+			} else {
+				unit = unit.replace(/^-0+/, '-').replace(/^0+/, '');
+			}
 		}
 
-		return unit.replace(/^0+/, '');
+		return unit;
 	}
 });
 
@@ -6426,7 +6523,7 @@ exports.parse = function (unparsed, bucket, container) {
 		// CSS spec says if P > Q, assume minmax(P,P)
 		// TODO:  Find a way to compare across units
 		if (P.getUnit() == Q.getUnit() && P.getValue() > Q.getValue()) {
-			minmax.addWarning('minmax_p_greater_than_q', minmax.firstToken());
+			minmax.addWarning('minmax-p-q', minmax.firstToken());
 		}
 	}
 
@@ -6434,6 +6531,42 @@ exports.parse = function (unparsed, bucket, container) {
 	validate.call(minmax, 'minimumCss', minmax.firstToken(), 3);
 	return minmax;
 };
+
+});
+
+require.define("/css/values/ms-progress-appearance.js", function (require, module, exports, __dirname, __filename) {
+/* -ms-progress-appearance
+ *
+ * IE8:  bar | ring
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var ProgressAppearance = base.baseConstructor();
+
+util.extend(ProgressAppearance.prototype, base.base, {
+	name: "ms-progress-appearance",
+
+	allowed: [
+		{
+			validation: [
+				validate.browserOnly('ie8')
+			],
+			values: [
+				"bar",
+				"ring"
+			]
+		
+		}
+	]
+});
+
+exports.parse = base.simpleParser(ProgressAppearance);
+
 
 });
 
@@ -6979,7 +7112,6 @@ util.extend(Percentage.prototype, base.base, {
 	getValue: function () {
 		var v = this.firstToken().content;
 		v = v.substr(0, v.length - 1);
-		v = Math.round(+ v);
 		return v;
 	},
 
@@ -6989,7 +7121,13 @@ util.extend(Percentage.prototype, base.base, {
 
 	toString: function () {
 		this.debug('toString');
-		return this.getValue() + '%';
+		var v = this.getValue();
+
+		if (this.bucket.options.autocorrect) {
+			v = Math.round(v);
+		}
+
+		return v + '%';
 	}
 });
 
@@ -7242,7 +7380,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	template.debug('parse', unparsed);
 	template.rows = [];
 	template.columns = [];
-	template.addWarning('working_draft', unparsed.firstToken());
+	template.addWarning('css-draft', unparsed.firstToken());
 
 	// TODO:  Validate that number of columns are consistent
 	// TODO:  Validate that there aren't more column widths than defined
@@ -7359,8 +7497,8 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 			var token = unparsed.advance();
 
-			if (token.content.length > 1) {
-				textalign.addWarning('invalid_string', token);
+			if (token.content.length != 1) {
+				textalign.addWarning('text-align-invalid-string', token);
 			}
 
 			css3 = true;  // Yes, this could be CSS2, but not CSS2.1
@@ -7437,9 +7575,9 @@ util.extend(TextDecorationBlink.prototype, base.base, {
 	allowed: [
 		{
 			validation: [
-				validate.browserUnsupported('IE'),
-				validate.browserUnsupported('Chrome'),
-				validate.browserUnsupported('Safari')
+				validate.browserUnsupported('ie'),
+				validate.browserUnsupported('c'),
+				validate.browserUnsupported('s')
 			],
 			values: [
 				"blink"
@@ -7514,8 +7652,8 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 	if (tdc2.handleInherit(function (obj) {
 		validate.call(obj, 'minimumCss', obj.firstToken(), 2);
-		validate.call(obj, 'browserUnsupported', obj.firstToken(), 'IE7');
-		validate.call(obj, 'browserQuirk', obj.firstToken(), 'IE8'); // !DOCTYPE needed
+		validate.call(obj, 'browserUnsupported', obj.firstToken(), 'ie7');
+		validate.call(obj, 'browserQuirk', obj.firstToken(), 'ie8'); // !DOCTYPE needed
 	})) {
 		return tdc2;
 	}
@@ -8472,7 +8610,6 @@ util.extend(Zoom.prototype, base.base, {
 	allowed: [
 		{
 			validation: [
-				validate.unofficial()
 			],
 			values: [
 				'normal'
@@ -8489,11 +8626,166 @@ exports.parse = base.simpleParser(Zoom);
 
 });
 
+require.define("/css/declarations/rule.js", function (require, module, exports, __dirname, __filename) {
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+
+// Mapping properties to value types
+var propertyMapping = {
+	'background': 'background',
+	'background-attachment': 'background-attachment',
+	'background-clip': 'background-clip',
+	'-khtml-background-clip': base.deprecated('background-clip', 'background-clip'),
+	'-moz-background-clip': base.deprecated('background-clip', 'background-clip'),
+	'-webkit-background-clip': base.deprecated('background-clip'),
+	'background-color': 'background-color',
+	'background-image': 'background-image',
+	'background-origin': 'background-origin',
+	'background-position': 'background-position',
+	'background-repeat': 'background-repeat',
+	'background-size': 'background-size',
+	'border': 'border-single',
+	'border-bottom': 'border-single',
+	'border-bottom-left-radius': 'border-radius-single',
+	'-khtml-border-bottom-left-radius': base.deprecated('border-radius-single', 'border-bottom-left-radius'),
+	'-moz-border-radius-bottomleft': base.deprecated('border-radius-single', 'border-bottom-left-radius'),
+	'-webkit-border-bottom-left-radius': base.deprecated('border-radius-single', 'border-bottom-left-radius'),
+	'border-bottom-right-radius': 'border-radius-single',
+	'-khtml-border-bottom-right-radius': base.deprecated('border-radius-single', 'border-bottom-right-radius'),
+	'-moz-border-radius-bottomright': base.deprecated('border-radius-single', 'border-bottom-right-radius'),
+	'-webkit-border-bottom-right-radius': base.deprecated('border-radius-single', 'border-bottom-right-radius'),
+	'border-bottom-style': 'border-style',
+	'border-bottom-width': 'border-width-single',
+	'border-collapse': 'border-collapse',
+	'border-color': 'border-color',
+	'border-left': 'border-single',
+	'border-left-style': 'border-style',
+	'border-left-width': 'border-width-single',
+	'border-radius': 'border-radius',
+	'-khtml-border-radius': base.deprecated('border-radius', 'border-radius'),
+	'-moz-border-radius': base.deprecated('border-radius', 'border-radius'),
+	'-o-border-radius': base.wrongProperty('border-radius', 'border-radius'), // This was never supported in Opera
+	'-webkit-border-radius': base.deprecated('border-radius', 'border-radius'),
+	'border-right': 'border-single',
+	'border-right-style': 'border-style',
+	'border-right-width': 'border-width-single',
+	'border-spacing': 'border-spacing',
+	'border-style': 'border-style',
+	'border-top': 'border-single',
+	'border-top-left-radius': 'border-radius-single',
+	'-khtml-border-top-left-radius': base.deprecated('border-radius-single', 'border-top-left-radius'),
+	'-moz-border-radius-topleft': base.deprecated('border-radius-single', 'border-top-left-radius'),
+	'-webkit-border-top-left-radius': base.deprecated('border-radius-single', 'border-top-left-radius'),
+	'border-top-right-radius': 'border-radius-single',
+	'-khtml-border-top-right-radius': base.deprecated('border-radius-single', 'border-top-right-radius'),
+	'-moz-border-radius-topright': base.deprecated('border-radius-single', 'border-top-right-radius'),
+	'-webkit-border-top-right-radius': base.deprecated('border-radius-single', 'border-top-right-radius'),
+	'border-top-style': 'border-style',
+	'border-top-width': 'border-width-single',
+	'border-width': 'border-width',
+	'bottom': 'offset',
+	'box-shadow': 'box-shadow',
+	'-moz-box-shadow': 'box-shadow',
+	'-webkit-box-shadow': 'box-shadow',
+	'clear': 'clear',
+	'color': 'color',
+	'content': 'content',
+	'cursor': 'cursor',
+	'display': 'display',
+	'filter': base.unofficial('filter', 'ie'),
+	'-ms-filter': base.wrongProperty('filter', 'filter'),  // IE supports filter better than -ms-filter
+	'float': 'float',
+	'font': 'font',
+	'font-family': 'font-family',
+	'font-size': 'font-size',
+	'font-style': 'font-style',
+	'font-weight': 'font-weight',
+	'height': 'height',
+	'left': 'offset',
+	'line-height': 'line-height',
+	'list-style': 'list-style',
+	'list-style-image': 'list-style-image',
+	'list-style-position': 'list-style-position',
+	'list-style-type': 'list-style-type',
+	'margin': 'margin',
+	'margin-bottom': 'margin-width',
+	'margin-left': 'margin-width',
+	'margin-right': 'margin-width',
+	'margin-top': 'margin-width',
+	'max-height': 'max-length',
+	'max-width': 'max-length',
+	'min-height': 'min-length',
+	'min-width': 'min-length',
+	'opacity': 'opacity',
+	'outline': 'outline',
+	'outline-color': 'outline-color',
+	'outline-style': 'outline-style',
+	'outline-width': 'min-length',
+	'overflow': 'overflow',
+	'overflow-x': 'overflow-dimension',
+	'overflow-y': 'overflow-dimension',
+	'padding': 'padding',
+	'padding-bottom': 'padding-width',
+	'padding-left': 'padding-width',
+	'padding-right': 'padding-width',
+	'padding-top': 'padding-width',
+	'position': 'position',
+	'progress-appearance': base.wrongProperty('ms-progress-appearance', 'ms-progress-appearance'),
+	'-ms-progress-appearance': 'ms-progress-appearance',
+	'right': 'offset',
+	'scrollbar-3dlight-color': 'color',
+	'-ms-scrollbar-3dlight-color': base.wrongProperty('color', 'scrollbar-3dlight-color'), // Only in IE8 standards mode
+	'scrollbar-arrow-color': 'color',
+	'-ms-scrollbar-arrow-color': base.wrongProperty('color', 'scrollbar-arrow-color'), // Only in IE8 standards mode
+	'scrollbar-base-color': 'color',
+	'-ms-scrollbar-base-color': base.wrongProperty('color', 'scrollbar-base-color'), // Only in IE8 standards mode
+	'scrollbar-darkshadow-color': 'color',
+	'-ms-scrollbar-darkshadow-color': base.wrongProperty('color', 'scrollbar-darkshadow-color'), // Only in IE8 standards mode
+	'scrollbar-face-color': 'color',
+	'-ms-scrollbar-face-color': base.wrongProperty('color', 'scrollbar-face-color'), // Only in IE8 standards mode
+	'scrollbar-highlight-color': 'color',
+	'-ms-scrollbar-highlight-color': base.wrongProperty('color', 'scrollbar-highlight-color'), // Only in IE8 standards mode
+	'scrollbar-shadow-color': 'color',
+	'-ms-scrollbar-shadow-color': base.wrongProperty('color', 'scrollbar-shadow-color'), // Only in IE8 standards mode
+	'scrollbar-track-color': 'color',
+	'-ms-scrollbar-track-color': base.wrongProperty('color', 'scrollbar-track-color'), // Only in IE8 standards mode
+	'text-align': 'text-align',
+	'text-decoration': 'text-decoration',
+	'text-decoration-color': 'text-decoration-color',
+	'text-decoration-style': 'text-decoration-style',
+	'text-indent': 'text-indent',
+	'text-overflow': 'text-overflow',
+	'text-shadow': 'text-shadow',
+	'-o-text-overflow': 'text-overflow',
+	'text-transform': 'text-transform',
+	'top': 'offset',
+	'vertical-align': 'vertical-align',
+	'visibility': 'visibility',
+	'white-space': 'white-space',
+	'width': 'width',
+	'z-index': 'z-index',
+	'zoom': base.unofficial('zoom', 'ie'),
+	'-ms-zoom': base.wrongProperty('zoom', 'ie') // Only in IE8 standards mode
+};
+
+var Declaration = base.baseConstructor();
+
+util.extend(Declaration.prototype, base.base, {
+	name: "declaration-rule"
+});
+
+
+exports.canStartWith = base.canStartWith;
+exports.parse = base.declarationParser(Declaration, propertyMapping);
+
+});
+
 require.define("/css/invalid.js", function (require, module, exports, __dirname, __filename) {
 "use strict";
 
 var base = require('./base');
-var block = require('./block');
 var util = require('../util');
 
 var Invalid = base.baseConstructor();
@@ -8520,7 +8812,7 @@ util.extend(Invalid.prototype, base.base, {
 			return;
 		}
 
-		this.block = block.parse(tokens, this.bucket, this);
+		this.add(this.bucket.block.parse(tokens, this.bucket, this));
 	},
 
 	toString: function () {
@@ -8539,7 +8831,7 @@ exports.parse = function (tokens, bucket, container) {
 	invalid.block = null;
 
 	if (tokens) {
-		bucket.parser.addError('invalid_token', tokens.getToken());
+		bucket.parser.addError('invalid-token', tokens.getToken());
 		invalid.consume(tokens);
 	}
 
@@ -8727,7 +9019,7 @@ exports.parse = function (tokens, bucket, container) {
 
 		// After commas come another selector
 		if (! bucket.selector.canStartWith(nextToken, tokens, bucket)) {
-			bucket.parser.addError("selector_expected", nextToken);
+			bucket.parser.addError("selector-expected", nextToken);
 			return makeInvalid();
 		}
 
@@ -8742,12 +9034,62 @@ exports.parse = function (tokens, bucket, container) {
 	}
 
 	if (! nextToken || nextToken.type != 'BLOCK_OPEN') {
-		bucket.parser.addError('block_expected', nextToken);
+		bucket.parser.addError('block-expected', nextToken);
 		return makeInvalid();
 	}
 
 	ruleset.block = bucket.block.parse(tokens, bucket, ruleset);
+	ruleset.block.reparseAs('rule');
 	return ruleset;
+};
+
+});
+
+require.define("/css/rule.js", function (require, module, exports, __dirname, __filename) {
+"use strict";
+
+var base = require('./base');
+var declarationBucket = require('./declarationbucket');
+var util = require('../util');
+
+var Rule = base.baseConstructor();
+
+util.extend(Rule.prototype, base.base, {
+	name: "rule",
+
+	parseTokenList: [
+		'comment',
+		'whitespace',
+		declarationBucket.rule,
+		'invalid' // Must be last
+	],
+
+	toString: function () {
+		this.debug('toString');
+
+		var out = '';
+
+		this.list.forEach(function (item) {
+			out += item.toString();
+		});
+
+		return out;
+	}
+});
+
+exports.canStartWith = function (token, tokens, bucket) {
+	return false;  // Should not be used in auto-detection
+};
+
+exports.parse = function (tokens, bucket, container) {
+	var rd = new Rule(bucket, container);
+	rd.debug('parse', tokens);
+
+	while (tokens.anyLeft()) {
+		rd.parseTokens(tokens);
+	}
+
+	return rd;
 };
 
 });
@@ -8814,7 +9156,7 @@ exports.parse = function (tokens, bucket, container) {
 			}
 
 			if (! token || token.type == 'COMBINATOR' || ! exports.canStartWith(token, tokens, bucket)) {
-				bucket.parser.addError('illegal_token_after_combinator', token);
+				bucket.parser.addError('illegal-token-after-combinator', token);
 				var invalidCss1 = bucket.invalid.parse(null, bucket, container);
 				invalidCss1.addList(selector.list);
 				invalidCss1.consume(tokens);
@@ -8823,11 +9165,11 @@ exports.parse = function (tokens, bucket, container) {
 		} else if (token.type == 'COLON') {
 			var oldTokens = [ token ];
 			var pseudoToUse = bucket.pseudoclass;
-			var potentialError = 'ident_after_colon';
+			var potentialError = 'ident-after-colon';
 			token = tokens.nextToken();
 
 			if (token && token.type == 'COLON') {
-				potentialError = 'ident_after_double_colon';
+				potentialError = 'ident-after-double-colon';
 				pseudoToUse = bucket.pseudoelement;
 				oldTokens.push(token);
 				token = tokens.nextToken();
@@ -9334,6 +9676,11 @@ var Token = function (line, type, content) {
 	this.content = content;
 };
 
+Token.prototype.clone = function () {
+	var newToken = new Token(this.line, this.type, this.content);
+	return newToken;
+};
+
 Token.prototype.toString = function () {
 	return this.content;
 };
@@ -9459,6 +9806,7 @@ Tokenizer.prototype.toString = function () {
 
 exports.tokenize = function (str, options) {
 	var cr = new Tokenizer(options);
+	str = str.replace(/^\uFEFF/, '');  // Remove UTF byte order mark
 	cr.tokenize(str);
 	return cr;
 };
