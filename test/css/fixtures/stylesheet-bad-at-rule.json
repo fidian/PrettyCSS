@@ -1,7 +1,7 @@
 {
-	"errors": ["ident_after_colon:S@4", "block_expected:no_token"],
+	"errors": [],
 	"name": "stylesheet",
 	"tokenList": ["at-rule", "whitespace", "ruleset", "whitespace"],
 	"tokensRemaining": 0,
-	"toString": "@charset \"UTF-8\" a {}br{display:none;}"
+	"toString": "@charset \"UTF-8\" a {\n\tbackground-color: blue;\n}br{display:none;}"
 }

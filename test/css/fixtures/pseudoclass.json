@@ -1,7 +1,7 @@
 {
 	"errors": [],
 	"name": "pseudoclass",
-	"tokenList": ["IDENT"],
+	"tokenList": ["COLON", "IDENT"],
 	"tokensRemaining": 1,
 	"toString": ":hover"
 }

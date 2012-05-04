@@ -1,7 +1,7 @@
 {
 	"errors": [],
 	"name": "block",
-	"tokenList": ["whitespace", "declaration", "whitespace", "block", "whitespace", "declaration"],
+	"tokenList": ["S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "BLOCK_OPEN", "S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "BLOCK_CLOSE", "S", "IDENT", "COLON", "S", "BLOCK_OPEN", "S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "BLOCK_CLOSE", "S"],
 	"tokensRemaining": 1,
-	"toString": "{font:black;{nested:yes;}tigger:{cat:true;};}"
+	"toString": "{\n\tfont: black;\n\t{\n\t\tnested: yes;\n\t}\n\ttigger: {\n\t\tcat: true;\n\t}\n}"
 }

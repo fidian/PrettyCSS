@@ -42,6 +42,9 @@ exports.fakeBucket = function () {
 				combinator_post: "",
 				declaration_pre: '',
 				declaration_post: '',
+				stylesheet_pre: "",
+				stylesheet_whitespace: "",
+				stylesheet_post: "",
 				selector_pre: "",
 				selector_post: "",
 				selector_whitespace: " ", // Must contain whitespace

@@ -1,7 +1,7 @@
 {
 	"errors": [],
 	"name": "block",
-	"tokenList": ["whitespace"],
+	"tokenList": ["S"],
 	"tokensRemaining": 0,
-	"toString": "{}"
+	"toString": "{\n}"
 }

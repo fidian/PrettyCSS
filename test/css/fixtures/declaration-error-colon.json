@@ -1,7 +1,0 @@
-{
-	"errors": ["colon_expected:no_token"],
-	"name": "invalid",
-	"tokenList": ["IDENT"],
-	"tokensRemaining": 0,
-	"toString": ""
-}

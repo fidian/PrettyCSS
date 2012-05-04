@@ -1,7 +1,7 @@
 {
 	"errors": [],
 	"name": "block",
-	"tokenList": ["whitespace", "declaration", "whitespace"],
+	"tokenList": ["S", "IDENT", "COLON", "S", "IDENT", "S", "FUNCTION", "STRING", "PAREN_CLOSE", "SEMICOLON", "S"],
 	"tokensRemaining": 1,
-	"toString": "{some-property:some value(\"maybe\");}"
+	"toString": "{\n\tsome-property: some value(\"maybe\");\n}"
 }

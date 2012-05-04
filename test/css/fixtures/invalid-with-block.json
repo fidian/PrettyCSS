@@ -1,7 +1,7 @@
 {
-	"errors": ["invalid_token:IDENT@1", "invalid_token:IDENT@1"],
+	"errors": ["invalid-token:IDENT@1"],
 	"name": "invalid",
-	"tokenList": ["IDENT", "S"],
+	"tokenList": ["IDENT", "S", "block"],
 	"tokensRemaining": 3,
 	"toString": ""
 }

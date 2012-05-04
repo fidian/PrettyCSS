@@ -1,5 +1,5 @@
 {
-	"errors": ["invalid_token:UNIT@1"],
+	"errors": ["invalid-token:UNIT@1"],
 	"name": "invalid",
 	"tokenList": ["UNIT", "BLOCK_CLOSE", "STRING", "S"],
 	"tokensRemaining": 0,

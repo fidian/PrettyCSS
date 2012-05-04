@@ -1,7 +1,7 @@
 {
 	"errors": [],
 	"name": "block",
-	"tokenList": ["whitespace", "block", "whitespace"],
+	"tokenList": ["S", "BLOCK_OPEN", "S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "BLOCK_CLOSE", "S"],
 	"tokensRemaining": 0,
-	"toString": "{{nested:yes;display:hidden;}}"
+	"toString": "{\n\t{\n\t\tnested: yes;\n\t\tdisplay: hidden;\n}\n}"
 }
