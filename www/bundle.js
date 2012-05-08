@@ -422,11 +422,8 @@ util.extend(PrettyCSS.prototype, {
 					var browserMatch = additional.match(/^([^0-9]+)(.*)$/);
 
 					if (browserMatch && lang.browsers[browserMatch[1]]) {
-						additional = lang.browsers[browserMatch[1]];
-
-						if (browserMatch.length > 1) {
-							additional += " " + browserMatch[2];
-						}
+						additional = lang.browsers[browserMatch[1]] + " " + browserMatch[2];
+						additional = additional.replace(/ $/, '');
 					}
 				}
 
@@ -11994,9 +11991,7 @@ util.extend(Percentage.prototype, base.base, {
 
 	allowed: [
 		{
-			validation: [
-				validate.numberPortionIsInteger()
-			],
+			validation: [],
 			values: [ 
 				base.makeRegexp('[-+]?{n}%')
 			]
@@ -12011,17 +12006,6 @@ util.extend(Percentage.prototype, base.base, {
 
 	setValue: function (newValue) {
 		this.firstToken().content = newValue.toString() + '%';
-	},
-
-	toString: function () {
-		this.debug('toString');
-		var v = this.getValue();
-
-		if (this.bucket.options.autocorrect) {
-			v = Math.round(v);
-		}
-
-		return v + '%';
 	}
 });
 
