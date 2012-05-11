@@ -12,21 +12,33 @@ exports.batch = util.makeVows('bg-position', {
 	},
 	'top right': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
-		'toString': 'top right',
+		'toString': 'right top',
 		'unparsed': [],
-		'warnings': ['css-maximum:2.1', 'not-forward-compatible:3'],
+		'warnings': [
+			'css-maximum:2.1',
+			'not-forward-compatible:3',
+			'autocorrect-swap'
+		]
 	},
 	'top left': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
-                'toString': 'top left',
-                'unparsed': [],
-                'warnings': ['css-maximum:2.1', 'not-forward-compatible:3']
+		'toString': 'left top',
+		'unparsed': [],
+		'warnings': [
+			'css-maximum:2.1',
+			'not-forward-compatible:3',
+			'autocorrect-swap'
+		]
 	},
 	'center right': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
-		'toString': 'center right',
+		'toString': 'right center',
 		'unparsed': [],
-		'warnings': ['css-maximum:2.1', 'not-forward-compatible:3']
+		'warnings': [
+			'css-maximum:2.1',
+			'not-forward-compatible:3',
+			'autocorrect-swap'
+		]
 	},
 	'center': {
 		'tokens': ['IDENT'],

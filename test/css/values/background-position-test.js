@@ -11,7 +11,7 @@ exports.batch = util.makeVows('background-position', {
 	},
 	'top right': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
-		'toString': 'top right',
+		'toString': 'right top',
 		'unparsed': [],
 		'warnings': []
 	},
