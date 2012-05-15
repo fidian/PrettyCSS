@@ -75,8 +75,19 @@ function parseFile(filename) {
 
 	result.getProblems().forEach(function (item) {
 		var ignored = false;
+		
 		if (! options.ignoreWarnings.some(function (warning) {
-			return item.code == warning;
+			if (item.code == warning) {
+				return true;
+			}
+
+			if (warning.substr(0, item.code.length) == item.code &&
+				warning.charAt(item.code.length) == ':' &&
+				warning.substr(item.code.lengh + 1 == item.more)) {
+				return true;
+			}
+
+			return false;
 		})) {
 			stop = true;
 			var message = item.typeText + ":  " + item.message;
