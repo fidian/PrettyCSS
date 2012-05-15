@@ -15,8 +15,6 @@ exports.batch = util.makeVows('bg-position', {
 		'toString': 'right top',
 		'unparsed': [],
 		'warnings': [
-			'css-maximum:2.1',
-			'not-forward-compatible:3',
 			'autocorrect-swap'
 		]
 	},
@@ -25,8 +23,6 @@ exports.batch = util.makeVows('bg-position', {
 		'toString': 'left top',
 		'unparsed': [],
 		'warnings': [
-			'css-maximum:2.1',
-			'not-forward-compatible:3',
 			'autocorrect-swap'
 		]
 	},
@@ -35,8 +31,6 @@ exports.batch = util.makeVows('bg-position', {
 		'toString': 'right center',
 		'unparsed': [],
 		'warnings': [
-			'css-maximum:2.1',
-			'not-forward-compatible:3',
 			'autocorrect-swap'
 		]
 	},
