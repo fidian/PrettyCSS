@@ -1,5 +1,5 @@
 {
-	"errors": ["block-expected:no_token"],
+	"errors": ["block-expected:IDENT@1"],
 	"name": "invalid",
 	"tokenList": ["IDENT", "S", "IDENT", "S", "IDENT"],
 	"tokensRemaining": 0,
