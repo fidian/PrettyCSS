@@ -26,6 +26,12 @@ exports.batch = util.makeVows('font-family-name', {
 		'unparsed': ['STRING'],
 		'warnings': []
 	},
+	'Serif': {
+		'tokens': ['IDENT'],
+		'toString': 'Serif',
+		'unparsed': [],
+		'warnings': []
+	},
 
 	// Whitespace in non-quoted names are reduced to a single space
 	'Times   New      Roman': {
@@ -38,20 +44,41 @@ exports.batch = util.makeVows('font-family-name', {
 		'tokens': ['STRING'],
 		'toString': '"Times   New   Roman"',
 		'unparsed': [],
-		'warnings': [],
+		'warnings': []
 	},
 
 	// Inherit is treated as a regular font-family-name
+	// Tricky - see comment in code for font-family-name
 	'inherit, valid': {
 		'tokens': ['IDENT', 'OPERATOR', 'S', 'IDENT'],
 		'toString': 'inherit',
 		'unparsed': ['OPERATOR', 'S', 'IDENT'],
-		'warnings': []
+		'warnings': ['add-quotes']
 	},
 	'valid, inherit': {
 		'tokens': ['IDENT', 'OPERATOR', 'S', 'IDENT'],
 		'toString': 'valid',
 		'unparsed': ['OPERATOR', 'S', 'IDENT'],
 		'warnings': []
+	},
+	'monospace inherit': {
+		'tokens': ['IDENT', 'S', 'IDENT'],
+		'toString': 'monospace inherit',
+		'unparsed': [],
+		'warnings': ['add-quotes']
+	},
+	'inherit 10em': {
+		'tokens': ['IDENT', 'S', 'UNIT'],
+		'toString': 'inherit',
+		'unparsed': ['UNIT'],
+		'warnings': ['add-quotes']
+	},
+
+	// And now something that fails
+	'1deg': {
+		'tokens': ['UNIT'],
+		'toString': null,
+		'unparsed': ['UNIT'],
+		'warnings': null
 	}
 });
