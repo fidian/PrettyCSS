@@ -430,13 +430,19 @@ util.extend(PrettyCSS.prototype, {
 				message = replace(message, replaceSpot, additional);
 			}
 
+			var tokenCopy = null;
+			
+			if (item.token) {
+				tokenCopy = item.token.clone();
+			}
+
 			return {
 				typeCode: type,
 				typeText: lang[type + 'Text'],
 				fullCode: item.code,
 				code: code,
 				more: more,
-				token: item.token.clone(),
+				token: tokenCopy,
 				message: message
 			};
 		};
@@ -1626,6 +1632,7 @@ exports['integer'] = require('./values/integer');
 exports['length'] = require('./values/length');
 exports['length1-2'] = require('./values/length1-2');
 exports['length-percentage'] = require('./values/length-percentage');
+exports['length-percentage2'] = require('./values/length-percentage2');
 exports['letter-spacing'] = require('./values/letter-spacing');
 exports['line-height'] = require('./values/line-height');
 exports['linear-gradient'] = require('./values/linear-gradient');
@@ -1791,12 +1798,20 @@ util.extend(Angle.prototype, base.base, {
 		}
 	],
 
+	getUnit: function () {
+		var out = this.firstToken().content.replace(/[-+0-9.]/g, '');
+		return out;
+	},
+
+	// Strip unit
 	getValue: function () {
-		return +(this.firstToken().content);
+		var out = this.firstToken().content.replace(/[^-+0-9.]/g, '');
+		console.log(out);
+		return +out;
 	},
 
 	setValue: function (newValue) {
-		this.firstToken().content = newValue.toString();
+		this.firstToken().content = newValue.toString() + this.getUnit();
 	}
 });
 
@@ -2131,6 +2146,11 @@ exports.base = {
 
 		if (this.isFunction) {
 			var fn = out.shift();
+
+			if (fn.substr(-1) != '(' && out[0] == '(') {
+				fn += out.shift();
+			}
+
 			out = fn + out.join(this.bucket.options.functionComma) + ')';
 		} else if (this.repeatWithCommas) {
 			out = out.join(this.bucket.options.functionComma);
@@ -2301,22 +2321,46 @@ exports.autoCorrect = function (desired) {
 
 exports.angle = function () {
 	return function (token) {
-		var a = +(token.content);
+		var matches = token.content.match(/^([-+0-9.]*)(.*)$/);
+		var a = matches[1];
+		var unit = matches[2];
+		var max = null;
 
-		if (a < 0 || a >= 360) {
+		switch (unit) {
+			case 'deg':
+				max = 360;
+				break;
+
+			case 'grad':
+				max = 400;
+				break;
+
+			case 'rad':
+				max = 2 * Math.PI;
+				break;
+
+			case 'turn':
+				max = 1;
+				break;
+
+			default:
+				throw new Error('Unhandled angle unit: ' + token.getUnit());
+		}
+
+		if (a < 0 || a >= max) {
 			var warningToken = token.clone();
 			this.addWarning('angle', warningToken);
 		}
 
 		while (a < 0) {
-			a += 360;
+			a += max;
 		}
 
-		while (a >= 360) {
-			a -= 360;
+		while (a >= max) {
+			a -= max;
 		}
 
-		token.content = a;
+		token.content = a + unit;
 	};
 };
 
@@ -2513,7 +2557,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -2554,7 +2602,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -2626,7 +2678,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -2703,7 +2759,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -2775,7 +2835,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -2852,7 +2916,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -2932,7 +3000,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -3007,7 +3079,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -3127,7 +3203,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -4046,9 +4126,6 @@ require.define("/css/values/bg-position.js", function (require, module, exports,
  * 2.1   PL C
  * 2.1   PL TB
  * 1     PL PL
- *
- * TODO:  Change "vertical horizontal" to "horizontal vertical", like
- * "center left" into "left center"
  */
 
 "use strict";
@@ -4073,6 +4150,7 @@ util.extend(BgPosition.prototype, base.base, {
 				"LR": {
 					maximumCss: 2.1,
 					notForwardCompatible: 3,
+					autocorrectSwap: true,
 					children: {
 						"PL": {
 							minimumCss: 3
@@ -4106,10 +4184,12 @@ util.extend(BgPosition.prototype, base.base, {
 			children: {
 				"C": {
 					maximumCss: 2.1,
+					autocorrectSwap: true,
 					notForwardCompatible: 3
 				},
 				"LR": {
 					maximumCss: 2.1,
+					autocorrectSwap: true,
 					notForwardCompatible: 3
 				},
 				"PL": {
@@ -4243,22 +4323,35 @@ exports.parse = function (unparsedReal, bucket, container) {
 		return null;
 	}
 
+	var didAutocorrect = false;
+
+	// autocorrectSwap: boolean -- If present and true, swap the last two
+	// tokens to avoid the "notForwardCompatible" warning
+	if (childDef.autocorrectSwap && bucket.options.autocorrect) {
+		var aa = bp.list.pop();
+		var bb = bp.list.pop();
+		bp.add(aa);
+		bp.add(bb);
+		bp.addWarning('autocorrect-swap', aa);
+		didAutocorrect = true;
+	}
+
 	// minimumCss: X -- validate if present
-	if (childDef.minimumCss) {
+	if (childDef.minimumCss && ! didAutocorrect) {
 		validate.call(bp, 'minimumCss', bp.firstToken(), childDef.minimumCss);
 	}
 
 	// maximumCss: Y -- validate if present
-	if (childDef.maximumCss) {
+	if (childDef.maximumCss && ! didAutocorrect) {
 		validate.call(bp, 'maximumCss', bp.firstToken(), childDef.maximumCss);
 	}
 
 	// notForwardCompatible: Z -- validate if present
-	if (childDef.notForwardCompatible) {
+	if (childDef.notForwardCompatible && ! didAutocorrect) {
 		validate.call(bp, 'notForwardCompatible', bp.firstToken(), childDef.notForwardCompatible);
 	}
 
-	// allowInherit: boolean -- Do not allow "inherit" unless this is set and true
+	// allowInherit: boolean -- "inherit" is bad unless this is set and true
 	if (! childDef.allowInherit) {
 		bp.warnIfInherit();
 	}
@@ -8026,6 +8119,9 @@ require.define("/css/values/font-face-local.js", function (require, module, expo
 /* <font-face-local>
  *
  * local( WS? IDENT [ WS? IDENT ]* WS? )
+ * local( WS? STRING WS? )
+ *
+ * The contents of the local() function are identical to <font-family-single>
  */
 
 "use strict";
@@ -8043,31 +8139,11 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', v.unparsed);
-	v.isFunction = true;
 
-	if (! v.unparsed.isTypeContent('FUNCTION', 'local(')) {
-		v.debug('parse fail - function');
+	if (! v.functionParser('local(', [ bucket['font-family-single'] ])) {
+		v.debug('parse fail');
 		return null;
 	}
-
-	v.add(v.unparsed.advance());
-
-	var ffs = bucket['font-family-single'].parse(v.unparsed, bucket, v);
-
-	if (! ffs) {
-		v.debug('parse fail - font family single');
-		return null;
-	}
-
-	v.add(ffs);
-	v.unparsed = ffs.unparsed;
-
-	if (! v.unparsed.isTypeContent('PAREN_CLOSE', ')')) {
-		v.debug('parse fail - paren close');
-		return null;
-	}
-
-	v.unparsed.advance();
 
 	v.debug('parse success');
 	return v;
@@ -8312,7 +8388,7 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
-	var hits = v.repeatParser(bucket['integer']);
+	var hits = v.repeatParser(bucket['integer'], 10);
 
 	if (hits != 10) {
 		v.debug('parse fail - ' + hits);
@@ -8398,7 +8474,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		return null;
 	}
 
-	v.fontValidation(hits);
+	v.fontValidation();
 	v.debug('parse success', v.unparsed);
 	return v;
 };
@@ -8706,7 +8782,6 @@ util.extend(Val.prototype, base.base, {
 				validate.maximumCss(2),
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3),
-				validate.numberPortionIsNotZero(),
 				validate.positiveValue()
 			],
 			valueObjects: [ 
@@ -8786,9 +8861,10 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
+	v.repeatWithCommas = true;
 	var hits = v.repeatParser(bucket['font-face-widths-single']);
 
-	if (hits < 0 || hits > 2) {
+	if (hits < 1 || hits > 2) {
 		v.debug('parse fail - ' + hits);
 		return null;
 	}
@@ -9030,9 +9106,16 @@ util.extend(FontFamilyName.prototype, base.base, {
 
 exports.parse = function (unparsed, bucket, container) {
 	// Font family names can be either a quoted string (used verbatim)
-	// or at least one token.  If it is not quoted, all whitespace at
+	// or at least one IDENT token.  If it is not quoted, all whitespace at
 	// the beginning and end are removed and whitespace between tokens
 	// is changed into single spaces.
+	//
+	// My interpretation of the spec is that if it is a single IDENT token
+	// of "inherit", then that's not a family name.  Otherwise, two IDENT
+	// tokens of "inherit monospace" or "monospace inherit" would be
+	// parsed as a font name.  Since the single-token "inherit" scenario
+	// should be handled by a higher-up value, and since any "inherit" found
+	// could cause issues, I add a warning.
 	var ffn = new FontFamilyName(bucket, container, unparsed);
 	ffn.debug('parse', unparsed);
 
@@ -9043,14 +9126,19 @@ exports.parse = function (unparsed, bucket, container) {
 	}
 
 	if (! ffn.unparsed.isType('IDENT')) {
-		ffn.debug('parse fail');
+		ffn.debug('parse fail - not ident');
 		return null;
 	}
 
 	// CSS3 spec clears up that a font name must be either a string
 	// or a series of identifiers
 	while (ffn.unparsed.isType('IDENT')) {
-		ffn.add(ffn.unparsed.advance());
+		var token = ffn.unparsed.advance();
+		ffn.add(token);
+	}
+
+	if (ffn.isInherit()) {
+		ffn.addWarning('add-quotes', ffn.firstToken());
 	}
 
 	ffn.debug('parse success - ident');
@@ -9321,9 +9409,20 @@ exports.parse = function (unparsedReal, bucket, container) {
 	v.debug('parse', unparsedReal);
 
 	var css21 = bucket['font-variant-css21'].parse(v.unparsed, bucket, v);
+
+	if (css21) {
+		v.add(css21);
+		v.unparsed = css21.unparsed;
+
+		if (v.firstToken().content.toLowerCase() == 'inherit') {
+			validate.call(v, 'minimumCss', v.firstToken(), 2);
+		}
+	
+		v.debug('parse success - css21', v.unparsed);
+		return v;
+	}
+
 	var hits = v.unparsed.matchAnyOrder([
-		'normal',
-		'inherit',
 		bucket['font-face-common-lig-values'],
 		bucket['font-face-discretionary-lig-values'],
 		bucket['font-face-historical-lig-values'],
@@ -9350,19 +9449,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		return null;
 	}
 
-	// Check if this could be CSS2
-	if (css21 && v.unparsed.length() == css21.unparsed.length()) {
-		v.list = [];
-		v.add(css21);
-		v.unparsed = css21.unparsed;
-
-		if (v.firstToken().content.toLowerCase == 'inherit') {
-			validate.call(v, 'minimumCss', v.firstToken(), 2);
-		}
-	} else {
-		validate.call(v, 'minimumCss', v.firstToken(), 3);
-	}
-
+	validate.call(v, 'minimumCss', v.firstToken(), 3);
 	v.debug('parse success', v.unparsed);
 	return v;
 };
@@ -9761,7 +9848,7 @@ util.extend(Length.prototype, base.base, {
 	// Strip unit
 	getValue: function () {
 		var out = this.firstToken().content.replace(/[^-+0-9.]/g, '');
-		return out;
+		return +out;
 	},
 
 	// Add unit back
@@ -9856,12 +9943,47 @@ exports.parse = base.simpleParser(Val);
 
 });
 
+require.define("/css/values/length-percentage2.js", function (require, module, exports, __dirname, __filename) {
+/* <length-percentage2>
+ *
+ * CSS2:  <length-percentage> <length-percentage>
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "length-percentage2"
+});
+
+exports.parse = function (unparsedReal, bucket, container) {
+	var v = new Val(bucket, container, unparsedReal);
+	v.debug('parse', unparsedReal);
+
+	var hits = v.repeatParser([ bucket['length-percentage'] ], 2);
+
+	if (hits < 2) {
+		v.debug('parse fail');
+		return null;
+	}
+
+	v.debug('parse success');
+	return v;
+};
+
+});
+
 require.define("/css/values/letter-spacing.js", function (require, module, exports, __dirname, __filename) {
 /* <letter-spacing>
  *
  * CSS1:  normal | <length>
  * CSS2:  inherit
- * CSS3:  Changes "normal | <length>" to <spacing-limit>, which may have up to three values
+ * CSS3:  Changes "normal | <length>" to <spacing-limit>, which may have up to three values and also can handle percentages
  */
 
 "use strict";
@@ -9892,13 +10014,19 @@ exports.parse = function (unparsedReal, bucket, container) {
 		return null;
 	}
 
-	v.add(sl);
-	v.unparsed = sl.unparsed;
+	if (sl.length() == 1) {
+		var css1 = v.unparsed.matchAny(['normal', bucket['length']], v);
 
-	if (sl.length() > 1) {
-		validate.call(v, 'minimumCss', v.firstToken(), 3);
+		if (css1) {
+			v.add(css1);
+			v.unparsed = css1.unparsed;
+			return v;
+		}
 	}
 
+	v.add(sl);
+	v.unparsed = sl.unparsed;
+	validate.call(v, 'minimumCss', v.firstToken(), 3);
 	v.warnIfInherit();
 	return v;
 };
@@ -10893,7 +11021,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 	var e = bucket['color'].parse(v.unparsed, bucket, v);
 
-	if (! e) {
+	if (! e || e.isInherit()) {
 		v.debug('parse fail');
 		return null;
 	}
@@ -10903,7 +11031,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 	e = bucket['number-percentage'].parse(v.unparsed, bucket, v);
 
-	if (e) {
+	if (e && ! e.isInherit()) {
 		v.add(e);
 		v.unparsed = e.unparsed;
 	}
@@ -12203,6 +12331,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	if (! v.functionParser('rect(',
 			[ bucket['length'], 'auto' ],
 			[ bucket['length'], 'auto' ],
+			[ bucket['length'], 'auto' ],
 			[ bucket['length'], 'auto' ])) {
 		v.debug('parse fail');
 		return null;
@@ -12732,7 +12861,7 @@ var validate = require('./validate');
 var Val = base.baseConstructor();
 
 util.extend(Val.prototype, base.base, {
-	name: "offset",
+	name: "shape",
 
 	allowed: [
 		{
@@ -13952,7 +14081,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 require.define("/css/values/transform.js", function (require, module, exports, __dirname, __filename) {
 /* <transform>
  *
- * CSS3:  inherit | none | <transform-function>*
+ * CSS3:  inherit | none | <transform-function>+
  */
 
 "use strict";
@@ -13971,7 +14100,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit', 'none'], v)) {
+	var x = v.unparsed.matchAny(['inherit', 'none'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -14064,10 +14197,10 @@ exports.parse = function (unparsedReal, bucket, container) {
 	v.debug('parse', v.unparsed);
 
 	if (! v.functionParser('translate(',
-			[ bucket['length'], bucket['percent'] ])) {
+			[ bucket['length'], bucket['percentage'] ])) {
 		if (! v.functionParser('translate(',
-			[ bucket['length'], bucket['percent'] ],
-			[ bucket['length'], bucket['percent'] ])) {
+			[ bucket['length'], bucket['percentage'] ],
+			[ bucket['length'], bucket['percentage'] ])) {
 			v.debug('parse fail');
 			return null;
 		}
@@ -14102,8 +14235,8 @@ exports.parse = function (unparsedReal, bucket, container) {
 	v.debug('parse', v.unparsed);
 
 	if (! v.functionParser('translate(',
-		[ bucket['length'], bucket['percent'] ],
-		[ bucket['length'], bucket['percent'] ],
+		[ bucket['length'], bucket['percentage'] ],
+		[ bucket['length'], bucket['percentage'] ],
 		[ bucket['length'] ])) {
 		v.debug('parse fail');
 		return null;
@@ -14138,7 +14271,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	v.debug('parse', v.unparsed);
 
 	if (! v.functionParser('translatex(',
-			[ bucket['length'], bucket['percent'] ])) {
+			[ bucket['length'], bucket['percentage'] ])) {
 		v.debug('parse fail');
 		return null;
 	}
@@ -14172,7 +14305,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	v.debug('parse', v.unparsed);
 
 	if (! v.functionParser('translatey(',
-			[ bucket['length'], bucket['percent'] ])) {
+			[ bucket['length'], bucket['percentage'] ])) {
 		v.debug('parse fail');
 		return null;
 	}
@@ -14239,7 +14372,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -14280,7 +14417,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -14354,7 +14495,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit'], v)) {
+	var x = v.unparsed.matchAny(['inherit'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -14428,7 +14573,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit', 'none'], v)) {
+	var x = v.unparsed.matchAny(['inherit', 'none'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -14508,10 +14657,10 @@ exports.parse = function (unparsedReal, bucket, container) {
 	v.debug('parse', unparsedReal);
 
 	var hits = unparsed.matchAnyOrder([
-		bucket['transition-property-single'],
 		bucket['transition-duration-single'],
 		bucket['transition-timing-function-single'],
-		bucket['transition-delay-single']
+		bucket['transition-delay-single'],
+		bucket['transition-property-single']  // Keep this one last - it matches IDENT
 	], v);
 
 	if (! hits) {
@@ -14540,14 +14689,18 @@ var validate = require('./validate');
 var Val = base.baseConstructor();
 
 util.extend(Val.prototype, base.base, {
-	name: "transition-triming-function"
+	name: "transition-timing-function"
 });
 
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
 
-	if (v.unparsed.matchAny(['inherit', 'none'], v)) {
+	var x = v.unparsed.matchAny(['inherit', 'none'], v);
+
+	if (x) {
+		v.add(x);
+		v.unparsed = x.unparsed;
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
 		return v;
 	}
@@ -15052,7 +15205,7 @@ exports.parse = base.simpleParser(Val);
 require.define("/css/values/webkit-color-stop.js", function (require, module, exports, __dirname, __filename) {
 /* <webkit-color-stop>
  *
- * color-stop(<number>|<percentage>, <color)
+ * color-stop(<number>|<percentage>, <color>)
  * from(<color>) -- same as color-stop(0, <color>)
  * to(<color>) -- same as color-stop(1, <color>)
  */
@@ -15142,7 +15295,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 			return false;
 		}
 
-		v.add(v.unparsed.advance());
+		v.unparsed.advance(); // Commas are added back in automatically
 		var e = bucket[paramType].parse(v.unparsed, bucket, v);
 
 		if (! e) {
@@ -15158,17 +15311,35 @@ exports.parse = function (unparsedReal, bucket, container) {
 	if (v.unparsed.isContent('linear')) {
 		v.add(v.unparsed.advance());
 
-		if (! doParameter('webkit-side-or-corner') ||
-			! doParameter('webkit-side-or-corner')) {
+		if (! doParameter('webkit-side-or-corner')) {
+			v.debug('parse fail - linear, first side or corner');
+			return null;
+		}
+
+		if (! doParameter('webkit-side-or-corner')) {
+			v.debug('parse fail - linear, second side or corner');
 			return null;
 		}
 	} else if (v.unparsed.isContent('radial')) {
 		v.add(v.unparsed.advance());
 
-		if (! doParameter('webkit-gradient-center') ||
-			doParameter('length-percentage') ||
-			doParameter('webkit-gradient-center') ||
-			doParameter('length-percentage')) {
+		if (! doParameter('webkit-gradient-center')) {
+			v.debug('parse fail - radial, first center');
+			return null;
+		}
+
+		if (! doParameter('length-percentage')) {
+			v.debug('parse fail - radial, first length or percentage');
+			return null;
+		}
+
+		if (! doParameter('webkit-gradient-center')) {
+			v.debug('parse fail - radial, second center');
+			return null;
+		}
+
+		if (! doParameter('length-percentage')) {
+			v.debug('parse fail - radial, second length or percentage');
 			return null;
 		}
 	} else {
@@ -15213,7 +15384,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 require.define("/css/values/webkit-gradient-center.js", function (require, module, exports, __dirname, __filename) {
 /* <webkit-gradient-center>
  *
- * <length> | <percentage> | <webkit-side-or-corner> | center
+ * ( <length> | <percentage> ){2} | <webkit-side-or-corner> | center
  */
 
 "use strict";
@@ -15234,8 +15405,7 @@ util.extend(Val.prototype, base.base, {
 				'center'
 			],
 			valueObjects: [ 
-				'length',
-				'percentage',
+				'length-percentage2',
 				'webkit-side-or-corner'
 			]
 		}
@@ -16068,6 +16238,7 @@ exports.canStartWith = function (token, tokens, bucket) {
 };
 
 exports.parse = function (tokens, bucket, container) {
+	var lastToken = tokens.getToken();
 	var keyframe = new Keyframe(bucket, container);
 	keyframe.debug('parse', tokens);
 
@@ -16076,11 +16247,12 @@ exports.parse = function (tokens, bucket, container) {
 	var token = tokens.nextToken();
 
 	if (token && token.type == 'S') {
+		lastToken = token;
 		token = tokens.nextToken();
 	}
 
 	if (! token || token.type != 'BLOCK_OPEN') {
-		bucket.parser.addError('block-expected', token);
+		bucket.parser.addError('block-expected', token || lastToken);
 
 		var invalid = bucket.invalid.parse(null, bucket, container);
 		invalid.add(keyframe.selector);
@@ -16298,9 +16470,11 @@ exports.parse = function (tokens, bucket, container) {
 
 	// Handle function
 	if (token.type == 'FUNCTION') {
+		pseudo.debug('parse function');
 		var depth = 1;
 		var selectorTokens = [];
 		var invalidCss = null;
+		token = tokens.getToken();
 
 		while (tokens.anyLeft() && depth) {
 			if (token.type == 'FUNCTION' || token.content == '(') {
@@ -16317,6 +16491,7 @@ exports.parse = function (tokens, bucket, container) {
 
 		var tempTokenizer = bucket.tokenizer.tokenize('', bucket.options);
 		tempTokenizer.tokens = selectorTokens;
+		pseudo.debug(tempTokenizer);
 
 		if (! tempTokenizer.anyLeft() || ! bucket.selector.canStartWith(tempTokenizer.getToken(), tempTokenizer, bucket)) {
 			pseudo.debug('none left or does not start a selector');
@@ -16439,6 +16614,7 @@ exports.canStartWith = base.selectorCanStartWith;
 
 exports.parse = function (tokens, bucket, container) {
 	var ruleset = new Ruleset(bucket, container);
+	var lastToken = tokens.getToken();
 	ruleset.debug('parse', tokens);
 
 	// The current token is the first part of our selector
@@ -16465,9 +16641,11 @@ exports.parse = function (tokens, bucket, container) {
 
 	while (nextToken && nextToken.type == 'OPERATOR' && nextToken.content == ',') {
 		// Consume comma
+		lastToken = nextToken;
 		nextToken = tokens.nextToken();
 
 		if (nextToken.type == 'S') {
+			lastToken = nextToken;
 			nextToken = tokens.nextToken();
 		}
 
@@ -16480,15 +16658,18 @@ exports.parse = function (tokens, bucket, container) {
 		ruleset.selectors.push(bucket.selector.parse(tokens, bucket, ruleset));
 
 		// Don't advance the token pointer - use getToken here
+		lastToken = nextToken;
 		nextToken = tokens.getToken();
 	}
 
 	if (nextToken && nextToken.type == "S") {
+		lastToken = nextToken;
 		nextToken = tokens.nextToken();
 	}
 
 	if (! nextToken || nextToken.type != 'BLOCK_OPEN') {
-		bucket.parser.addError('block-expected', nextToken);
+		var errToken = nextToken || lastToken;
+		bucket.parser.addError('block-expected', errToken);
 		return makeInvalid();
 	}
 
@@ -16919,7 +17100,7 @@ var getTokenDefs = function () {
 		string: "\\\"({stringchar}|\\')*\\\"|\\'({stringchar}|\\\")*\\'",
 		stringchar: "{urlchar}| |\\\\{nl}",
 		unicode: "\\\\{h}{1,6}({nl}|{wc})?",
-		urlchar: "[\\t\x21\x23-\x7e]|{nonascii}|{escape}",
+		urlchar: "[\\t\x21\x23-\x26\x28-\x7e]|{nonascii}|{escape}", // 22 = ", 27 = '
 		w: "{wc}*",
 		wc: wsPatternString
 	};
@@ -17319,7 +17500,10 @@ exports.errorMessages = {
 };
 exports.warningText = 'Warning';
 exports.warningMessages = {
+	'add-quotes': 'To avoid confusion, this value should have quotes',
 	'angle': 'Angles should start at 0 and be less than 360',
+	'autocorrect': 'The value (##) has been autocorrected',
+	'autocorrect-swap': 'The values have been autocorrected by swapping',
 	'browser-only': 'Only works in one browser (##)',
 	'browser-quirk': 'Behaves poorly in a browser (##)',
 	'browser-unsupported': 'Unsupported in a browser (##)',
