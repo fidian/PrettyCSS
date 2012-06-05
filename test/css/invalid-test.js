@@ -5,6 +5,7 @@ exports.batch = util.makeVows('invalid', {
 	'semicolon': {
 		'input': 'Gobble this up;\n',
 		"errors": ["invalid-token:IDENT@1"],
+		'name': 'invalid',
 		"tokenList": ["IDENT", "S", "IDENT", "S", "IDENT", "SEMICOLON"],
 		"tokensRemaining": 1,
 		"toString": ""

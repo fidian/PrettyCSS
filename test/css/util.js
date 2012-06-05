@@ -33,6 +33,10 @@ var fakeBucket = function () {
 				combinator_post: "",
 				declaration_pre: '',
 				declaration_post: '',
+				keyframe_pre: '',
+				keyframe_post: '',
+				keyframeselector_pre: '',
+				keyframeselector_post: '',
 				stylesheet_pre: "",
 				stylesheet_whitespace: "",
 				stylesheet_post: "",
@@ -83,15 +87,12 @@ exports.makeVows = function (name, batches) {
 };
 
 var testValue = function (name, obj, expected) {
-	if (! expected.errors.length) {
+	if (typeof expected.name == 'undefined') {
 		expected.name = name;
-	} else {
-		expected.name = 'invalid';
 	}
 
-	if (expected.toString === null) {
-		expected.warnings = null;
-		expected.name = null;
+	if (typeof expected.errors == 'undefined') {
+		expected.errors = [];
 	}
 
 	var context = {
