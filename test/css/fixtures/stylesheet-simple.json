@@ -1,7 +1,0 @@
-{
-	"errors": [],
-	"name": "stylesheet",
-	"tokenList": ["at-rule", "whitespace", "ruleset", "whitespace", "ruleset", "whitespace"],
-	"tokensRemaining": 0,
-	"toString": "@charset \"UTF-8\";a{background-color:blue;}br{display:none;}"
-}

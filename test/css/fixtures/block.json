@@ -1,7 +1,0 @@
-{
-	"errors": [],
-	"name": "block",
-	"tokenList": ["S", "IDENT", "COLON", "S", "IDENT", "S", "FUNCTION", "STRING", "PAREN_CLOSE", "SEMICOLON", "S"],
-	"tokensRemaining": 1,
-	"toString": "{\n\tsome-property: some value(\"maybe\");\n}"
-}

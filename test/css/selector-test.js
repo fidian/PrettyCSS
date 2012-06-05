@@ -1,37 +1,75 @@
 "use strict";
-var vows = require('vows');
-var selector = require('../../lib/css/selector');
 var util = require('./util');
 
-exports.batch = vows.describe('lib/css/selector.js').addBatch({
-	'selector-single.css': util.tokenizeFile({
-		'selector-single.json': util.compareResult(selector)
-	}),
-	'selector-multiple.css': util.tokenizeFile({
-		'selector-multiple.json': util.compareResult(selector)
-	}),
-	'selector-eof.css': util.tokenizeFile({
-		'selector-eof.json': util.compareResult(selector)
-	}),
-	'selector-class.css': util.tokenizeFile({
-		'selector-class.json': util.compareResult(selector)
-	}),
-	'selector-combinator.css': util.tokenizeFile({
-		'selector-combinator.json': util.compareResult(selector)
-	}),
-	'selector-combinator-2.css': util.tokenizeFile({
-		'selector-combinator-2.json': util.compareResult(selector)
-	}),
-	'selector-error-combinator.css': util.tokenizeFile({
-		'selector-error-combinator.json': util.compareResult(selector)
-	}),
-	'selector-error-combinator-2.css': util.tokenizeFile({
-		'selector-error-combinator-2.json': util.compareResult(selector)
-	}),
-	'selector-error-colon-colon-ident.css': util.tokenizeFile({
-		'selector-error-colon-colon-ident.json': util.compareResult(selector)
-	}),
-	'selector-error-colon-ident.css': util.tokenizeFile({
-		'selector-error-colon-ident.json': util.compareResult(selector)
-	})
+exports.batch = util.makeVows('selector', {
+	'single': {
+		'input': 'a{}\n',
+		'errors': [],
+		"tokenList": ["IDENT"],
+		"tokensRemaining": 3,
+		"toString": "a"
+	},
+	'multiple': {
+		'input': 'br,a, html > body\t,.blue:hover { rule: value }\n',
+		'errors': [],
+		"tokenList": ["IDENT"],
+		"tokensRemaining": 24,
+		"toString": "br"
+	},
+	'eof': {
+		'input': 'br\n',
+		'errors': [],
+		"tokenList": ["IDENT"],
+		"tokensRemaining": 0,
+		"toString": "br"
+	},
+	'class': {
+		'input': '.homeboy {}\n',
+		'errors': [],
+		"tokenList": ["CLASS", "S"],
+		"tokensRemaining": 3,
+		"toString": ".homeboy"
+	},
+	'combinator': {
+		'input': 'a > .yellow:hover\n',
+		'errors': [],
+		"tokenList": ["IDENT", "COMBINATOR", "CLASS", "pseudoclass"],
+		"tokensRemaining": 0,
+		"toString": "a>.yellow:hover"
+	},
+	'combinator 2': {
+		'input': 'p+div.colorful#blinking::after,span\n',
+		'errors': [],
+		"tokenList": ["IDENT", "COMBINATOR", "IDENT", "CLASS", "HASH", "pseudoelement"],
+		"tokensRemaining": 3,
+		"toString": "p+div.colorful#blinking::after"
+	},
+	'error combinator': {
+		'input': 'a > > html\n',
+		'errors': ['illegal-token-after-combinator:COMBINATOR@1'],
+		"tokenList": ["IDENT", "COMBINATOR", "COMBINATOR", "S", "IDENT", "S"],
+		"tokensRemaining": 0,
+		"toString": ""
+	},
+	'error combinator 2': {
+		'input': 'p+>div\n',
+		'errors': ['illegal-token-after-combinator:COMBINATOR@1'],
+		"tokenList": ["IDENT", "COMBINATOR", "COMBINATOR", "IDENT", "S"],
+		"tokensRemaining": 0,
+		"toString": ""
+	},
+	'error colon colon ident': {
+		'input': 'a :: after {}\n',
+		'errors': ['ident-after-double-colon:COLON@1'],
+		"tokenList": ["IDENT", "S", "COLON", "COLON", "S", "IDENT", "S", "block"],
+		"tokensRemaining": 1,
+		"toString": ""
+	},
+	'error colon ident': {
+		'input': 'a : hover { }\n',
+		'errors': ['ident-after-colon:COLON@1'],
+		"tokenList": ["IDENT", "S", "COLON", "S", "IDENT", "S", "block"],
+		"tokensRemaining": 1,
+		"toString": ""
+	}
 });

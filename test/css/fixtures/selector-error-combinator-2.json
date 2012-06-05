@@ -1,7 +1,0 @@
-{
-	"errors": ["illegal-token-after-combinator:COMBINATOR@1"],
-	"name": "invalid",
-	"tokenList": ["IDENT", "COMBINATOR", "COMBINATOR", "IDENT", "S"],
-	"tokensRemaining": 0,
-	"toString": ""
-}

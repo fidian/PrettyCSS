@@ -1,10 +1,12 @@
 "use strict";
-var vows = require('vows');
-var pseudo = require('../../lib/css/pseudoelement');
 var util = require('./util');
 
-exports.batch = vows.describe('lib/css/pseudoelement.js').addBatch({
-	'pseudoelement.css': util.tokenizeFile({
-		'pseudoelement.json': util.compareResult(pseudo)
-	})
+exports.batch = util.makeVows('pseudoelement', {
+	'pseudoclass': {
+		'input': '::after\n',
+		"errors": [],
+		"tokenList": ["COLON", "COLON", "IDENT"],
+		"tokensRemaining": 1,
+		"toString": "::after"
+	}
 });

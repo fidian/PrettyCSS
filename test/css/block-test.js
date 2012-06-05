@@ -1,19 +1,34 @@
 "use strict";
-var vows = require('vows');
-var block = require('../../lib/css/block');
 var util = require('./util');
 
-exports.batch = vows.describe('lib/css/block.js').addBatch({
-	'block.css': util.tokenizeFile({
-		'block.json': util.compareResult(block)
-	}),
-	'block-bad.css': util.tokenizeFile({
-		'block-bad.json': util.compareResult(block)
-	}),
-	'block-nested.css': util.tokenizeFile({
-		'block-nested.json': util.compareResult(block)
-	}),
-	'block-nested-bad.css': util.tokenizeFile({
-		'block-nested-bad.json': util.compareResult(block)
-	})
+exports.batch = util.makeVows('block', {
+	'block': {
+		'input': '{\n\tsome-property: some value("maybe");\n}\n',
+		"errors": [],
+		"tokenList": ["S", "IDENT", "COLON", "S", "IDENT", "S", "FUNCTION", "STRING", "PAREN_CLOSE", "SEMICOLON", "S"],
+		"tokensRemaining": 1,
+		"toString": "{\n\tsome-property: some value(\"maybe\");\n}"
+	},
+	'block-bad': {
+		'input': '{\n',
+		"errors": [],
+		"name": "block",
+		"tokenList": ["S"],
+		"tokensRemaining": 0,
+		"toString": "{\n}"
+	},
+	'nested': {
+		'input': '{\n\tfont: black;\n\t{\n\t\tnested: yes;\n\t}\n\ttigger: {\n\t\tcat: true;\n\t}\n}\n',
+		"errors": [],
+		"tokenList": ["S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "BLOCK_OPEN", "S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "BLOCK_CLOSE", "S", "IDENT", "COLON", "S", "BLOCK_OPEN", "S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "BLOCK_CLOSE", "S"],
+		"tokensRemaining": 1,
+		"toString": "{\n\tfont: black;\n\t{\n\t\tnested: yes;\n\t}\n\ttigger: {\n\t\tcat: true;\n\t}\n}"
+	},
+	'nested-bad': {
+		'input': '{\n\t{\n\t\tnested: yes;\n\t\tdisplay: hidden;\n}\n',
+		"errors": [],
+		"tokenList": ["S", "BLOCK_OPEN", "S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "BLOCK_CLOSE", "S"],
+		"tokensRemaining": 0,
+		"toString": "{\n\t{\n\t\tnested: yes;\n\t\tdisplay: hidden;\n}\n}"
+	}
 });

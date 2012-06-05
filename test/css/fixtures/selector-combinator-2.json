@@ -1,7 +1,0 @@
-{
-	"errors": [],
-	"name": "selector",
-	"tokenList": ["IDENT", "COMBINATOR", "IDENT", "CLASS", "HASH", "pseudoelement"],
-	"tokensRemaining": 3,
-	"toString": "p+div.colorful#blinking::after"
-}

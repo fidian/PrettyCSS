@@ -1,7 +1,0 @@
-{
-	"errors": ["block-expected:IDENT@1"],
-	"name": "invalid",
-	"tokenList": ["IDENT", "S", "IDENT", "S", "IDENT"],
-	"tokensRemaining": 0,
-	"toString": ""
-}

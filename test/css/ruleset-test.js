@@ -1,19 +1,34 @@
 "use strict";
-var vows = require('vows');
-var ruleset = require('../../lib/css/ruleset');
 var util = require('./util');
 
-exports.batch = vows.describe('lib/css/ruleset.js').addBatch({
-	'ruleset.css': util.tokenizeFile({
-		'ruleset.json': util.compareResult(ruleset)
-	}),
-	'ruleset-multiple-selectors.css': util.tokenizeFile({
-		'ruleset-multiple-selectors.json': util.compareResult(ruleset)
-	}),
-	'ruleset-no-block.css': util.tokenizeFile({
-		'ruleset-no-block.json': util.compareResult(ruleset)
-	}),
-	'ruleset-no-close-block.css': util.tokenizeFile({
-		'ruleset-no-close-block.json': util.compareResult(ruleset)
-	})
+exports.batch = util.makeVows('ruleset', {
+	'ruleset': {
+		'input': 'a {}\n',
+		"errors": [],
+		"tokenList": [],
+		"tokensRemaining": 1,
+		"toString": "a{}"
+	},
+	'multiple selectors': {
+		'input': 'br,a, html > body\t,.blue:hover { rule: value }\n',
+		"errors": [],
+		"tokenList": [],
+		"tokensRemaining": 1,
+		"toString": "br,a,html>body,.blue:hover{rule:value;}"
+	},
+	'no block': {
+		'input': 'a b c',
+		"errors": ["block-expected:IDENT@1"],
+		'name': 'invalid',
+		"tokenList": ["IDENT", "S", "IDENT", "S", "IDENT"],
+		"tokensRemaining": 0,
+		"toString": ""
+	},
+	'no close block': {
+		'input': 'ul {\n\tproperty: value;\n',
+		"errors": [],
+		"tokenList": [],
+		"tokensRemaining": 0,
+		"toString": "ul{property:value;}"
+	}
 });

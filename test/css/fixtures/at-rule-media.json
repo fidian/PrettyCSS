@@ -1,7 +1,0 @@
-{
-	"errors": [],
-	"name": "at-rule",
-	"tokenList": ["AT_SYMBOL", "S", "IDENT", "S"],
-	"tokensRemaining": 1,
-	"toString": "@media print {a{display:none;}}"
-}

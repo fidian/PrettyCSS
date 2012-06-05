@@ -1,16 +1,26 @@
 "use strict";
-var vows = require('vows');
-var property = require('../../lib/css/property');
 var util = require('./util');
 
-exports.batch = vows.describe('lib/css/property.js').addBatch({
-	'property.css': util.tokenizeFile({
-		'property.json': util.compareResult(property)
-	}),
-	'property-eof.css': util.tokenizeFile({
-		'property-eof.json': util.compareResult(property)
-	}),
-	'property-ws.css': util.tokenizeFile({
-		'property-ws.json': util.compareResult(property)
-	})
+exports.batch = util.makeVows('property', {
+	'property': {
+		'input': 'property-name:"some-value"\n',
+		"errors": [],
+		"tokenList": ["IDENT"],
+		"tokensRemaining": 3,
+		"toString": "property-name"
+	},
+	'eof': {
+		'input': 'property-name\n',
+		"errors": [],
+		"tokenList": ["IDENT"],
+		"tokensRemaining": 0,
+		"toString": "property-name"
+	},
+	'whitespace': {
+		'input': 'property-name\n:"someValue"\n',
+		"errors": [],
+		"tokenList": ["IDENT"],
+		"tokensRemaining": 3,
+		"toString": "property-name"
+	}
 });

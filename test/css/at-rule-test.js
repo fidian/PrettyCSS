@@ -1,19 +1,33 @@
 "use strict";
-var vows = require('vows');
-var atRule = require('../../lib/css/at-rule');
 var util = require('./util');
 
-exports.batch = vows.describe('lib/css/at-rule.js').addBatch({
-	'at-rule-charset.css': util.tokenizeFile({
-		'at-rule-charset.json': util.compareResult(atRule)
-	}),
-	'at-rule-charset-bad.css': util.tokenizeFile({
-		'at-rule-charset-bad.json': util.compareResult(atRule)
-	}),
-	'at-rule-media.css': util.tokenizeFile({
-		'at-rule-media.json': util.compareResult(atRule)
-	}),
-	'at-rule-media-bad.css': util.tokenizeFile({
-		'at-rule-media-bad.json': util.compareResult(atRule)
-	})
+exports.batch = util.makeVows('at-rule', {
+	'charset': {
+		'input': '@charset "UTF-8";\n',
+		'errors': [],
+		'tokenList': ['AT_SYMBOL', 'S', 'STRING', 'SEMICOLON'],
+		'tokensRemaining': 1,
+		'toString': '@charset "UTF-8";'
+	},
+	'charset-bad': {
+		'input': '@charset\n',
+		'errors': [],
+		'tokenList': ['AT_SYMBOL', 'S'],
+		'tokensRemaining': 0,
+		'toString': '@charset '
+	},
+	'media': {
+		'input': '@media print {\n\ta {\n\t\tdisplay: none;\n\t}\n}\n',
+		"errors": [],
+		"tokenList": ["AT_SYMBOL", "S", "IDENT", "S"],
+		"tokensRemaining": 1,
+		"toString": "@media print {a{display:none;}}"
+	},
+	'media-bad': {
+		'input': '@media print {\n',
+		"errors": [],
+		"tokenList": ["AT_SYMBOL", "S", "IDENT", "S"],
+		"tokensRemaining": 0,
+		"toString": "@media print {}"
+	}
 });

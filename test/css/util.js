@@ -1,21 +1,12 @@
 "use strict";
 var assert = require('assert');
-var fs = require('fs');
-var diff = require('diff');
-var tokenizer = require('../../lib/tokenizer');
 var cssBucket = require('../../lib/cssbucket');
+var diff = require('diff');
+var fs = require('fs');
+var tokenizer = require('../../lib/tokenizer');
+var vows = require('vows');
 
-exports.tokenizeFile = function (context) {
-	context.topic = function () {
-		var filename = this.context.name.split(' ')[0];
-		filename = __dirname + "/fixtures/" + filename;
-		tokenizer.tokenizeFile(filename, this.callback);
-	};
-
-	return context;
-};
-
-exports.fakeBucket = function () {
+var fakeBucket = function () {
 	var fakeBucket = {
 		tokenizer: tokenizer,
 		parser: {
@@ -80,47 +71,63 @@ exports.fakeBucket = function () {
 	return fakeBucket;
 };
 
-exports.compareResult = function compareTokens(against) {
+exports.makeVows = function (name, batches) {
+	var obj = require('../../lib/css/' + name);
+	var batchRework = {};
+
+	for (var i in batches) {
+		batchRework[name + '-test.js: ' + i] = testValue(name, obj, batches[i]);
+	}
+
+	return vows.describe('lib/css/' + name + '.js').addBatch(batchRework);
+};
+
+var testValue = function (name, obj, expected) {
+	if (! expected.errors.length) {
+		expected.name = name;
+	} else {
+		expected.name = 'invalid';
+	}
+
+	if (expected.toString === null) {
+		expected.warnings = null;
+		expected.name = null;
+	}
+
 	var context = {
-		topic: function (tokenizerObj) {
-			var topicCallback = this.callback;
-			var filename = this.context.name.split(' ')[0];
-			filename = __dirname + "/fixtures/" + filename;
-			fs.readFile(filename, 'utf-8', function (err, data) {
-				if (err) {
-					topicCallback(err);
-					return;
-				}
+		topic: function () {
+			var actualTokens = tokenizer.tokenize(expected.input);
+			var bucket = fakeBucket();
+			var parseResult = obj.parse(actualTokens, bucket, {});
 
-				try {
-					var expected = JSON.parse(data);
-				} catch (err) {
-					topicCallback(err);
-					return;
-				}
+			var topic = {
+				tokenizer: actualTokens,
+				bucket: bucket,
+				result: parseResult
+			};
 
-				var fakeBucket = exports.fakeBucket();
-				var result = against.parse(tokenizerObj, fakeBucket, {});
-				topicCallback(err, expected, result, tokenizerObj, fakeBucket);
-			});
+			return topic;
 		},
 
-		'Errors': function (err, expected, result, tokenizerObj, fakeBucket) {
-			assert.ifError(err);
-			assert.deepEqual(fakeBucket.parser.errors, expected.errors);
+		'No Exceptions': function (topic) {
+			if (topic instanceof Error) {
+				throw topic;
+			}
 		},
 
-		'Name': function (err, expected, result, tokenizerObj, fakeBucket) {
-			assert.ifError(err);
-			assert.equal(result.name, expected.name);
+		'Errors': function (topic) {
+			assert.deepEqual(topic.bucket.parser.errors, expected.errors);
 		},
 
-		'Token List': function (err, expected, result, tokenizerObj, fakeBucket) {
-			assert.ifError(err);
+		'Name': function (topic) {
+			assert.equal(topic.result.name, expected.name);
+		},
+
+		'Token List': function (topic) {
 			var tokenList = [];
 
-			for (var i in result.list) {
-				var e = result.list[i];
+			for (var i in topic.result.list) {
+				var e = topic.result.list[i];
 
 				if (e.name) {
 					tokenList.push(e.name);
@@ -132,26 +139,28 @@ exports.compareResult = function compareTokens(against) {
 			assert.deepEqual(tokenList, expected.tokenList);
 		},
 
-		'Tokens Remaining': function (err, expected, result, tokenizerObj, fakeBucket) {
-			assert.ifError(err);
-			var remaining = tokenizerObj.tokens.length - tokenizerObj.tokenIndex;
+		'Tokens Remaining': function (topic) {
+			var remaining = topic.tokenizer.tokens.length - topic.tokenizer.tokenIndex;
 			var tokensLeft = [];
 
-			while (tokenizerObj.anyLeft()) {
-				tokensLeft.push(tokenizerObj.getToken().type);
-				tokenizerObj.next();
+			while (topic.tokenizer.anyLeft()) {
+				tokensLeft.push(topic.tokenizer.getToken().type);
+				topic.tokenizer.next();
 			}
 
 			assert.equal(remaining, expected.tokensRemaining, "Expected " + expected.tokensRemaining + ", actually was " + remaining + ".\nWe have: " + tokensLeft.join(" "));
 		},
 
-		'ToString': function (err, expected, result, tokenizerObj, fakeBucket) {
-			assert.ifError(err);
-			var str = result.toString();
+		'ToString': function (topic) {
+			var str = null;
+
+			if (topic.result) {
+				str = topic.result.toString();
+			}
+
 			assert.equal(str, expected.toString);
 		}
 	};
 
 	return context;
 };
-

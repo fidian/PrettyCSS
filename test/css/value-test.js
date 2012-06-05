@@ -1,16 +1,26 @@
 "use strict";
-var vows = require('vows');
-var value = require('../../lib/css/value');
 var util = require('./util');
 
-exports.batch = vows.describe('lib/css/value.js').addBatch({
-	'value-simple.css': util.tokenizeFile({
-		'value-simple.json': util.compareResult(value)
-	}),
-	'value-eob.css': util.tokenizeFile({
-		'value-eob.json': util.compareResult(value)
-	}),
-	'value-ws-eof.css': util.tokenizeFile({
-		'value-ws-eof.json': util.compareResult(value)
-	})
+exports.batch = util.makeVows('value', {
+	'simple': {
+		'input': 'none;\n',
+		'errors': [],
+		"tokenList": ["IDENT"],
+		"tokensRemaining": 1,
+		"toString": "none"
+	},
+	'eob': {
+		'input': '"times new roman"}\na {}\n',
+		'errors': [],
+		"tokenList": ["STRING"],
+		"tokensRemaining": 7,
+		"toString": "\"times new roman\""
+	},
+	'ws eof': {
+		'input': '\nblue\n',
+		'errors': [],
+		"tokenList": ["IDENT"],
+		"tokensRemaining": 0,
+		"toString": "blue"
+	}
 });

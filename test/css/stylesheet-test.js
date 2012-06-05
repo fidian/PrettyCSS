@@ -1,13 +1,19 @@
 "use strict";
-var vows = require('vows');
-var stylesheet = require('../../lib/css/stylesheet');
 var util = require('./util');
 
-exports.batch = vows.describe('lib/css/stylesheet.js').addBatch({
-	'stylesheet-simple.css': util.tokenizeFile({
-		'stylesheet-simple.json': util.compareResult(stylesheet)
-	}),
-	'stylesheet-bad-at-rule.css': util.tokenizeFile({
-		'stylesheet-bad-at-rule.json': util.compareResult(stylesheet)
-	})
+exports.batch = util.makeVows('stylesheet', {
+	'simple': {
+		'input': '@charset "UTF-8";\n\na {\n\tbackground-color: blue;\n}\n\nbr {\n\tdisplay: none\n}\n',
+		'errors': [],
+		"tokenList": ["at-rule", "whitespace", "ruleset", "whitespace", "ruleset", "whitespace"],
+		"tokensRemaining": 0,
+		"toString": "@charset \"UTF-8\";a{background-color:blue;}br{display:none;}"
+	},
+	'bad at rule': {
+		'input': '@charset "UTF-8"\n\na {\n\tbackground-color: blue;\n}\n\nbr {\n\tdisplay: none\n}\n',
+		'errors': [],
+		"tokenList": ["at-rule", "whitespace", "ruleset", "whitespace"],
+		"tokensRemaining": 0,
+		"toString": "@charset \"UTF-8\" a {\n\tbackground-color: blue;\n}br{display:none;}"
+	}
 });

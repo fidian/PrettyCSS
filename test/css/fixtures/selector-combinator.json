@@ -1,7 +1,0 @@
-{
-	"errors": [],
-	"name": "selector",
-	"tokenList": ["IDENT", "COMBINATOR", "CLASS", "pseudoclass"],
-	"tokensRemaining": 0,
-	"toString": "a>.yellow:hover"
-}

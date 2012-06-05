@@ -1,7 +1,0 @@
-{
-	"errors": [],
-	"name": "block",
-	"tokenList": ["S", "BLOCK_OPEN", "S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "IDENT", "COLON", "S", "IDENT", "SEMICOLON", "S", "BLOCK_CLOSE", "S"],
-	"tokensRemaining": 0,
-	"toString": "{\n\t{\n\t\tnested: yes;\n\t\tdisplay: hidden;\n}\n}"
-}
