@@ -1586,6 +1586,7 @@ exports['font-face-font-family'] = require('./values/font-face-font-family');
 exports['font-face-font-feature-settings'] = require('./values/font-face-font-feature-settings');
 exports['font-face-font-size'] = require('./values/font-face-font-size');
 exports['font-face-font-stretch'] = require('./values/font-face-font-stretch');
+exports['font-face-font-stretch-single'] = require('./values/font-face-font-stretch-single');
 exports['font-face-font-style'] = require('./values/font-face-font-style');
 exports['font-face-font-variant'] = require('./values/font-face-font-variant');
 exports['font-face-font-weight'] = require('./values/font-face-font-weight');
@@ -2322,7 +2323,7 @@ exports.autoCorrect = function (desired) {
 exports.angle = function () {
 	return function (token) {
 		var matches = token.content.match(/^([-+0-9.]*)(.*)$/);
-		var a = matches[1];
+		var a = +matches[1];
 		var unit = matches[2];
 		var max = null;
 
@@ -2360,7 +2361,7 @@ exports.angle = function () {
 			a -= max;
 		}
 
-		token.content = a + unit;
+		token.content = a.toFixed(10).replace(/\.?0+$/, '') + unit;
 	};
 };
 
@@ -2574,7 +2575,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		return null;
 	}
 
-	validate.call(v, 'minimumCss', v.firstToken(), 3);
+	// The CSS3 warning is added by animation-single or other children
 	return v;
 };
 
@@ -2695,7 +2696,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		return null;
 	}
 
-	validate.call(v, 'minimumCss', v.firstToken(), 3);
+	// CSS3 warning added by children
 	return v;
 };
 
@@ -2845,14 +2846,14 @@ exports.parse = function (unparsedReal, bucket, container) {
 	}
 
 	v.repeatWithCommas = true;
-	hits = v.repeatParser([ bucket['animation-fill-mode-single'] ]);
+	var hits = v.repeatParser([ bucket['animation-fill-mode-single'] ]);
 
 	if (! hits) {
 		v.debug('parse fail');
 		return null;
 	}
 
-	validate.call(v, 'minimumCss', v.firstToken(), 3);
+	// CSS3 warning added by child
 	return v;
 };
 
@@ -2942,7 +2943,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 require.define("/css/values/animation-iteration-count-single.js", function (require, module, exports, __dirname, __filename) {
 /* <animation-iteration-count-single>
  *
- * CSS3:  none | <ident>
+ * CSS3:  infinite | <number>
  */
 
 "use strict";
@@ -3096,7 +3097,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		return null;
 	}
 
-	validate.call(v, 'minimumCss', v.firstToken(), 3);
+	// CSS3 warning added by animation-play-state-single
 	return v;
 };
 
@@ -3220,7 +3221,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		return null;
 	}
 
-	validate.call(v, 'minimumCss', v.firstToken(), 3);
+	// CSS3 warning was added by animation-timing-function-single
 	return v;
 };
 
@@ -4897,6 +4898,7 @@ exports.parse = function (unparsed, bucket, container) {
 	if (v.unparsed.isContent('inherit')) {
 		v.add(v.unparsed.advance());
 		validate.call(v, 'minimumCss', v.firstToken(), 3);
+		return v;
 	}
 
 	if (v.unparsed.isContent('fill')) {
@@ -4966,6 +4968,8 @@ require.define("/css/values/border-image-width.js", function (require, module, e
 /* border-image-width
  *
  * CSS3:  <border-image-width-single>{1,4}
+ *
+ * The CSS3 warning is added by border-image-width-single.
  */
 
 "use strict";
@@ -5631,7 +5635,7 @@ var validate = require('./validate');
 var Val = base.baseConstructor();
 
 util.extend(Val.prototype, base.base, {
-	name: "offset",
+	name: "clip",
 
 	allowed: [
 		{
@@ -6086,7 +6090,13 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var e = bucket['color'].parse(v.unparsed, bucket, v);
 
 	if (! e) {
-		v.debug('parse fail');
+		v.debug('parse fail - no color');
+		return null;
+	}
+
+	// Inherit does not make sense for a color stop
+	if (e.isInherit()) {
+		v.debug('parse fail - inherit');
 		return null;
 	}
 
@@ -6670,7 +6680,7 @@ var validate = require('./validate');
 var Val = base.baseConstructor();
 
 util.extend(Val.prototype, base.base, {
-	name: "val",
+	name: "empty-cells",
 
 	allowed: [
 		{
@@ -6705,7 +6715,17 @@ var validate = require('./validate');
 var Val = base.baseConstructor();
 
 util.extend(Val.prototype, base.base, {
-	name: "expression"
+	name: "expression",
+
+	toString: function () {
+		var out = '';
+
+		this.list.forEach(function (item) {
+			out += item.toString();
+		});
+
+		return out;
+	}
 });
 
 
@@ -6728,7 +6748,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 			depth --;
 		}
 
-		v.add(v.unparsed.advance());
+		v.add(v.unparsed.list.shift());
 	}
 
 	validate.call(v, 'browserOnly', v.firstToken(), 'ie');
@@ -7196,8 +7216,9 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
+	v.repeatWithCommas = true;
 
-	var hits = v.repeatParser(bucket['number']);
+	var hits = v.repeatParser(bucket['number'], 4);
 
 	if (hits != 4) {
 		v.debug('parse fail - ' + hits);
@@ -7267,14 +7288,18 @@ var validate = require('./validate');
 var Val = base.baseConstructor();
 
 util.extend(Val.prototype, base.base, {
-	name: "font-face-historical-lig-values",
+	name: "font-face-caps-values",
 
 	allowed: [
 		{
 			validation: [],
 			values: [
-				"historical-ligatures",
-				"no-historical-ligatures"
+				"small-caps",
+				"all-small-caps",
+				"petite-caps",
+				"all-petite-caps",
+				"tilting-caps",
+				"unicase"
 			]
 		}
 	]
@@ -7411,7 +7436,7 @@ var validate = require('./validate');
 var Val = base.baseConstructor();
 
 util.extend(Val.prototype, base.base, {
-	name: "font-face-conextual-lig-values",
+	name: "font-face-contextual-lig-values",
 
 	allowed: [
 		{
@@ -7838,6 +7863,45 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 });
 
+require.define("/css/values/font-face-font-stretch-single.js", function (require, module, exports, __dirname, __filename) {
+/* <font-face-font-stretch-single>
+ *
+ * CSS2:  normal | ultra-condensed | extra-condensed | condensed | semi-condensed | semi-expanded | expanded | extra-expanded | ultra-expanded
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "font-face-font-stretch-single",
+
+	allowed: [
+		{
+			validation: [],
+			values: [ 
+				'normal',
+				'ultra-condensed',
+				'extra-condensed',
+				'condensed',
+				'semi-condensed',
+				'semi-expanded',
+				'expanded',
+				'extra-expanded',
+				'ultra-expanded'
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+});
+
 require.define("/css/values/font-face-font-style.js", function (require, module, exports, __dirname, __filename) {
 /* font-face-font-family
  *
@@ -7869,7 +7933,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	}
 
 	fffs.repeatWithCommas = true;
-	var hits = fffs.repeatParser(bucket['font-style']);
+	var hits = fffs.repeatParser([ bucket['font-style'] ]);
 
 	if (! hits) {
 		fffs.debug('parse fail');
@@ -7957,7 +8021,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		bucket['font-face-numeric-figure-values'],
 		bucket['font-face-numeric-spacing-values'],
 		bucket['font-face-numeric-fraction-values'],
-		slashed-zero,
+		'slashed-zero',
 		bucket['font-face-east-asian-variant-values'],
 		bucket['font-face-east-asian-width-values']
 	], fffv);
@@ -7967,7 +8031,8 @@ exports.parse = function (unparsedReal, bucket, container) {
 		return null;
 	}
 
-	fffv.fontValidation();
+	validate.call(fffv, 'minimumCss', fffv.firstToken(), 3);
+	fffv.warnIfInherit();
 	fffv.debug('parse success - css3', fffv.unparsed);
 	return fffv;
 };
@@ -8035,6 +8100,7 @@ var validate = require('./validate');
 var Val = base.baseConstructor();
 
 // TODO:  "normal" == "400" and "bold" == "700"
+// TODO:  Round numbers to nearest 100
 util.extend(Val.prototype, base.base, {
 	name: "font-face-font-weight-single",
 
@@ -8044,7 +8110,7 @@ util.extend(Val.prototype, base.base, {
 			values: [ 
 				'normal',
 				'bold',
-				base.makeRegexp('[0-9]00')
+				base.makeRegexp('[1-9]00')
 			]
 		}
 	]
@@ -16325,7 +16391,7 @@ var util = require('../util');
 var Page = base.baseConstructor();
 
 util.extend(Page.prototype, base.base, {
-	name: "font-face",
+	name: "page",
 
 	parseTokenList: [
 		'comment',
