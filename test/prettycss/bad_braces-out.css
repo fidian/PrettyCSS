@@ -1,0 +1,14 @@
+/* The invalid second } makes the selector invalid.
+ * If the selector is invalid, then we ignore the entire rule, up to the
+ * brace that closes the block.
+ */
+
+.one {
+	display: inline;
+}
+
+
+
+.three {
+	display: inline;
+}

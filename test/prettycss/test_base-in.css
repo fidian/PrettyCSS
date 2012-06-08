@@ -1,0 +1,12 @@
+.hidden {
+	    display: none;
+}
+
+/* The recognized color gets lowercased.  The one for font-color does
+not since font-color is invalid. */
+.error {
+	    background-color: #FF0000;
+		font-weight: bolder;
+		font-size: 2em;
+		font-color: #00FFFF;
+}

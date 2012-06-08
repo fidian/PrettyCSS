@@ -69,7 +69,9 @@ var fakeBucket = function () {
 	fakeBucket.options = fakeBucket.parser.options;
 
 	for (var i in cssBucket) {
-		fakeBucket[i] = cssBucket[i];
+		if (typeof fakeBucket[i] == 'undefined') {
+			fakeBucket[i] = cssBucket[i];
+		}
 	}
 
 	return fakeBucket;

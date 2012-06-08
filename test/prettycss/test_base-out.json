@@ -1,0 +1,16 @@
+[
+	{
+		"message": "font-color is not a known property",
+		"fullCode": "unknown-property:font-color",
+		"typeCode": "warning",
+		"typeText": "Warning",
+		"code": "unknown-property",
+		"more": "font-color",
+		"token": {
+			"content": "font-color",
+			"charNum": 3,
+			"type": "IDENT",
+			"line": 11
+		}
+	}
+]

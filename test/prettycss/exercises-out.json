@@ -1,0 +1,350 @@
+[ 
+	{ 
+		"message": "An invalid token was encountered - removing content until a semicolon or a block open + block close is found", 
+		"more": null, 
+		"code": "invalid-token", 
+		"token": { 
+			"line": 20, 
+			"type": "SEMICOLON", 
+			"charNum": 4, 
+			"content": ";" 
+		}, 
+		"typeCode": "error", 
+		"typeText": "Error", 
+		"fullCode": "invalid-token" 
+	}, 
+	{ 
+		"message": "An invalid token was encountered - removing content until a semicolon or a block open + block close is found", 
+		"more": null, 
+		"code": "invalid-token", 
+		"token": { 
+			"line": 20, 
+			"type": "SEMICOLON", 
+			"charNum": 5, 
+			"content": ";" 
+		}, 
+		"typeCode": "error", 
+		"typeText": "Error", 
+		"fullCode": "invalid-token" 
+	}, 
+	{ 
+		"message": "An invalid token was encountered - removing content until a semicolon or a block open + block close is found", 
+		"more": null, 
+		"code": "invalid-token", 
+		"token": { 
+			"line": 20, 
+			"type": "SEMICOLON", 
+			"charNum": 6, 
+			"content": ";" 
+		}, 
+		"typeCode": "error", 
+		"typeText": "Error", 
+		"fullCode": "invalid-token" 
+	}, 
+	{ 
+		"message": "An invalid token was encountered - removing content until a semicolon or a block open + block close is found", 
+		"more": null, 
+		"code": "invalid-token", 
+		"token": { 
+			"line": 34, 
+			"type": "BLOCK_CLOSE", 
+			"charNum": 84, 
+		"content": "}" 
+		}, 
+		"typeCode": "error", 
+		"typeText": "Error", 
+		"fullCode": "invalid-token" 
+	}, 
+	{ 
+		"message": "You should use a relative unit instead of px", 
+		"more": "px", 
+		"code": "suggest-relative-unit", 
+		"token": { 
+			"line": 12, 
+			"type": "UNIT", 
+			"charNum": 14, 
+			"content": "1px" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-relative-unit:px" 
+	}, 
+	{ 
+		"message": "You should use a relative unit instead of px", 
+		"more": "px", 
+		"code": "suggest-relative-unit", 
+		"token": { 
+			"line": 15, 
+			"type": "UNIT", 
+			"charNum": 14, 
+			"content": "300px" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-relative-unit:px" 
+	}, 
+	{ 
+		"message": "something is not a known property", 
+		"more": "something", 
+		"code": "unknown-property", 
+		"token": { 
+			"line": 17, 
+			"type": "IDENT", 
+			"charNum": 2, 
+			"content": "something" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "unknown-property:something" 
+	}, 
+	{ 
+		"message": "This was introduced in CSS version 3", 
+		"more": "3", 
+		"code": "css-minimum", 
+		"token": null, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "css-minimum:3" 
+	}, 
+	{ 
+		"message": "This was introduced in CSS version 3", 
+		"more": "3", 
+		"code": "css-minimum", 
+		"token": null, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "css-minimum:3" 
+	}, 
+	{ 
+		"message": "You should use a relative unit instead of px", 
+		"more": "px", 
+		"code": "suggest-relative-unit", 
+		"token": { 
+			"line": 21, 
+			"type": "UNIT", 
+			"charNum": 19, 
+			"content": "1px" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-relative-unit:px" 
+	}, 
+	{ 
+		"message": "You should use a relative unit instead of px", 
+		"more": "px", 
+		"code": "suggest-relative-unit", 
+		"token": { 
+			"line": 21, 
+			"type": "UNIT", 
+			"charNum": 23, 
+			"content": "3px" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-relative-unit:px" 
+	}, 
+	{ 
+		"message": "You should use a relative unit instead of px", 
+		"more": "px", 
+		"code": "suggest-relative-unit", 
+		"token": { 
+			"line": 21, 
+			"type": "UNIT", 
+			"charNum": 27, 
+			"content": "4px" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-relative-unit:px" 
+	}, 
+	{ 
+		"message": "This was introduced in CSS version 3", 
+		"more": "3", 
+		"code": "css-minimum", 
+		"token": null, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "css-minimum:3" 
+	}, 
+	{ 
+		"message": "This was introduced in CSS version 3", 
+		"more": "3", 
+		"code": "css-minimum", 
+		"token": null, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "css-minimum:3" 
+	}, 
+	{ 
+		"message": "You should use a relative unit instead of px", 
+		"more": "px", 
+		"code": "suggest-relative-unit", 
+		"token": { 
+			"line": 22, 
+			"type": "UNIT", 
+			"charNum": 24, 
+			"content": "3px" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-relative-unit:px" 
+	}, 
+	{ 
+		"message": "You should use a relative unit instead of px", 
+		"more": "px", 
+		"code": "suggest-relative-unit", 
+		"token": { 
+			"line": 22, 
+			"type": "UNIT", 
+			"charNum": 28, 
+			"content": "4px" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-relative-unit:px" 
+	}, 
+	{ 
+		"message": "This was introduced in CSS version 3", 
+		"more": "3", 
+		"code": "css-minimum", 
+		"token": null, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "css-minimum:3" 
+	}, 
+	{ 
+		"message": "This was introduced in CSS version 3", 
+		"more": "3", 
+		"code": "css-minimum", 
+		"token": null, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "css-minimum:3" 
+	}, 
+	{ 
+		"message": "You should use a relative unit instead of px", 
+		"more": "px", 
+		"code": "suggest-relative-unit", 
+		"token": { 
+			"line": 23, 
+			"type": "UNIT", 
+			"charNum": 14, 
+			"content": "1px" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-relative-unit:px" 
+	}, 
+	{ 
+		"message": "You should use a relative unit instead of px", 
+		"more": "px", 
+		"code": "suggest-relative-unit", 
+		"token": { 
+			"line": 23, 
+			"type": "UNIT", 
+			"charNum": 18, 
+			"content": "3px" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-relative-unit:px" 
+	}, 
+	{ 
+		"message": "You should use a relative unit instead of px", 
+		"more": "px", 
+		"code": "suggest-relative-unit", 
+		"token": { 
+			"line": 23, 
+			"type": "UNIT", 
+			"charNum": 22, 
+			"content": "4px" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-relative-unit:px" 
+	}, 
+	{ 
+		"message": "You should use a relative unit instead of px", 
+		"more": "px", 
+		"code": "suggest-relative-unit", 
+		"token": { 
+			"line": 28, 
+			"type": "UNIT", 
+			"charNum": 29, 
+			"content": "24px" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-relative-unit:px" 
+	}, 
+	{ 
+		"message": "No message defined for code invalid-value", 
+		"more": "invalid-value", 
+		"code": "invalid-value", 
+		"token": { 
+			"line": 30, 
+			"type": "FUNCTION", 
+			"charNum": 23, 
+			"content": "linear-gradient(" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "invalid-value" 
+	}, 
+	{ 
+		"message": "You should use alpha(...) instead", 
+		"more": "alpha(...)", 
+		"code": "suggest-using", 
+		"token": { 
+			"line": 32, 
+			"type": "IDENT", 
+			"charNum": 9, 
+			"content": "progid" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "suggest-using:alpha(...)" 
+	}, 
+	{ 
+		"message": "No message defined for code unofficial:ie", 
+		"more": "unofficial:ie", 
+		"code": "unofficial", 
+		"token": { 
+			"line": 32, 
+			"type": "IDENT", 
+			"charNum": 1, 
+			"content": "filter" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "unofficial:ie" 
+	}, 
+	{ 
+		"message": "This was introduced in CSS version 3", 
+		"more": "3", 
+		"code": "css-minimum", 
+		"token": { 
+			"line": 33, 
+			"type": "IDENT", 
+			"charNum": 13, 
+			"content": "-moz-linear-gradient" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "css-minimum:3" 
+	}, 
+	{ 
+		"message": "No message defined for code invalid-value", 
+		"more": "invalid-value", 
+		"code": "invalid-value", 
+		"token": { 
+			"line": 34, 
+			"type": "IDENT", 
+			"charNum": 13, 
+			"content": "-webkit-gradient" 
+		}, 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"fullCode": "invalid-value" 
+	} 
+]

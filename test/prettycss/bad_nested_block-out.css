@@ -1,0 +1,13 @@
+/* When a block is ignored, any nested blocks that are inside the ignored
+ * block are also ignored.
+ */
+
+.one {
+	display: inline;
+}
+
+
+
+.three {
+	display: inline;
+}

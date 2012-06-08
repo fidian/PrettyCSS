@@ -1,0 +1,16 @@
+[
+	{
+		"typeCode": "error",
+		"fullCode": "invalid-token",
+		"more": null,
+		"message": "An invalid token was encountered - removing content until a semicolon or a block open + block close is found",
+		"token": {
+			"content": "}",
+			"line": 6,
+			"charNum": 1,
+			"type": "BLOCK_CLOSE"
+		},
+		"code": "invalid-token",
+		"typeText": "Error"
+	}
+]

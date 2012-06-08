@@ -1,0 +1,19 @@
+{
+	"stylesheet_whitespace": "\n",
+	"combinator_pre": "",
+	"combinator_post": "",
+	"selector_post": "",
+	"selector_comma": ",",
+	"block_post": "}",
+	"indent": "",
+	"property_pre": "",
+	"value_pre": "",
+	"atblock_pre": "{",
+	"atblock_post": "}",
+	"important": "!important",
+	"cdo": "",
+	"cdc": "",
+	"comment_pre": "",
+	"cssLevel": 2,
+	"functionComma": ","
+}
