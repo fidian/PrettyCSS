@@ -8,7 +8,7 @@ var diff = require('diff');
 var tokenizeFile = function (context) {
 	context.topic = function () {
 		var filename = this.context.name.split(' ')[0];
-		filename = __dirname + "/fixtures/" + filename;
+		filename = __dirname + "/tokenizer/" + filename;
 		tokenizer.tokenizeFile(filename, this.callback);
 	};
 
@@ -20,7 +20,7 @@ var compareTokens = function compareTokens() {
 		topic: function (tokenizerObj) {
 			var topicCallback = this.callback;
 			var filename = this.context.name.split(' ')[0];
-			filename = __dirname + "/fixtures/" + filename;
+			filename = __dirname + "/tokenizer/" + filename;
 			fs.readFile(filename, 'utf-8', function (err, data) {
 				if (err) {
 					topicCallback(err);
