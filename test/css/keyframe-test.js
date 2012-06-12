@@ -6,6 +6,6 @@ exports.batch = util.makeVows('keyframe', {
 		'input': 'from {top: 0px}\nto {top: 10px}\n',
 		'tokenList': [],
 		'tokensRemaining': 10,
-		'toString': 'from {top:0;}'
+		'toString': 'from{top:0;}'
 	}
 });

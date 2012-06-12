@@ -6,7 +6,7 @@ exports.batch = util.makeVows('keyframes', {
 		'input': 'from {top: 0px}\n\tto {top: 10px}\n',
 		'tokenList': ['keyframe', 'whitespace', 'keyframe', 'whitespace'],
 		'tokensRemaining': 0,
-		'toString': 'from {top:0;}to {top:10px;}'
+		'toString': 'from{top:0;}to{top:10px;}'
 	},
 	'colons produce errors': {
 		'input': 'from: {top: 0px}\n\tto: {top: 10px}\n',
