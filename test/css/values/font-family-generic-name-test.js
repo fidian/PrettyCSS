@@ -26,6 +26,12 @@ exports.batch = util.makeVows('font-family-generic-name', {
 		'unparsed': ['IDENT'],
 		'warnings': ['reserved']
 	},
+	'Serif': {
+		'tokens': ['IDENT'],
+		'toString': 'serif',  // Lowercase
+		'unparsed': [],
+		'warnings': []
+	},
 	'invalidValue': {
 		'tokens': ['IDENT'],
 		'toString': null,

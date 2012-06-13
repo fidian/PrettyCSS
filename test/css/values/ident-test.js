@@ -14,6 +14,13 @@ exports.batch = util.makeVows('ident', {
 		'unparsed': ['IDENT'],
 		'warnings': []
 	},
+	// Case is NOT preserved unless told to do so by another object
+	'PreserveCase': {
+		'tokens': ['IDENT'],
+		'toString': 'preservecase',
+		'unparsed': [],
+		'warnings': []
+	},
 	// inherit is an ident, so parse that normally
 	'inherit': {
 		'tokens': ['IDENT'],

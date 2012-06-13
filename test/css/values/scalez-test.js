@@ -4,13 +4,13 @@ var util = require('./util');
 exports.batch = util.makeVows('scalez', {
 	'scalez(10)': {
 		'tokens': ['FUNCTION', 'UNIT', 'PAREN_CLOSE'],
-		'toString': 'scalez(10)',
+		'toString': 'scaleZ(10)',
 		'unparsed': [],
 		'warnings': []
 	},
 	'scalez(.105)': {
 		'tokens': ['FUNCTION', 'UNIT', 'PAREN_CLOSE'],
-		'toString': 'scalez(.105)',
+		'toString': 'scaleZ(.105)',
 		'unparsed': [],
 		'warnings': []
 	},

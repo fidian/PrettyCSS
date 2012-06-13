@@ -56,7 +56,9 @@ var testValue = function (name, obj, expected) {
 				options: {
 					autocorrect: true,
 					functionComma: ", ",
-					debug: false
+					functionSpace: " ",
+					debug: false,
+					valuesLowerCase: true
 				}
 			};
 			valueBucket.parser = parser;
@@ -75,7 +77,7 @@ var testValue = function (name, obj, expected) {
 
 			if (parseResult) {
 				actual.name = parseResult.name;
-				actual.toString = parseResult.toString();
+				actual.toString = parseResult.toStringChangeCase(true);
 				actual.unparsed = tokensToStringArray(parseResult.unparsed.list);
 				actual.warnings = warningsToStringArray(parseResult.warningList);
 			} else {

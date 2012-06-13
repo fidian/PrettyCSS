@@ -20,6 +20,12 @@ exports.batch = util.makeVows('url', {
 		'unparsed': ['IDENT', 'S', 'CHAR', 'STRING', 'PAREN_CLOSE'],
 		'warnings': null
 	},
+	'url(/images/CaseMatters.png)': {
+		'tokens': ['URL'],
+		'toString': 'url(/images/CaseMatters.png)',
+		'unparsed': [],
+		'warnings': []
+	},
 	// inherit is not valid
 	'inherit': {
 		'tokens': ['IDENT'],

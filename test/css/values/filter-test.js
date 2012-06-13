@@ -55,6 +55,26 @@ exports.batch = util.makeVows('filter', {
 		'warnings': ['filter-use-equals-instead', 'require-integer']
 	},
 
+	// progid
+	'progid:DXImageTransform.Microsoft.Alpha(opacity=40)': {
+		'tokens': ['IDENT', 'COLON', 'FUNCTION', 'IDENT', 'MATCH', 'UNIT', 'PAREN_CLOSE'],
+		'toString': 'progid:DXImageTransform.Microsoft.Alpha(opacity=40)',
+		'unparsed': [],
+		'warnings': ['suggest-using:alpha(...)']
+	},
+	'progid:dximaGETRansfoRM.Microsoft.Alpha(opacity=40)': {
+		'tokens': ['IDENT', 'COLON', 'FUNCTION', 'IDENT', 'MATCH', 'UNIT', 'PAREN_CLOSE'],
+		'toString': 'progid:DXImageTransform.Microsoft.Alpha(opacity=40)',
+		'unparsed': [],
+		'warnings': ['filter-case-sensitive', 'suggest-using:alpha(...)']
+	},
+	'progid:DXImageTransform.Microsoft.Alpha(opacity:40)': {
+		'tokens': ['IDENT', 'COLON', 'FUNCTION', 'IDENT', 'COLON', 'UNIT', 'PAREN_CLOSE'],
+		'toString': 'progid:DXImageTransform.Microsoft.Alpha(opacity=40)',
+		'unparsed': [],
+		'warnings': ['filter-use-equals-instead', 'suggest-using:alpha(...)']
+	},
+
 	// Unsure if inherit is supported by IE.  Probably shouldn't be used.
 	// Treat as an invalid value.
 	'inherit': {

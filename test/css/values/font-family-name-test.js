@@ -74,6 +74,20 @@ exports.batch = util.makeVows('font-family-name', {
 		'warnings': ['add-quotes']
 	},
 
+	// Capitalization matters
+	'Arial': {
+		'tokens': ['IDENT'],
+		'toString': 'Arial',
+		'unparsed': [],
+		'warnings': []
+	},
+	'"Arial"': {
+		'tokens': ['STRING'],
+		'toString': '"Arial"',
+		'unparsed': [],
+		'warnings': []
+	},
+
 	// And now something that fails
 	'1deg': {
 		'tokens': ['UNIT'],

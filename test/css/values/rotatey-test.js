@@ -4,7 +4,7 @@ var util = require('./util');
 exports.batch = util.makeVows('rotatey', {
 	'rotatey(10deg)': {
 		'tokens': ['FUNCTION', 'UNIT', 'PAREN_CLOSE'],
-		'toString': 'rotatey(10deg)',
+		'toString': 'rotateY(10deg)',
 		'unparsed': [],
 		'warnings': []
 	},

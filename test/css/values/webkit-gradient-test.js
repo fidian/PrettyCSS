@@ -19,7 +19,7 @@ exports.batch = util.makeVows('webkit-gradient', {
 			'S', 'FUNCTION', 'UNIT', 'OPERATOR', 'S', 'HASH', 'PAREN_CLOSE', 'OPERATOR',
 			'S', 'FUNCTION', 'UNIT', 'OPERATOR', 'S', 'IDENT', 'PAREN_CLOSE',
 			'PAREN_CLOSE'],
-		'toString': '-webkit-gradient(radial, 40% 40%, 1em, center, 20px, color-stop(30%, #FFFF88), color-stop(0.4, green))',
+		'toString': '-webkit-gradient(radial, 40% 40%, 1em, center, 20px, color-stop(30%, #ffff88), color-stop(0.4, green))',
 		'unparsed': [],
 		'warnings': []
 	},
