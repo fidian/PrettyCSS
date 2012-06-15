@@ -1,6 +1,6 @@
 {
 	"name": "PrettyCSS",
-	"version": "0.1.0",
+	"version": "0.3.1",
 	"preferGlobal": true,
 	"author": "Tyler Akins <fidian@rumkin.com>",
 	"description": "CSS pretty printer, lint checker, and validator",
@@ -27,6 +27,7 @@
 		"validator"
 	],
 	"dependencies": {
+		"OptionParser": "git+https://github.com/fidian/OptionParser.git"
 	},
 	"devDependencies": {
 		"browserify": "*",
