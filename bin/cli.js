@@ -3,70 +3,69 @@
 "use strict";
 var prettycss = require('../lib/prettycss');
 var fs = require('fs');
-
-var filenames = process.argv;
-filenames.shift(); // Remove "node"
-filenames.shift(); // Remove current script
-var filesParsed = 0;
+var optionparser = require('OptionParser');
+var parser = new optionparser.OptionParser();
 var options = {
 	ignoreWarnings: [],
 	stopOnErrors: false,
 	stopOnWarnings: false
 };
 
-for (var i = 0; i < filenames.length; i ++) {
-	switch (filenames[i]) {
-		case '--help':
-		case '-h':
-			help();
-			process.exit();
-			break;
+parser.
+	addOption('h', 'help', 'Display this help message').
+	action(function () {
+		console.log("Validate and pretty-print a CSS file");
+		console.log("");
+		console.log("Usage:");
+		console.log("\t" + parser.programName() + " [options] filename [filename [...]]");
+		console.log("");
+		console.log("Available Options:");
+		console.log(parser.help());
+		console.log("");
+		console.log("When using any of the --stop options, the errors or warnings that caused");
+		console.log("a problem will be shown to stderr instead and this program will exit with");
+		console.log("an error code of 1.");
+		console.log("");
+		console.log("Warnings can be ignored by their code.  You can ignore all of the");
+		console.log("\"Unsupported Browser\" warnings by using --ignore=browser-unsupported or");
+		console.log("specify a value like --ignore=browser-unsupported:ie6 to ignore unsupported");
+		console.log("browser errors just for Internet Explorer 6.  All codes can be found");
+		console.log("in lib/lang/*.js or on the website.");
+		process.exit(0);
+	});
+parser.
+	addOption('i', 'ignore', 'Ignore a type of warning').
+	argument('code').
+	action(function (arg) {
+		options.ignoreWarnings.push(arg);
+	});
+parser.
+	addOption(null, 'stop-on-errors', 'Stop when an error is encountered').
+	action(function () {
+		options.stopOnErrors = true;
+	});
+parser.
+	addOption(null, 'stop-on-warnings', 'Stop when a warning is encountered').
+	action(function () {
+		options.stopOnWarnings = true;
+	});
+parser.
+	addOption('s', 'stop-on-problems', 'Same as --stop-on-errors --stop-on-warnings').
+	action(function () {
+		options.stopOnErrors = true;
+		options.stopOnWarnings = true;
+	});
 
-		case '--ignore':
-		case '-i':
-			i ++;
-			options.ignoreWarnings.push(filenames[i]);
-			break;
+var filenames = parser.parse();
+filenames.forEach(function (file) {
+	parseFile(file);
+});
 
-		case '--stop-on-problem':
-		case '-s':
-			options.stopOnErrors = true;
-			options.stopOnWarnings = true;
-			break;
-
-		case '--stop-on-errors':
-			options.stopOnErrors = true;
-			break;
-
-		case '--stop-on-warnings':
-			options.stopOnWarnings = true;
-			break;
-
-		default:
-			parseFile(filenames[i]);
-			filesParsed ++;
-			break;
-	}
-}
-
-if (filesParsed === 0) {
+if (filenames.length === 0) {
 	console.error('Please pass filenames on the command line');
 	console.error('For a list of options, use --help');
 }
 
-
-function help() {
-	console.log("Validate and pretty-print a CSS file");
-	console.log("Options:");
-	console.log(" -h, --help = What you are reading right now");
-	console.log(" --stop-on-errors = Stop when an error is hit");
-	console.log(" --stop-on-warnings = Stop when a warning is hit");
-	console.log(" -s, --stop-on-problem = Stop when a warning or an error is hit");
-	console.log("");
-	console.log("When using any of the --stop options, the errors or warnings that caused");
-	console.log("a problem will be shown to stderr instead and this program will exit with");
-	console.log("an error code of 1.\n");
-}
 
 function parseFile(filename) {
 	var contents = fs.readFileSync(filename, 'utf-8');
