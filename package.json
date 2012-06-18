@@ -27,7 +27,7 @@
 		"validator"
 	],
 	"dependencies": {
-		"OptionParser": "git+https://github.com/fidian/OptionParser.git"
+		"OptionParser": "*"
 	},
 	"devDependencies": {
 		"browserify": "*",
