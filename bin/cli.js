@@ -71,6 +71,34 @@ function parseFile(filename) {
 	var contents = fs.readFileSync(filename, 'utf-8');
 	var result = prettycss.parse(contents);
 	var stop = false;
+	var warningCount = 0;
+	var errorCount = 0;
+
+	result.getProblems().forEach(function (item) {
+		if (item.typeCode == 'error') {
+			errorCount ++;
+		} else {
+			warningCount ++;
+		}
+	});
+
+	if (warningCount || errorCount) {
+		var msg;
+
+		if (errorCount == 1) {
+			msg = "There was 1 error ";
+		} else {
+			msg = "There were " + errorCount + " errors ";
+		}
+
+		if (warningCount == 1) {
+			msg += "and 1 warning detected.";
+		} else {
+			msg += "and " + warningCount + " warnings detected.";
+		}
+
+		console.error(msg);
+	}
 
 	result.getProblems().forEach(function (item) {
 		var ignored = false;
