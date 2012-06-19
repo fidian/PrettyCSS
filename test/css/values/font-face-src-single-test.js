@@ -26,6 +26,12 @@ exports.batch = util.makeVows('font-face-src-single', {
 		'unparsed': ['IDENT'],
 		'warnings': []
 	},
+	'url(../fonts/proximanova-semiboldit-webfont.woff) format(woff)': {
+		'tokens': ['URL', 'S', 'FUNCTION', 'IDENT', 'PAREN_CLOSE'],
+		'toString': 'url(../fonts/proximanova-semiboldit-webfont.woff) format("woff")',
+		'unparsed': [],
+		'warnings': []
+	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': null,

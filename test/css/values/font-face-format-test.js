@@ -38,6 +38,12 @@ exports.batch = util.makeVows('font-face-format', {
 		'unparsed': ['FUNCTION', 'STRING', 'S', 'STRING', 'PAREN_CLOSE'],
 		'warnings': null
 	},
+	'format(ident)': {
+		'tokens': ['FUNCTION', 'IDENT', 'PAREN_CLOSE'],
+		'toString': 'format("ident")',
+		'unparsed': [],
+		'warnings': ['autocorrect:"ident"']
+	},
 	'inherit': {
 		'tokens': ['IDENT'],
 		'toString': null,
