@@ -8167,6 +8167,7 @@ require.define("/css/values/font-face-format.js", function (require, module, exp
 
 var base = require('./base');
 var util = require('../../util');
+var validate = require('./validate');
 
 var Val = base.baseConstructor();
 
@@ -8187,12 +8188,27 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 	v.add(v.unparsed.advance());
 
-	if (! v.unparsed.isType('STRING')) {
+	if (v.unparsed.isType('STRING')) {
+		v.add(v.unparsed.advance());
+	} else if (v.unparsed.isType('IDENT') && v.bucket.options.autocorrect) {
+		// the format must be quoted
+		var original = v.unparsed.advance();
+		var asString = original.clone();
+		asString.content = '"' + asString.content + '"';
+		asString.type = 'STRING';
+
+		if (v.bucket.options.autocorrect) {
+			validate.call(v, 'autoCorrect', original, asString.content);
+			v.add(asString);
+		} else {
+			v.addWarning('invalid-value', original);
+			v.add(original);
+		}
+	} else {
 		v.debug('parse fail - string 1');
 		return null;
 	}
 
-	v.add(v.unparsed.advance());
 
 	while (v.unparsed.isTypeContent('OPERATOR', ',')) {
 		v.unparsed.advance();
@@ -17659,6 +17675,7 @@ exports.warningMessages = {
 	'font-family-one-generic': 'Only one generic font family should be used and it should be at the end',
 	'inherit-not-allowed': 'The value "inherit" is not allowed here',
 	'illegal': 'This value is illegal',
+	'invalid-valie': 'The value for this property is invalid',
 	'minmax-p-q': 'For minmax(p,q), the p should not be bigger than q',
 	'mixing-percentages': 'You are not allowed to mix percentages with non-percentage values',
 	'not-forward-compatible': 'This is not compatible with CSS version ## and forward',
