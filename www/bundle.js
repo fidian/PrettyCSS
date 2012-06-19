@@ -922,7 +922,7 @@ exports.setOptions = function (override) {
 		keyframe_pre: "\n",
 		keyframe_post: "",
 		keyframeselector_pre: "",
-		keyframeselector_post: "",
+		keyframeselector_post: " ",
 		selector_pre: "",
 		selector_post: " ",
 		selector_whitespace: " ", // Must contain whitespace
@@ -949,7 +949,8 @@ exports.setOptions = function (override) {
 		cssLevel: 3,
 		propertiesLowerCase: true,
 		valuesLowerCase: true,
-		functionComma: ", " // Must contain comma
+		functionComma: ", ", // Must contain comma
+		functionSpace: " " // Must contain some whitespace
 	};
 
 	return exports.extend({}, options, override);
@@ -1053,6 +1054,11 @@ util.extend(Block.prototype, base.base, {
 		out = this.reindent(out);
 		out = this.addWhitespace('block', out);
 		return out;
+	},
+
+	toStringChangeCase: function () {
+		// Do not change case if we didn't parse the data
+		return this.toString();
 	}
 });
 
@@ -1807,7 +1813,6 @@ util.extend(Angle.prototype, base.base, {
 	// Strip unit
 	getValue: function () {
 		var out = this.firstToken().content.replace(/[^-+0-9.]/g, '');
-		console.log(out);
 		return +out;
 	},
 
@@ -1909,6 +1914,7 @@ exports.base = {
 		var listToAdd = [];
 		var unparsedCopy = this.unparsed.clone();
 		this.isFunction = true;
+		var parsed = null;
 
 		while (args.length) {
 			if (matchCount > 1) {
@@ -1920,7 +1926,17 @@ exports.base = {
 				unparsedCopy.advance();  // Skip comma and possibly whitespace
 			}
 
-			var parsed = unparsedCopy.matchAny(args.shift(), this);
+			if (matchCount === 0) {
+				parsed = null;
+
+				if (unparsedCopy.isTypeContent('FUNCTION', args[0].toLowerCase())) {
+					parsed = unparsedCopy.advance();
+					parsed.content = args.shift();  // This fixes capitalization
+					parsed.unparsed = unparsedCopy;
+				}
+			} else {
+				parsed = unparsedCopy.matchAny(args.shift(), this);
+			}
 
 			if (! parsed) {
 				return false;
@@ -2138,11 +2154,19 @@ exports.base = {
 	},
 
 	toString: function () {
+		return this.toStringChangeCase(false);
+	},
+
+	toStringChangeCase: function (changeCase) {
 		this.debug('toString');
 		var out = [];
 
+		if (!! this.preserveCase) {
+			changeCase = false;
+		}
+
 		this.list.forEach(function (value) {
-			out.push(value.toString());
+			out.push(value.toStringChangeCase(changeCase));
 		});
 
 		if (this.isFunction) {
@@ -2155,16 +2179,8 @@ exports.base = {
 			out = fn + out.join(this.bucket.options.functionComma) + ')';
 		} else if (this.repeatWithCommas) {
 			out = out.join(this.bucket.options.functionComma);
-
-			if (this.bucket.options.valuesLowerCase) {
-				out = out.toLowerCase();
-			}
 		} else {
-			out = out.join(' ');  // TODO: configurable whitespace?
-
-			if (this.bucket.options.valuesLowerCase) {
-				out = out.toLowerCase();
-			}
+			out = out.join(this.bucket.options.functionSpace);
 		}
 
 		return out;
@@ -6718,10 +6734,18 @@ util.extend(Val.prototype, base.base, {
 	name: "expression",
 
 	toString: function () {
+		return this.toStringChangeCase(false);
+	},
+
+	toStringChangeCase: function (changeCase) {
 		var out = '';
 
+		if (!! this.preserveCase) {
+			changeCase = false;
+		}
+
 		this.list.forEach(function (item) {
-			out += item.toString();
+			out += item.toStringChangeCase(changeCase);
 		});
 
 		return out;
@@ -6799,10 +6823,18 @@ util.extend(Filter.prototype, base.base, {
 	name: "filter",
 
 	toString: function () {
+		return this.toString(false);
+	},
+
+	toStringChangeCase: function (changeCase) {
 		var out = '';
 
+		if (!! this.preserveCase) {
+			changeCase = false;
+		}
+
 		this.list.forEach(function (item) {
-			out += item.toString();
+			out += item.toStringChangeCase(changeCase);
 		});
 
 		return out;
@@ -6863,7 +6895,9 @@ var alphaParser = function (filter) {
 };
 
 var progidParser = function (filter) {
-	filter.add(filter.unparsed.advance());
+	var addToken = filter.unparsed.advance();
+	addToken.content = addToken.content.toLowerCase();
+	filter.add(addToken);
 	
 	if (! filter.unparsed.isContent(':')) {
 		filter.debug('parse fail - progid - colon');
@@ -6878,7 +6912,7 @@ var progidParser = function (filter) {
 		return null;
 	}
 
-	var addToken = filter.unparsed.advance();
+	addToken = filter.unparsed.advance();
 	
 	if (addToken.content != 'DXImageTransform.Microsoft.Alpha(') {
 		filter.addWarning('filter-case-sensitive', addToken);
@@ -6893,7 +6927,9 @@ var progidParser = function (filter) {
 		return null;
 	}
 
-	filter.add(filter.unparsed.advance());
+	addToken = filter.unparsed.advance();
+	addToken.content = addToken.content.toLowerCase();
+	filter.add(addToken);
 
 	// Check for = or :, if : then warn
 	if (filter.unparsed.isContent('=')) {
@@ -6928,6 +6964,7 @@ var progidParser = function (filter) {
 	}
 
 	filter.add(filter.unparsed.advance());
+	filter.preserveCase = true;
 
 	// Add warning - should use alpha(opacity=25)
 	filter.addWarning('suggest-using:alpha(...)', filter.firstToken());
@@ -9184,6 +9221,7 @@ exports.parse = function (unparsed, bucket, container) {
 	// could cause issues, I add a warning.
 	var ffn = new FontFamilyName(bucket, container, unparsed);
 	ffn.debug('parse', unparsed);
+	ffn.preserveCase = true;
 
 	if (ffn.unparsed.isType('STRING')) {
 		ffn.add(ffn.unparsed.advance());
@@ -9923,8 +9961,16 @@ util.extend(Length.prototype, base.base, {
 	},
 
 	toString: function () {
+		return this.toStringChangeCase(false);
+	},
+
+	toStringChangeCase: function (changeCase) {
 		this.debug('toString');
 		var unit = this.firstToken().content;
+
+		if (changeCase && ! this.preserveCase) {
+			unit = unit.toLowerCase();
+		}
 
 		if (this.bucket.options.autocorrect) {
 			if (unit.match(/^[-+]?0+([a-z]+)?$/)) {
@@ -12653,8 +12699,9 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', v.unparsed);
+	v.preserveCase = true;
 
-	if (! v.functionParser('rotatex(',
+	if (! v.functionParser('rotateX(',
 			[ bucket['angle'] ])) {
 		v.debug('parse fail');
 		return null;
@@ -12687,8 +12734,9 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', v.unparsed);
+	v.preserveCase = true;
 
-	if (! v.functionParser('rotatey(',
+	if (! v.functionParser('rotateY(',
 			[ bucket['angle'] ])) {
 		v.debug('parse fail');
 		return null;
@@ -12721,8 +12769,9 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', v.unparsed);
+	v.preserveCase = true;
 
-	if (! v.functionParser('rotatez(',
+	if (! v.functionParser('rotateZ(',
 			[ bucket['angle'] ])) {
 		v.debug('parse fail');
 		return null;
@@ -12829,8 +12878,9 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', v.unparsed);
+	v.preserveCase = true;
 
-	if (! v.functionParser('scalex(',
+	if (! v.functionParser('scaleX(',
 			[ bucket['number'] ])) {
 		v.debug('parse fail');
 		return null;
@@ -12863,8 +12913,9 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', v.unparsed);
+	v.preserveCase = true;
 
-	if (! v.functionParser('scaley(',
+	if (! v.functionParser('scaleY(',
 			[ bucket['number'] ])) {
 		v.debug('parse fail');
 		return null;
@@ -12897,8 +12948,9 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', v.unparsed);
+	v.preserveCase = true;
 
-	if (! v.functionParser('scalez(',
+	if (! v.functionParser('scaleZ(',
 			[ bucket['number'] ])) {
 		v.debug('parse fail');
 		return null;
@@ -13157,6 +13209,7 @@ util.extend(Str.prototype, base.base, {
 
 exports.parse = function (unparsedReal, bucket, container) {
 	var str = new Str(bucket, container, unparsedReal);
+	str.preserveCase = true;
 	str.debug('parse', unparsedReal);
 
 	if (str.unparsed.isType('STRING')) {
@@ -13187,13 +13240,21 @@ util.extend(Template.prototype, base.base, {
 	name: "template",
 
 	toString: function () {
+		return this.toStringChangeCase(false);
+	},
+
+	toStringChangeCase: function (changeCase) {
 		this.debug('toString');
 		var out = [];
+
+		if (!! this.preserveCase) {
+			changeCase = false;
+		}
 
 		this.rows.forEach(function (rowDef) {
 			var rowOut = "";
 			rowDef.forEach(function (rowDefPart) {
-				rowOut += rowDefPart.toString();
+				rowOut += rowDefPart.toStringChangeCase();
 			});
 			out.push(rowOut);
 		});
@@ -14335,8 +14396,9 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', v.unparsed);
+	v.preserveCase = true;
 
-	if (! v.functionParser('translatex(',
+	if (! v.functionParser('translateX(',
 			[ bucket['length'], bucket['percentage'] ])) {
 		v.debug('parse fail');
 		return null;
@@ -14369,8 +14431,9 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', v.unparsed);
+	v.preserveCase = true;
 
-	if (! v.functionParser('translatey(',
+	if (! v.functionParser('translateY(',
 			[ bucket['length'], bucket['percentage'] ])) {
 		v.debug('parse fail');
 		return null;
@@ -14403,8 +14466,9 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', v.unparsed);
+	v.preserveCase = true;
 
-	if (! v.functionParser('translatez(',
+	if (! v.functionParser('translateZ(',
 			[ bucket['length'] ])) {
 		v.debug('parse fail');
 		return null;
@@ -15014,6 +15078,7 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse', unparsedReal);
+	v.preserveCase = true;
 
 	if (v.unparsed.isType('UNICODE_RANGE')) {
 		v.add(v.unparsed.advance());
@@ -15050,6 +15115,7 @@ util.extend(Url.prototype, base.base, {
 exports.parse = function (unparsed, bucket, container) {
 	var url = new Url(bucket, container, unparsed);
 	url.debug('parse', unparsed);
+	url.preserveCase = true;
 
 	if (! url.unparsed.isType('URL')) {
 		url.debug('parse fail', url.unparsed);
@@ -15295,10 +15361,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 	if (! v.functionParser('color-stop(',
 		[ bucket['number'], bucket['percentage'] ],
 		bucket['color'])) {
-		if (! v.functionParser([ 'from(', 'to(' ],
-			bucket['color'])) {
-			v.debug('parse fail');
-			return null;
+		if (! v.functionParser('from(', bucket['color'])) {
+			if (! v.functionParser('to(', bucket['color'])) {
+				v.debug('parse fail');
+				return null;
+			}
 		}
 	}
 
@@ -16285,7 +16352,6 @@ util.extend(Keyframe.prototype, base.base, {
 
 		var out = this.selector.toString();
 		out = this.addWhitespace('keyframeselector', out);
-		out += this.bucket.options.selector_whitespace;
 
 		if (this.block) {
 			out += this.block.toString();
@@ -16970,7 +17036,6 @@ require.define("/css/value.js", function (require, module, exports, __dirname, _
 var base = require('./base');
 var util = require('../util');
 var valueBucket = require('./valuebucket');
-var unparsed = require('./values/unparsed');
 
 var Value = base.baseConstructor();
 
@@ -17038,13 +17103,14 @@ util.extend(Value.prototype, base.base, {
 	toString: function () {
 		this.debug('toString', this.list);
 		var out = "";
+		var myself = this;
 		this.list.forEach(function (v) {
 			if (v.content) {
 				// Token object
 				out += v.content;
 			} else {
 				// Block or parsed value
-				out += v.toString();
+				out += v.toStringChangeCase(myself.bucket.options.valuesLowerCase);
 			}
 		});
 
@@ -17384,6 +17450,14 @@ Token.prototype.clone = function () {
 };
 
 Token.prototype.toString = function () {
+	return this.content;
+};
+
+Token.prototype.toStringChangeCase = function (changeCase) {
+	if (changeCase) {
+		return this.content.toLowerCase();
+	}
+
 	return this.content;
 };
 
