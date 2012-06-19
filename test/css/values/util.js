@@ -52,7 +52,9 @@ var testValue = function (name, obj, expected) {
 			var actualTokensStringArray = tokensToStringArray(actualTokens.tokens);
 			var container = {};
 			var parser = {
-				debug: function () {},
+				debug: function (msg) {
+					console.log(msg);
+				},
 				options: {
 					autocorrect: true,
 					functionComma: ", ",
