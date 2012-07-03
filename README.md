@@ -5,36 +5,57 @@ PrettyCSS is a project to make a CSS3-compliant parser, lint checker, and
 pretty printer.  With this tool we will be able to check for CSS format
 violations and then will beautify the code to standardize it.  With another
 configuration you are able to crunch your styles down as much as possible
-and will just ignore the warnings.
+to produce minified output and we can just ignore the warnings.
 
 This was created because there were no tools that I could download and use
-on my own computer that also handled CSS3.
+on my own computer that also handled CSS3.  Also, we could really benefit
+from some hints and value validation that is now incorporated into PrettyCSS.
 
 The PrettyCSS project is on [GitHub](https://github.com/fidian/prettycss/).
-Further documentation is at http://fidian.com/prettycss
-List of authors is at docs/AUTHORS.md
+Further documentation is at http://fidian.com/prettycss and there's a little
+bit more under the docs/ folder inside the repository.
 
 Installation
 ============
 
-It isn't too hard to get this set up.  If you plan on using this on your
-server, I think that [node.js](http://nodejs.org/) is one of the easiest
-JavaScript implementations to get running.  If you are going to do
-development and will be rebundling the code into the browser-centric version,
-you will need node.js and [npm](http://npmjs.org/) to run browserify.
+First, you can use the pretty printer *in your browser* without any
+additional setup.  Take a look at http://www.fidian.com/prettycss and use the
+live demo.  The HTML and JavaScript can be copied out of the repository and
+placed wherever you need them.
 
-See docs/INSTALL.md for further information.
+For a little more power, or if you like using the command line to reformat
+your CSS files, this is not too hard to get set up on your system.  First,
+you will need [node.js](http://nodejs.org/) set up on your system.  Then
+you can use `sudo npm install PrettyCSS` and it should be ready to use
+on your system as the `prettycss` command.  Further, more detailed
+instructions are at http://www.fidian.com/prettycss/installation and they
+give you alternate ways that the program can get installed.
 
 Usage
 =====
 
-Still working on this one.  Bug me to update the README.md for the project.
+The easiest way is to use the web interface.  You can do this by either
+opening www/test.html from the repository in your browser or by going to
+http://www.fidian.com/prettycss/ and looking at the live demo.  Both methods
+use the current, bleeding-edge code that was committed to the repository.
+I suggest you go try it out and see what it can do!
 
-The easiest way is to use the web interface by opening www/test.html in
-your favorite browser.
+You can also use the command line program.  If you installed PrettyCSS
+using npm, then you can run the pretty printer quite easily.
 
-This can also be linked into your existing JavaScript code, such as what you
-might be writing with [node.js](http://nodejs.org/).
+    prettycss my_input_file.css
+
+There's a few options that are explained on the website at
+http://www.fidian.com/prettycss/command-line and those options control
+how warnings and errors affect the pretty printing, and other ways to
+configure the software.
+
+Lastly, this can also be linked into your existing JavaScript code, such
+as what you might be writing with [node.js](http://nodejs.org/).  You
+could mirror the `prettycss` command-line program and make a new
+`PrettyCSS` object, then run the parser on a filename or a string containing
+CSS.  This also is easier for passing in your own options to control the
+pretty printing.
 
 Dependencies
 ============
@@ -45,11 +66,16 @@ extra compilation step when testing things in the browser, but it also
 provides the benefit that we do not need to change any code to make it work
 in the browser and the scripts get transferred as a single file.
 
+The tests are built with [vows](http://vowsjs.org/).  You can run them with
+`npm test` or `vows` in the top level directory of the repository.  There's
+a lot of tests because we are asserting many little things with each of the
+value parsers that we use for handling CSS properties.
+
 Contact
 =======
 
-For feature requests, bug reports, and to get additional information, email
-fidian@rumkin.com or contact me via [GitHub](https://github.com/fidian/).
+For feature requests, bug reports, or if you want to contribute to the project,
+please check out the [GitHub Project Page](https://github.com/fidian/PrettyCSS).
 
 License
 =======
@@ -57,4 +83,3 @@ License
 This code is provided under a MIT license with additional clauses restricting
 promotion with the author's names and an advertising clause.  See 
 docs/LICENSE.md for the full details.
-

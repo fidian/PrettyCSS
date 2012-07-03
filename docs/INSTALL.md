@@ -47,17 +47,12 @@ repository.
 NPM
 ===
 
-Node.js works really well with npm.  If you have one, you usually end up
-using the other.  To install npm, you first need to install node.js.
+NPM is now a part of node, so you should either have it already or else
+you may need to install the npm package or similar.
 
-On a Debian, Ubuntu or other apt-based system, as root:
+PrettyCSS
+=========
 
-	apt-get install npm
-
-On Redhat, Centos or other yum-based system, as root:
-
-	yum install npm
-
-Manual install:
-
-	curl http://npmjs.org/install.sh | sh
+From here, you should be able to use `npm install PrettyCSS` and it will
+download everything for you.  For additional installation options, check out
+http://www.fidian.com/prettycss/installation
