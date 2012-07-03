@@ -85,6 +85,7 @@ var prettyPrint = function () {
 exports.batch = vows.describe('lib/prettycss.js').addBatch({
 	'bad_braces': prettyPrint(),
 	'bad_nested_block': prettyPrint(),
+	'comment-bug2': prettyPrint(),
 	'exercises': prettyPrint(),
 	'test_base': prettyPrint()
 });
