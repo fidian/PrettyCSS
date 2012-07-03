@@ -1,5 +1,5 @@
-v0.3.2 - unreleased
-===================
+v0.3.2
+======
 
 * Use OptionParser for command line program's options
 * Bugfix - fixing newlines in comments being reindented
