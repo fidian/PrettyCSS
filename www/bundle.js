@@ -841,7 +841,16 @@ exports.base = {
 			return str;
 		}
 
-		return str.replace(/\n/g, "\n" + indent);
+		str = str.replace(/\n/g, "\n" + indent);
+
+		// At this point, comments with newlines also were reindented.
+		// This change should be removed to preserve the comment intact.
+		str = str.replace(/\/\*[^*]*\*+([^\/][^*]*\*+)*\//g, function (match) {
+			var r = new RegExp("\n" + indent, 'g');
+			return match.replace(r, "\n");
+		});
+
+		return str;
 	},
 
 	setBucket: function (bucket) {
@@ -907,50 +916,50 @@ exports.setOptions = function (override) {
 	}
 
 	var options = {
-		debug: false,
+		at_post: "",
+		at_pre: "",
+		at_whitespace: " ",
+		atblock_post: "\n}",
+		atblock_pre: "{\n\t",
 		autocorrect: true,
+		block_post: "\n}",  // Must contain }
+		block_pre: "{",  // Must contain {
+		cdc: "\n-->", // Either {w} or {w}CDC{w}
+		cdo: "<!--\n", // Either {w} or {w}CDO{w}
+		combinator_post: ' ',
+		combinator_pre: ' ',
+		comment_post: "",
+		comment_pre: "  ",
+		cssLevel: 3,
+		debug: false,
+		declaration_post: '',
+		declaration_pre: '',
 		fileEncoding: "utf-8",
-		ruleset_pre: "",
+		functionComma: ", ", // Must contain comma
+		functionSpace: " ", // Must contain some whitespace
+		important: " !important", // Must contain !{w}important
+		indent: "\t",
+		keyframe_post: "",
+		keyframe_pre: "\n",
+		keyframeselector_post: " ",
+		keyframeselector_pre: "",
+		propertiesLowerCase: true,
+		property_post: "",
+		property_pre: "\n",
 		ruleset_post: "",
+		ruleset_pre: "",
+		selector_comma: ", ", // Must contain comma
+		selector_post: " ",
+		selector_pre: "",
+		selector_whitespace: " ", // Must contain whitespace
+		stylesheet_post: "",
 		stylesheet_pre: "",
 		stylesheet_whitespace: "\n\n",
-		stylesheet_post: "",
-		combinator_pre: ' ',
-		combinator_post: ' ',
-		declaration_pre: '',
-		declaration_post: '',
-		keyframe_pre: "\n",
-		keyframe_post: "",
-		keyframeselector_pre: "",
-		keyframeselector_post: " ",
-		selector_pre: "",
-		selector_post: " ",
-		selector_whitespace: " ", // Must contain whitespace
-		selector_comma: ", ", // Must contain comma
-		block_pre: "{",  // Must contain {
-		block_post: "\n}",  // Must contain }
-		indent: "\t",
-		property_pre: "\n",
-		property_post: "",
-		value_pre: " ",
-		value_post: "",
-		at_pre: "",
-		at_post: "",
-		atblock_pre: "{\n\t",
-		atblock_post: "\n}",
-		at_whitespace: " ",
-		important: " !important", // Must contain !{w}important
-		cdo: "<!--\n", // Either {w} or {w}CDO{w}
-		cdc: "\n-->", // Either {w} or {w}CDC{w}
-		topcomment_pre: "",
 		topcomment_post: "",
-		comment_pre: "  ",
-		comment_post: "",
-		cssLevel: 3,
-		propertiesLowerCase: true,
-		valuesLowerCase: true,
-		functionComma: ", ", // Must contain comma
-		functionSpace: " " // Must contain some whitespace
+		topcomment_pre: "",
+		value_post: "",
+		value_pre: " ",
+		valuesLowerCase: true
 	};
 
 	return exports.extend({}, options, override);
@@ -17315,7 +17324,7 @@ var getTokenDefs = function () {
 		COMMENT: {
 			leading: "/", 
 			all: false,
-			pattern: "\\/\\*[^*]*\\*+([^/][^*]*\\*+)*\\/"
+			pattern: "\\/\\*[^*]*\\*+([^\\/][^*]*\\*+)*\\/"
 		},
 		MATCH: {
 			leading: "~|^$*=",
