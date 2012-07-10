@@ -1331,6 +1331,12 @@ var canStartWith = function (token, tokens, bucket) {
 	}
 
 	var offset = 1;
+
+	if (token.type == 'CHAR' && token.content == '*') {
+		// Properties might be two tokens instead of one
+		offset ++;
+	}
+
 	var t = tokens.getToken(offset);
 
 	if (t && t.type == 'S') {
@@ -1412,6 +1418,15 @@ var parser = function (Declaration, propertyMapping) {
 
 		// See if we can map properties to something we can validate
 		var propertyName = declaration.property.getPropertyName().toLowerCase();
+
+		// Remove the hack
+		if (propertyName.substr(0, 1) == '*') {
+			propertyName = propertyName.substr(1);
+			bucket.parser.addWarning('hack:star', declaration.property.list[0]);
+		} else if (propertyName.substr(0, 1) == '_') {
+			propertyName = propertyName.substr(1);
+			bucket.parser.addWarning('hack:underscore', declaration.property.list[0]);
+		}
 
 		if (! propertyMapping[propertyName]) {
 			// Not a known property
@@ -16537,6 +16552,10 @@ util.extend(Property.prototype, base.base, {
 	name: "property",
 
 	getPropertyName: function () {
+		if (this.list.length > 1) {
+			return this.list[0].toString() + this.list[1].toString();
+		}
+
 		return this.list[0].toString();
 	},
 
@@ -16553,14 +16572,28 @@ util.extend(Property.prototype, base.base, {
 });
 
 exports.canStartWith = function (token, tokens, bucket) {
-	return token.type == 'IDENT';
+	if (token.type == 'IDENT') {
+		return true;
+	}
+
+	if (token.type == 'CHAR' && token.content == '*' && tokens.getToken(1).type == 'IDENT') {
+		return true;
+	}
+
+	return false;
 };
 
 exports.parse = function (tokens, bucket, container) {
 	var property = new Property(bucket, container);
 	property.debug('parse', tokens);
-	property.add(tokens.getToken());
+	var thisToken = tokens.getToken();
+	property.add(thisToken);
 	var nextToken = tokens.nextToken();
+
+	if (thisToken.type == 'CHAR' && thisToken.content == '*' && nextToken.type == 'IDENT') {
+		property.add(nextToken);
+		nextToken = tokens.nextToken();
+	}
 
 	if (nextToken && nextToken.type == 'S') {
 		tokens.next();
@@ -17682,9 +17715,10 @@ exports.warningMessages = {
 	'filter-case-sensitive': 'You used the wrong capitalization for a case sensitive property',
 	'filter-use-equals-instead': 'You must use an equals here instead of colon',
 	'font-family-one-generic': 'Only one generic font family should be used and it should be at the end',
+	'hack': 'You use a ## hack at this location',
 	'inherit-not-allowed': 'The value "inherit" is not allowed here',
 	'illegal': 'This value is illegal',
-	'invalid-valie': 'The value for this property is invalid',
+	'invalid-value': 'The value for this property is invalid',
 	'minmax-p-q': 'For minmax(p,q), the p should not be bigger than q',
 	'mixing-percentages': 'You are not allowed to mix percentages with non-percentage values',
 	'not-forward-compatible': 'This is not compatible with CSS version ## and forward',
