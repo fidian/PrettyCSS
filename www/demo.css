@@ -12,9 +12,13 @@ textarea { width: 100%; height: 11em; }
 .showIfBoth.no_error, .showIfBoth.no_warning { display: none; }
 .showIfEither.no_error.no_warning { display: none; }
 
-.optionWrapper { width: 49%; text-align: right; display: inline-block; }
-.option { float: right; margin-left: 0.5em; }
+.optionWrapper { text-align: right; }
+.ui-widget .option { font-family: monospace; font-weight: bold; float: right; margin-left: 0.5em; width: 30%; text-align: left; }
+.optionLabel { margin-right: 30%; }
 .optionClear { clear: both; }
+.optionValidationMessage { display: none; font-size: 0.8em; color: red; }
+.optionInvalid input { background-color: #FCC; }
+.optionInvalid .optionValidationMessage { display: block; }
 
 .hidden { display: none; }
 .detailTag { font-size: 0.8em; margin-left: 1.6em; }
