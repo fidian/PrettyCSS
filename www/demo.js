@@ -238,6 +238,7 @@ $(function () {
 			option.values.forEach(function (item) {
 				l.append($('<option />').prop('value', item).text(item));
 			});
+			l.val(option.defaultValue);
 			anyUpdate(l, function () {
 				force = true;
 			});
