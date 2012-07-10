@@ -13,7 +13,7 @@ textarea { width: 100%; height: 11em; }
 .showIfEither.no_error.no_warning { display: none; }
 
 .optionWrapper { text-align: right; }
-.ui-widget .option { font-family: monospace; font-weight: bold; float: right; margin-left: 0.5em; width: 30%; text-align: left; }
+.ui-widget .option { font-family: monospace; font-size: 1.3em; font-weight: bold; float: right; margin-left: 0.5em; width: 45%; text-align: left; }
 .optionLabel { margin-right: 30%; }
 .optionClear { clear: both; }
 .optionValidationMessage { display: none; font-size: 0.8em; color: red; }
