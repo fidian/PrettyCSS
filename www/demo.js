@@ -1,104 +1,113 @@
-var codeToMessage = {
-	"block_expected": "Expected a block",
-	"colon_expected": "Expected a colon",
-	"ident_after_colon": "Expected an identifier after a colon",
-	"ident_after_double_colon": "Expected an identifier after a double colon",
-	"illegal_token_after_combinator": "An invalid token was found after a combinator",
-	"invalid_token": "Invalid token encountered",
-};
-
-function showCodeList(target, list) {
-	var $target = $(target);
-	$target.empty();
-
-	if (list.length == 0) {
-		$target.text('None were reported.');
-		return;
-	}
-
-	var ul = $('<ul />');
-
-	for (var i = 0; i < list.length; i ++) {
-		var code = list[i].code;
-		var token = list[i].token;
-		var li = $('<li />');
-		var message = codeToMessage[code] || code;
-
-		if (token) {
-			message += " (" + token.type + ", line " + token.line + ", char " + token.charNum + ")";
-		} else {
-			message += " (no token supplied)";
-		}
-
-		li.text(message);
-		ul.append(li);
-	}
-
-	$target.append(ul);
-}
-
-function defaultOptions() {
-	var util = require('./util');
-	var options = util.setOptions({});
-	delete(options.debug);
-	delete(options.fileEncoding);
-	for (var i in options) {
-		if (typeof options[i] == 'function') {
-			delete(options[i]);
-		}
-	}
-	return options;
-}
-
-function anyUpdate($target, func) {
-	$target.change(func).keypress(func).keyup(func).keydown(func);
-}
-
-function addOptions() {
-	var options = defaultOptions();
-	$dest = $('#optionWrapper');
-	for (var i in options) {
-		var v = options[i];
-		v = addslashes(v);
-		var inp = $('<input type="text" name="' + i + '" id="' + i + '" class="option"/>').val(v);
-		var opt = $('<div class="optionWrapper" />');
-		opt.append(inp);
-		opt.append($('<div class="optionLabel" />').text(i + ":"));
-		opt.append($('<div class="optionClear" />'));
-		$dest.append(opt);
-	}
-}
-
-function addslashes(v) {
-	v = v.toString();
-	v = v.replace(/\\/g, "\\");
-	v = v.replace(/\r/g, "\\r");
-	v = v.replace(/\t/g, "\\t");
-	v = v.replace(/\f/g, "\\f");
-	v = v.replace(/\n/g, "\\n");
-	return v;
-}
-
-function stripslashes(v) {
-	v = v.replace(/\\r/g, "\r");
-	v = v.replace(/\\t/g, "\t");
-	v = v.replace(/\\f/g, "\f");
-	v = v.replace(/\\n/g, "\n");
-	v = v.replace(/\\\\/g, "\\");
-	return v;
-}
-
 $(function () {
-	var lastContent = '';
-	var prettycss = require('./prettycss');
-	var $cssIn = $('#cssIn');
-	var $cssOut = $('#cssOut');
-	var dirty = false;
-	var force = true;  // Force the initial call to set up the form
-	var setFlag = function () {
-		dirty = true;
+	var optionMeta = {
 	};
-	var update = function () {
+
+	function addOptions() {
+		var options = defaultOptions();
+		$dest = $('#optionWrapper');
+		for (var i in options) {
+			var v = options[i];
+			v = slashAdd(v);
+			var inp = $('<input type="text" name="' + i + '" id="' + i + '" class="option"/>').val(v);
+			var opt = $('<div class="optionWrapper" />');
+			opt.append(inp);
+			opt.append($('<div class="optionLabel" />').text(i + ":"));
+			opt.append($('<div class="optionClear" />'));
+			$dest.append(opt);
+		}
+	}
+
+	function anyUpdate($target, func) {
+		$target.change(func).keypress(func).keyup(func).keydown(func);
+	}
+
+	function defaultOptions() {
+		var util = require('./util');
+		var options = util.setOptions({});
+		delete(options.debug);
+		delete(options.fileEncoding);
+		for (var i in options) {
+			if (typeof options[i] == 'function') {
+				delete(options[i]);
+			}
+		}
+		return options;
+	}
+
+	function showProblem(problem, $dest) {
+		var message = $("<span />").text(problem.message);
+		var detail = $('<div class="hidden" />');
+		var line;
+
+		if (problem.token) {
+			line = 'Token: ';
+			line += problem.token.type + ' (' + problem.token.content + ')';
+			line += ' on line ' + problem.token.line;
+			line += ', character ' + problem.token.charNum;
+		} else {
+			line = 'No token supplied';
+		}
+
+		detail.append($('<span />').text(line));
+		detail.append('<br>');
+		detail.append($('<span />').text('Problem code:  ' + problem.code));
+
+		if (problem.more) {
+			detail.append('<br>');
+			detail.append($('<span />').text('Full problem code:  ' + problem.code + ':' + problem.more));
+		}
+
+		var detailTagShow = $('<span class="detailTag" />').text('[ Show Details ]');
+		var detailTagHide = $('<span class="detailTag hidden" />').text('[ Hide Details ]');
+		var toggleFunction = function () {
+			detail.toggleClass('hidden');
+			detailTagShow.toggleClass('hidden');
+			detailTagHide.toggleClass('hidden');
+		};
+		detailTagShow.click(toggleFunction);
+		detailTagHide.click(toggleFunction);
+		$dest.append(message).append(detailTagShow).append(detailTagHide).append(detail);
+		return $dest;
+	}
+
+	function showProblemList(target, list) {
+		var $target = $(target);
+		$target.empty();
+
+		if (list.length === 0) {
+			$target.text('None were reported.');
+			return;
+		}
+
+		var ul = $('<ul />');
+
+		for (var i = 0; i < list.length; i ++) {
+			ul.append(showProblem(list[i], $('<li />')));
+		}
+
+		$target.append(ul);
+	}
+
+	function slashAdd(v) {
+		v = v.toString();
+		v = v.replace(/\\/g, "\\");
+		v = v.replace(/\r/g, "\\r");
+		v = v.replace(/\t/g, "\\t");
+		v = v.replace(/\f/g, "\\f");
+		v = v.replace(/\n/g, "\\n");
+		return v;
+	}
+
+	function slashRemove(v) {
+		v = v.replace(/\\r/g, "\r");
+		v = v.replace(/\\t/g, "\t");
+		v = v.replace(/\\f/g, "\f");
+		v = v.replace(/\\n/g, "\n");
+		v = v.replace(/\\\\/g, "\\");
+		return v;
+	}
+
+	function update () {
 		if (! dirty && ! force) {
 			return;
 		}
@@ -116,29 +125,51 @@ $(function () {
 		$(".option").each(function (idx, elem) {
 			var $elem = $(elem);
 			var v = $elem.val();
-			v = stripslashes(v);
+			v = slashRemove(v);
 			options[$elem.attr('id')] = v;
 		});
 
 		var pp = prettycss.parse(content, options);
 		$cssOut.val(pp.toString());
-		showCodeList('#errorList', pp.errors);
-		showCodeList('#warningList', pp.warnings);
+		updateProblems(pp.getProblems());
+	}
 
-		var updateClasses = function (hasErrOrWarn, target, className) {
-			var $t = $(target);
+	function updateClasses(hasErrOrWarn, target, className) {
+		var $t = $(target);
 
-			if (hasErrOrWarn) {
-				$t.removeClass('no_' + className);
-				$t.addClass(className);
+		if (hasErrOrWarn) {
+			$t.removeClass('no_' + className);
+			$t.addClass(className);
+		} else {
+			$t.addClass('no_' + className);
+			$t.removeClass(className);
+		}
+	}
+
+	function updateProblems(problems) {
+		var errors = [];
+		var warnings = [];
+		problems.forEach(function (item) {
+			if (item.typeCode == 'error') {
+				errors.push(item);
 			} else {
-				$t.addClass('no_' + className);
-				$t.removeClass(className);
+				warnings.push(item);
 			}
-		};
+		});
+		showProblemList('#errorList', errors);
+		showProblemList('#warningList', warnings);
+		updateClasses(errors.length, '.update', 'error');
+		updateClasses(warnings.length, '.update', 'warning');
+	}
 
-		updateClasses(pp.errors.length, '.update', 'error');
-		updateClasses(pp.warnings.length, '.update', 'warning');
+	var lastContent = '';
+	var prettycss = require('./prettycss');
+	var $cssIn = $('#cssIn');
+	var $cssOut = $('#cssOut');
+	var dirty = false;
+	var force = true;  // Force the initial call to set up the form
+	var setFlag = function () {
+		dirty = true;
 	};
 
 	window.setInterval(update, 100);
@@ -151,7 +182,7 @@ $(function () {
 
 		for (var i in opt) {
 			var v = opt[i];
-			v = addslashes(v);
+			v = slashAdd(v);
 			$optElem.filter('#' + i).val(v);
 		}
 	};
