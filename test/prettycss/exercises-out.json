@@ -278,8 +278,8 @@
 		"fullCode": "suggest-relative-unit:px" 
 	}, 
 	{ 
-		"message": "No message defined for code invalid-value", 
-		"more": "invalid-value", 
+		"message": "The value for this property is invalid",
+		"more": null,
 		"code": "invalid-value", 
 		"token": { 
 			"line": 30, 
@@ -334,8 +334,8 @@
 		"fullCode": "css-minimum:3" 
 	}, 
 	{ 
-		"message": "No message defined for code invalid-value", 
-		"more": "invalid-value", 
+		"message": "The value for this property is invalid",
+		"more": null,
 		"code": "invalid-value", 
 		"token": { 
 			"line": 34, 
