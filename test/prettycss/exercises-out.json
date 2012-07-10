@@ -306,9 +306,9 @@
 		"fullCode": "suggest-using:alpha(...)" 
 	}, 
 	{ 
-		"message": "No message defined for code unofficial:ie", 
-		"more": "unofficial:ie", 
-		"code": "unofficial", 
+		"message": "Only works in one browser (Microsoft Internet Explorer)", 
+		"more": "ie", 
+		"code": "browser-only", 
 		"token": { 
 			"line": 32, 
 			"type": "IDENT", 
@@ -317,7 +317,7 @@
 		}, 
 		"typeCode": "warning", 
 		"typeText": "Warning", 
-		"fullCode": "unofficial:ie" 
+		"fullCode": "browser-only:ie" 
 	}, 
 	{ 
 		"message": "This was introduced in CSS version 3", 
