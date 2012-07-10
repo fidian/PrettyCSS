@@ -69,7 +69,7 @@ var prettyPrint = function () {
 		'CSS Matches': function (err, p, expectedCss, expectedProblems) {
 			assert.ifError(err);
 			var aStr = p.toString() + "\n";  // Pretty printing removes the last newline
-			var dStr = diff.createPatch(null, aStr, expectedCss);
+			var dStr = diff.createPatch(null, expectedCss, aStr);
 			assert.deepEqual(aStr, expectedCss, "Pretty CSS did not match\nDiff:" + dStr);
 		},
 
@@ -85,6 +85,7 @@ var prettyPrint = function () {
 exports.batch = vows.describe('lib/prettycss.js').addBatch({
 	'bad_braces': prettyPrint(),
 	'bad_nested_block': prettyPrint(),
+	'hacks': prettyPrint(),
 	'comment-bug2': prettyPrint(),
 	'exercises': prettyPrint(),
 	'test_base': prettyPrint()

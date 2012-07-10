@@ -1,0 +1,30 @@
+[
+	{ 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"more": "underscore", 
+		"code": "hack", 
+		"token": { 
+			"type": "IDENT", 
+			"content": "_display", 
+			"charNum": 1, 
+			"line": 3 
+		}, 
+		"message": "You use a underscore hack at this location", 
+		"fullCode": "hack:underscore" 
+	},
+	{ 
+		"typeCode": "warning", 
+		"typeText": "Warning", 
+		"more": "star", 
+		"code": "hack", 
+		"token": { 
+			"type": "CHAR", 
+			"content": "*", 
+			"charNum": 1, 
+			"line": 4 
+		}, 
+		"message": "You use a star hack at this location", 
+		"fullCode": "hack:star" 
+	} 
+]

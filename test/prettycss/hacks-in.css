@@ -1,0 +1,5 @@
+.hidden {
+display:none; /* normal */
+_display:none; /* IE6 */
+*display:none; /* IE6, IE7 */
+}
