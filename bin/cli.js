@@ -73,12 +73,30 @@ function parseFile(filename) {
 	var stop = false;
 	var warningCount = 0;
 	var errorCount = 0;
+	var importantProblems = [];
 
+	// Filter out ignored warnings and count everything
 	result.getProblems().forEach(function (item) {
 		if (item.typeCode == 'error') {
+			importantProblems.push(item);
 			errorCount ++;
 		} else {
-			warningCount ++;
+			if (! options.ignoreWarnings.some(function (warning) {
+				if (item.code == warning) {
+					return true;
+				}
+
+				if (warning.substr(0, item.code.length) == item.code &&
+					warning.charAt(item.code.length) == ':' &&
+					warning.substr(item.code.length + 1) == item.more) {
+					return true;
+				}
+
+				return false;
+			})) {
+				importantProblems.push(item);
+				warningCount ++;
+			}
 		}
 	});
 
@@ -100,30 +118,15 @@ function parseFile(filename) {
 		console.error(msg);
 	}
 
-	result.getProblems().forEach(function (item) {
-		var ignored = false;
-		
-		if (! options.ignoreWarnings.some(function (warning) {
-			if (item.code == warning) {
-				return true;
-			}
+	importantProblems.forEach(function (item) {
+		stop = true;
+		var message = item.typeText + ":  " + item.message;
 
-			if (warning.substr(0, item.code.length) == item.code &&
-				warning.charAt(item.code.length) == ':' &&
-				warning.substr(item.code.lengh + 1 == item.more)) {
-				return true;
-			}
-
-			return false;
-		})) {
-			stop = true;
-			var message = item.typeText + ":  " + item.message;
-
-			if (item.token) {
-				message += " (" + item.token.content + ", line " + item.token.line + ", char " + item.token.charNum + ")";
-			}
-			console.error(message);
+		if (item.token) {
+			message += " (" + item.token.content + ", line " + item.token.line + ", char " + item.token.charNum + ")";
 		}
+
+		console.error(message);
 	});
 
 	if (stop) {
