@@ -21,4 +21,6 @@ textarea { width: 100%; height: 11em; }
 .optionInvalid .optionValidationMessage { display: block; }
 
 .hidden { display: none; }
-.detailTag { font-size: 0.8em; margin-left: 1.6em; }
+.detailTag { margin-left: 1.6em; }
+.ignoreTag { margin-left: 1em; }
+.action { font-size: 0.8em; border: 1px solid yellow; padding: 0 1em; }

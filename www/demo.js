@@ -7,6 +7,8 @@ $(function () {
 		defaultValue: null
 	};
 
+	var ignoreCodes = [];
+
 	var optionMeta = {
 		// Drop-down lists
 		cssLevel: {
@@ -297,6 +299,32 @@ $(function () {
 		return options;
 	}
 
+	function isProblemIgnored(problem) {
+		if (problem.typeCode == 'error') {
+			return false;
+		}
+
+		if (ignoreCodes.some(function (item) {
+			if (problem.fullCode === item || problem.code === item) {
+				return true;
+			}
+
+			return false;
+		})) {
+			return true;
+		}
+
+		return false;
+	}
+
+	function problemIgnoreTag(code) {
+		return $('<span class="ignoreTag action" />').text('Ignore').click(function () {
+			ignoreCodes.push(code);
+			force = true;
+			return false;
+		});
+	}
+
 	function setOptions(opt) {
 		for (var i in optionMeta) {
 			if (typeof opt[i] != 'undefined') {
@@ -335,19 +363,20 @@ $(function () {
 
 		detail.append($('<span />').text(line));
 		detail.append('<br>');
-		detail.append($('<span />').text('Problem code:  ' + problem.code));
+		detail.append($('<span />').text('Problem code:  ' + problem.code).append(problemIgnoreTag(problem.code)));
 
 		if (problem.more) {
 			detail.append('<br>');
-			detail.append($('<span />').text('Full problem code:  ' + problem.code + ':' + problem.more));
+			detail.append($('<span />').text('Full problem code:  ' + problem.fullCode).append(problemIgnoreTag(problem.fullCode)));
 		}
 
-		var detailTagShow = $('<span class="detailTag" />').text('[ More ]');
-		var detailTagHide = $('<span class="detailTag hidden" />').text('[ Less ]');
+		var detailTagShow = $('<span class="detailTag action" />').text('More');
+		var detailTagHide = $('<span class="detailTag action hidden" />').text('Less');
 		var toggleFunction = function () {
 			detail.toggleClass('hidden');
 			detailTagShow.toggleClass('hidden');
 			detailTagHide.toggleClass('hidden');
+			return false;
 		};
 		detailTagShow.click(toggleFunction);
 		detailTagHide.click(toggleFunction);
@@ -355,22 +384,33 @@ $(function () {
 		return $dest;
 	}
 
-	function showProblemList(target, list) {
+	function showProblemList(target, list, showIgnores) {
 		var $target = $(target);
 		$target.empty();
 
 		if (list.length === 0) {
-			$target.text('None were reported.');
-			return;
+			$target.append($('<p />').text('None were reported'));
+		} else {
+			var ul = $('<ul />');
+
+			for (var i = 0; i < list.length; i ++) {
+				ul.append(showProblem(list[i], $('<li />')));
+			}
+
+			$target.append(ul);
 		}
 
-		var ul = $('<ul />');
-
-		for (var i = 0; i < list.length; i ++) {
-			ul.append(showProblem(list[i], $('<li />')));
+		if (showIgnores && ignoreCodes.length > 0) {
+			$target.append('Ignoring:');
+			ignoreCodes.forEach(function (item) {
+				$target.append($('<span class="ignoreTag action" />').text(item).click(function () {
+					ignoreCodes = ignoreCodes.filter(function (ic) {
+						return ic != item;
+					});
+					force = true;
+				}));
+			});
 		}
-
-		$target.append(ul);
 	}
 
 	function slashAdd(v) {
@@ -437,12 +477,12 @@ $(function () {
 		problems.forEach(function (item) {
 			if (item.typeCode == 'error') {
 				errors.push(item);
-			} else {
+			} else if (! isProblemIgnored(item)) {
 				warnings.push(item);
 			}
 		});
-		showProblemList('#errorList', errors);
-		showProblemList('#warningList', warnings);
+		showProblemList('#errorList', errors, false);
+		showProblemList('#warningList', warnings, true);
 		updateClasses(errors.length, '.update', 'error');
 		updateClasses(warnings.length, '.update', 'warning');
 	}
