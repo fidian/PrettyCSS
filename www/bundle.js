@@ -919,8 +919,8 @@ exports.setOptions = function (override) {
 		at_post: "",
 		at_pre: "",
 		at_whitespace: " ",
-		atblock_post: "\n}",
-		atblock_pre: "{\n\t",
+		atblock_post: "\n}",  // Must contain }
+		atblock_pre: "{\n\t",  // Must contain {
 		autocorrect: true,
 		block_post: "\n}",  // Must contain }
 		block_pre: "{",  // Must contain {
@@ -6882,10 +6882,14 @@ var alphaParser = function (filter) {
 	} else if (filter.unparsed.isContent(':')) {
 		var token = filter.unparsed.advance();
 		filter.addWarning('filter-use-equals-instead', token);
-		var colonToken = token.clone();
-		colonToken.type = 'MATCH';
-		colonToken.content = '=';
-		filter.add(colonToken);
+		if (filter.bucket.options.autocorrect) {
+			var colonToken = token.clone();
+			colonToken.type = 'MATCH';
+			colonToken.content = '=';
+			filter.add(colonToken);
+		} else {
+			filter.add(token);
+		}
 	} else {
 		filter.debug('parse fail - alpha - equals');
 		return null;

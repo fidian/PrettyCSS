@@ -3,7 +3,8 @@ $(function () {
 		type: "string",
 		validation: /^[ \t\f\r\n]*$/,
 		description: "No description found",
-		validationMessage: "This can only contain whitespace"
+		validationMessage: "This can only contain whitespace",
+		defaultValue: null
 	};
 
 	var optionMeta = {
@@ -202,8 +203,13 @@ $(function () {
 				} else {
 					$wrapper.addClass('optionInvalid');
 				}
+
+				force = true;
 			});
 			i.change();
+			option.getValue = function () {
+				return slashRemove(i.val());
+			};
 			return i;
 		}
 
@@ -214,6 +220,16 @@ $(function () {
 				cb.prop('checked', true);
 			}
 
+			anyUpdate(cb, function () {
+				force = true;
+			});
+			option.getValue = function () {
+				if (cb.is(':checked')) {
+					return true;
+				}
+
+				return false;
+			};
 			return $('<div class="option" />').append(cb);
 		}
 
@@ -222,6 +238,12 @@ $(function () {
 			option.values.forEach(function (item) {
 				l.append($('<option />').prop('value', item).text(item));
 			});
+			anyUpdate(l, function () {
+				force = true;
+			});
+			option.getValue = function () {
+				return l.val();
+			};
 			return l;
 		}
 
@@ -265,27 +287,34 @@ $(function () {
 	}
 
 	function defaultOptions() {
-		var util = require('./util');
-		var options = util.setOptions({});
-		delete(options.debug);
-		delete(options.fileEncoding);
-
-		for (var i in options) {
-			if (typeof options[i] == 'function') {
-				delete(options[i]);
-			}
+		var options = {};
+		
+		for (var i in optionMeta) {
+			options[i] = optionMeta.defaultValue;
 		}
 
 		return options;
 	}
 
 	function setOptions(opt) {
-		var $optElem = $('.option');
+		for (var i in optionMeta) {
+			if (typeof opt[i] != 'undefined') {
+				var $elem = $('#' + i);
 
-		for (var i in opt) {
-			var v = opt[i];
-			v = slashAdd(v);
-			$optElem.filter('#' + i).val(v);
+				if (optionMeta[i].type == "string") {
+					$elem.val(slashAdd(opt[i]));
+				} else if (optionMeta[i].type == "checkbox") {
+					if (opt[i]) {
+						$elem.prop('checked', false);
+					} else {
+						$elem.prop('checked', true);
+					}
+				} else if (optionMeta[i].type == "list") {
+					$elem.val(opt[i]);
+				}
+
+				$elem.change();
+			}
 		}
 	}
 
@@ -379,12 +408,10 @@ $(function () {
 		force = false;
 		lastContent = content;
 		options = {};
-		$(".option").each(function (idx, elem) {
-			var $elem = $(elem);
-			var v = $elem.val();
-			v = slashRemove(v);
-			options[$elem.attr('id')] = v;
-		});
+
+		for (var i in optionMeta) {
+			options[i] = optionMeta[i].getValue();
+		}
 
 		var pp = prettycss.parse(content, options);
 		$cssOut.val(pp.toString());
@@ -430,10 +457,10 @@ $(function () {
 	};
 
 	assignOptionDefaults();
+	addOptions($('#optionWrapper'));
 	window.setInterval(update, 100);
 	update();
 	anyUpdate($cssIn, setFlag);
-	addOptions($('#optionWrapper'));
 
 	$('#presetMinify').click(function () {
 		var opt = defaultOptions();
@@ -452,10 +479,8 @@ $(function () {
 		opt.at_post = "\n";
 		opt.important = "!important";
 		opt.function_comma = ",";
-		opt.propertiesLowerCase = true;
 		opt.topcomment_post = "\n";
 		opt.cssLevel = 3;
-		opt.valuesLowerCase = true;
 		setOptions(opt);
 		force = true;
 		return false;
