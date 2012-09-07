@@ -2,9 +2,9 @@
 var util = require('./util');
 
 exports.batch = util.makeVows('webkit-gradient', {
-	'-webkit-gradient(linear, left, top right, from(blue), to(red))': {
+	'-webkit-gradient(linear, left, right top, from(blue), to(red))': {
 		'tokens': ['IDENT', 'CHAR', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'S', 'IDENT', 'OPERATOR', 'S', 'FUNCTION', 'IDENT', 'PAREN_CLOSE', 'OPERATOR', 'S', 'FUNCTION', 'IDENT', 'PAREN_CLOSE', 'PAREN_CLOSE'],
-		'toString': '-webkit-gradient(linear, left, top right, from(blue), to(red))',
+		'toString': '-webkit-gradient(linear, left, right top, from(blue), to(red))',
 		'unparsed': [],
 		'warnings': []
 	},

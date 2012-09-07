@@ -20,9 +20,9 @@ exports.batch = util.makeVows('webkit-gradient-center', {
 		'unparsed': ['UNIT', 'S', 'IDENT'],
 		'warnings': null
 	},
-	'top left 1em': {
+	'left top 1em': {
 		'tokens': ['IDENT', 'S', 'IDENT', 'S', 'UNIT'],
-		'toString': 'top left',
+		'toString': 'left top',
 		'unparsed': ['UNIT'],
 		'warnings': []
 	},

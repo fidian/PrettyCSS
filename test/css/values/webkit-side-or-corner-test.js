@@ -8,9 +8,9 @@ exports.batch = util.makeVows('webkit-side-or-corner', {
 		'unparsed': [],
 		'warnings': []
 	},
-	'left top': {
+	'top left': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
-		'toString': 'left',
+		'toString': 'top',
 		'unparsed': ['IDENT'],
 		'warnings': []
 	},
@@ -20,9 +20,9 @@ exports.batch = util.makeVows('webkit-side-or-corner', {
 		'unparsed': [],
 		'warnings': []
 	},
-	'top left': {
+	'left top': {
 		'tokens': ['IDENT', 'S', 'IDENT'],
-		'toString': 'top left',
+		'toString': 'left top',
 		'unparsed': [],
 		'warnings': []
 	},
