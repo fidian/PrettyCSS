@@ -1,18 +1,19 @@
 {
 	"name": "PrettyCSS",
-	"version": "0.3.2",
+	"version": "0.3.3",
 	"preferGlobal": true,
 	"author": "Tyler Akins <fidian@rumkin.com>",
 	"description": "CSS pretty printer, lint checker, and validator",
 	"homepage": "http://fidian.com/PrettyCSS",
 	"contributors": [
-		"Tyler Akins <fidian@rumkin.com> (http://rumkin.com/)"
+		"Tyler Akins <fidian@rumkin.com> (http://rumkin.com/)",
+		"Michael Plaxico <michael.plaxico@bestbuy.com>"
 	],
 	"bin": {
 		"prettycss": "./bin/cli.js"
 	},
 	"scripts": {
-		"test": "vows --spec --isolate"
+		"test": "node_modules/vows/bin/vows"
 	},
 	"main": "./lib/prettycss.js",
 	"repository": {
@@ -35,7 +36,7 @@
 		"vows": "*"
 	},
 	"license": "MIT",
-	"engines": { 
+	"engines": {
 		"node": "~0.6",
 		"npm": "~1"
 	}
