@@ -12,7 +12,7 @@ exports.batch = util.makeVows('background-clip', {
 		'tokens': [ 'IDENT', 'S', 'UNIT' ],
 		'toString': 'content-box',
 		'unparsed': [ 'UNIT' ],
-		'warnings': []
+		'warnings': ['browser-unsupported:ie7', 'browser-unsupported:ie8']
 	},
 	'moose': {
 		'tokens': [ 'IDENT' ],
