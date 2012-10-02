@@ -10,7 +10,7 @@
 		"Michael Plaxico <michael.plaxico@bestbuy.com>"
 	],
 	"bin": {
-		"prettycss": "./bin/cli.js"
+		"prettycss": "./bin/prettycss"
 	},
 	"scripts": {
 		"test": "node_modules/vows/bin/vows"
