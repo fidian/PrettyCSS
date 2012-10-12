@@ -1354,7 +1354,7 @@ var canStartWith = function (token, tokens, bucket) {
 
 var getParser = function (fromMe) {
 	switch (typeof fromMe) {
-		case 'function':  // eg. simpleWarningFunction('unofficial')
+		case 'function':  // eg. simpleWarningFunction('browser-only')
 			return fromMe;
 
 		case 'string':  // 'border-single'
@@ -1509,10 +1509,10 @@ util.extend(exports.base, cssBase.base, {
 });
 
 exports.baseConstructor = cssBase.baseConstructor;
+exports.browserOnly = simpleWarningFunction('browser-only');
 exports.canStartWith = canStartWith;
 exports.declarationParser = parser;
 exports.deprecated = simpleWarningFunction('deprecated');
-exports.unofficial = simpleWarningFunction('unofficial');
 exports.wrongProperty = simpleWarningFunction('wrong-property');
 
 });
@@ -1779,6 +1779,10 @@ exports['webkit-gradient-center'] = require('./values/webkit-gradient-center');
 exports['webkit-side-or-corner'] = require('./values/webkit-side-or-corner');
 exports['webkit-font-smoothing'] = require('./values/webkit-font-smoothing');
 exports['webkit-linear-gradient'] = require('./values/webkit-linear-gradient');
+exports['webkit-text-fill-color'] = require('./values/webkit-text-fill-color');
+exports['webkit-text-stroke'] = require('./values/webkit-text-stroke');
+exports['webkit-text-stroke-color'] = require('./values/webkit-text-stroke-color');
+exports['webkit-text-stroke-width'] = require('./values/webkit-text-stroke-width');
 exports['webkit-user-select'] = require('./values/webkit-user-select');
 exports['white-space'] = require('./values/white-space');
 exports['widows-orphans'] = require('./values/widows-orphans');
@@ -3481,6 +3485,8 @@ exports.parse = function (unparsedReal, bucket, container) {
 	}
 
 	ba.warnIfInherit();
+	validate.call(ba, 'browserUnsupported', ba.firstToken(), 'ie7');
+	validate.call(ba, 'browserUnsupported', ba.firstToken(), 'ie8');
 	ba.debug('parse success', ba.unparsed);
 	return ba;
 };
@@ -5607,6 +5613,7 @@ util.extend(Val.prototype, base.base, {
 			values: [
 				"content-box",
 				"border-box",
+				"padding-box",
 				"inherit"
 			]
 		}
@@ -15596,7 +15603,7 @@ exports.parse = base.simpleParser(Val);
 require.define("/css/values/webkit-side-or-corner.js", function (require, module, exports, __dirname, __filename) {
 /* webkit-side-or-corner
  *
- * [ top | bottom ] [ left | right ]? | [ left | right ]
+ * [ left | right ] [ top | bottom ] ? | [ top | bottom ]
  *
  * TODO:  Autocorrect if this is reversed
  */
@@ -15614,21 +15621,23 @@ util.extend(Val.prototype, base.base, {
 });
 
 exports.parse = function (unparsedReal, bucket, container) {
-	var v = new Val(bucket, container, unparsedReal);
-	v.debug('parse', v.unparsed);
-	var valid = false;
+	var v, valid;
 
-	if (v.unparsed.isContent([ 'top', 'bottom' ])) {
-		v.add(v.unparsed.advance());
-		valid = true;
-	}
+	v = new Val(bucket, container, unparsedReal);
+	v.debug('parse', v.unparsed);
+	valid = false;
 
 	if (v.unparsed.isContent([ 'left', 'right' ])) {
 		v.add(v.unparsed.advance());
 		valid = true;
 	}
 
-	if (! valid) {
+	if (v.unparsed.isContent([ 'top', 'bottom' ])) {
+		v.add(v.unparsed.advance());
+		valid = true;
+	}
+
+	if (!valid) {
 		v.debug('parse fail');
 		return null;
 	}
@@ -15750,6 +15759,181 @@ exports.parse = function (unparsedReal, bucket, container) {
 	v.debug('parse success');
 	return v;
 };
+
+});
+
+require.define("/css/values/webkit-text-fill-color.js", function (require, module, exports, __dirname, __filename) {
+/* <webkit-text-fill-color>
+ *
+ * Browser-specific implementation for special text strokes
+ *
+ * <color> | currentcolor | -webkit-activelink | -webkit-focus-ring-color | -webkit-link | -webkit-text
+ *
+ * I'm guessing this is supported
+ * inherit
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "webkit-text-fill-color",
+
+	allowed: [
+		{
+			validation: [
+				validate.browserOnly('s') // Safari 3.0, iOS 2.0
+			],
+			values: [
+				'currentcolor',
+				'-webkit-activelink',
+				'-webkit-focus-ring-color',
+				'-webkit-link',
+				'-webkit-text'
+			],
+			valueObjects: [
+				'color'
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+});
+
+require.define("/css/values/webkit-text-stroke.js", function (require, module, exports, __dirname, __filename) {
+/* <webkit-text-stroke>
+ *
+ * CSS3:  <webkit-text-stroke-width> <webkit-text-stroke-color>
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "webkit-text-stroke"
+});
+
+
+exports.parse = function (unparsedReal, bucket, container) {
+	var v = new Val(bucket, container, unparsedReal);
+	v.debug('parse', unparsedReal);
+
+	if (v.handleInherit()) {
+		return v;
+	}
+
+	var w = bucket['webkit-text-stroke-width'].parse(v.unparsed, bucket, v);
+
+	if (! w) {
+		v.debug('parse fail - no width', v.unparsed);
+		return null;
+	}
+
+	v.add(w);
+	v.unparsed = w.unparsed;
+	var c = bucket['webkit-text-stroke-color'].parse(v.unparsed, bucket, v);
+	
+	if (! c) {
+		v.debug('parse fail - no color', v.unparsed);
+		return null;
+	}
+
+	v.add(c);
+	v.unparsed = c.unparsed;
+	v.warnIfInherit();
+	v.debug('parse success', v.unparsed);
+	return v;
+};
+
+});
+
+require.define("/css/values/webkit-text-stroke-color.js", function (require, module, exports, __dirname, __filename) {
+/* <webkit-text-stroke-color>
+ *
+ * Browser-specific implementation for special text strokes
+ *
+ * <color> | currentcolor | -webkit-activelink | -webkit-focus-ring-color | -webkit-link | -webkit-text
+ *
+ * I'm guessing this is supported
+ * inherit
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "webkit-text-stroke-color",
+
+	allowed: [
+		{
+			validation: [
+				validate.browserOnly('s') // Safari 3.0, iOS 2.0
+			],
+			values: [
+				'currentcolor',
+				'-webkit-activelink',
+				'-webkit-focus-ring-color',
+				'-webkit-link',
+				'-webkit-text'
+			],
+			valueObjects: [
+				'color'
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
+
+});
+
+require.define("/css/values/webkit-text-stroke-width.js", function (require, module, exports, __dirname, __filename) {
+/* <webkit-text-stroke-width>
+ *
+ * CSS3:  <border-width-single>
+ */
+
+"use strict";
+
+var base = require('./base');
+var util = require('../../util');
+var validate = require('./validate');
+
+var Val = base.baseConstructor();
+
+util.extend(Val.prototype, base.base, {
+	name: "webkit-text-stroke-width",
+
+	allowed: [
+		{
+			validation: [
+				validate.browserOnly('s')
+			],
+			valueObjects: [
+				'border-width-single'
+			]
+		}
+	]
+});
+
+exports.parse = base.simpleParser(Val);
 
 });
 
@@ -15993,7 +16177,6 @@ require.define("/css/values/zoom.js", function (require, module, exports, __dirn
 
 var base = require('./base');
 var util = require('../../util');
-var validate = require('./validate');
 
 var Zoom = base.baseConstructor();
 
@@ -16112,12 +16295,14 @@ var propertyMapping = {
 	'background': 'background',
 	'background-attachment': 'background-attachment',
 	'background-clip': 'background-clip',
-	'-khtml-background-clip': base.deprecated('background-clip', 'background-clip'),
-	'-moz-background-clip': base.deprecated('background-clip', 'background-clip'),
-	'-webkit-background-clip': base.deprecated('background-clip'),
+	'-khtml-background-clip': 'background-clip',
+	'-moz-background-clip': 'background-clip',
+	'-webkit-background-clip': 'background-clip',
 	'background-color': 'background-color',
 	'background-image': 'background-image',
 	'background-origin': 'background-origin',
+	'-moz-background-origin': 'background-origin',
+	'-webkit-background-origin': 'background-origin',
 	'background-position': 'background-position',
 	'background-repeat': 'background-repeat',
 	'background-size': 'background-size',
@@ -16176,6 +16361,8 @@ var propertyMapping = {
 	'-moz-box-shadow': 'box-shadow',
 	'-webkit-box-shadow': 'box-shadow',
 	'box-sizing': 'box-sizing',
+	'-moz-box-sizing': 'box-sizing',
+	'-webkit-box-sizing': 'box-sizing',
 	'clear': 'clear',
 	'clip': 'clip',
 	'color': 'color',
@@ -16184,7 +16371,7 @@ var propertyMapping = {
 	'direction': 'direction',
 	'display': 'display',
 	'empty-cells': 'empty-cells',
-	'filter': base.unofficial('filter', 'ie'),
+	'filter': base.browserOnly('filter', 'ie'),
 	'-ms-filter': base.wrongProperty('filter', 'filter'),  // IE supports filter better than -ms-filter
 	'float': 'float',
 	'font': 'font',
@@ -16263,6 +16450,10 @@ var propertyMapping = {
 	'text-decoration-color': 'text-decoration-color',
 	'text-decoration-line': 'text-decoration-line',
 	'text-decoration-style': 'text-decoration-style',
+	'-webkit-text-fill-color': 'webkit-text-fill-color',
+	'-webkit-text-stroke': 'webkit-text-stroke',
+	'-webkit-text-stroke-color': 'webkit-text-stroke-color',
+	'-webkit-text-stroke-width': 'webkit-text-stroke-width',
 	'text-indent': 'text-indent',
 	'text-overflow': 'text-overflow',
 	'text-shadow': 'text-shadow',
@@ -16273,10 +16464,10 @@ var propertyMapping = {
 	'text-transform': 'text-transform',
 	'top': 'offset',
 	'transform': 'transform',
-	'-moz-transform': base.wrongProperty('transform', 'transform'),
+	'-moz-transform': 'transform',
 	'-ms-transform': 'transform',
 	'-o-transform': 'transform',
-	'-webkit-transform': base.wrongProperty('transform', 'transform'),
+	'-webkit-transform': 'transform',
 	'transition': 'transition',
 	'-moz-transition': base.wrongProperty('transition', 'transition'),
 	'-webkit-transition': base.wrongProperty('transition', 'transition'),
@@ -16302,7 +16493,7 @@ var propertyMapping = {
 	'width': 'width',
 	'word-wrap': base.wrongProperty('overflow-wrap', 'overflow-wrap'),
 	'z-index': 'z-index',
-	'zoom': base.unofficial('zoom', 'ie'),
+	'zoom': base.browserOnly('zoom', 'ie'),
 	'-ms-zoom': base.wrongProperty('zoom', 'ie') // Only in IE8 standards mode
 };
 
@@ -16636,8 +16827,12 @@ exports.canStartWith = function (token, tokens, bucket) {
 		return true;
 	}
 
-	if (next.type == 'FUNCTION' && next.content.toLowerCase() == 'not(') {
-		return true;
+	if (next.type == 'FUNCTION') {
+		var nextContent = next.content.toLowerCase();
+
+		if (nextContent === 'not(' || nextContent === 'nth-child(') {
+			return true;
+		}
 	}
 
 	if (next.type == 'COLON') {
@@ -17292,9 +17487,9 @@ var getTokenDefs = function () {
 		nonascii: "[\\x80-\\xd7ff\\xe000\\xfffd]",  // Can't include \x10000-\x10ffff -- too high for JavaScript
 		num: "([0-9]+(\\.[0-9]*)?|[0-9]*\\.?[0-9]+)",
 		string: "\\\"({stringchar}|\\')*\\\"|\\'({stringchar}|\\\")*\\'",
-		stringchar: "{urlchar}| |\\\\{nl}",
+		stringchar: "{urlchar}|\\x29| |\\\\{nl}", // urlchar excludes 0x29
 		unicode: "\\\\{h}{1,6}({nl}|{wc})?",
-		urlchar: "[\\t\x21\x23-\x26\x28-\x7e]|{nonascii}|{escape}", // 22 = ", 27 = '
+		urlchar: "[\\t\\x21\\x23-\\x26\\x28\\x2A-\\x7e]|{nonascii}|{escape}", // 22 = ", 27 = ', 29 = )
 		w: "{wc}*",
 		wc: wsPatternString
 	};
