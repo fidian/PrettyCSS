@@ -25,6 +25,12 @@ textarea {
 		<script type="text/javascript" src="https://raw.github.com/fidian/PrettyCSS/master/www/demo.js"></script>
 	</head>
 	<body>
+		<h1>PrettyCSS Live Demo!</h1>
+		<p>PrettyCSS is a project on <a href="https://github.com/fidian/PrettyCSS">GitHub</a> to provide a CSS lint checker, validator and pretty printer.</p>
+		<p>Nothing says more than actually seeing a product in action, so below is a live demo of the PrettyCSS engine at work.  It updates live; as you type in CSS, the bottom text area updates with a pretty printed version.  It also reflects how a browser sees the CSS, so invalid markup is removed.  To understand this more, try typing in <code>a {garbage}</code> and you won't see "garbage" because the structure of the declaration is invalid.</p>
+
+		<p>Check out the errors and warnings tab to see exactly what's wrong and where the problem was located.  From there, you can ignore selective codes, just like using the <a href="https://raw.github.com/fidian/PrettyCSS/master/docs/CommandLine.md">command-line interface</a>.
+
 		<form method="post" action="">
 			<div id="tabs">
 				<ul>
@@ -54,5 +60,7 @@ textarea {
 				</div>
 			</div>
 		</form>
+
+		<p>The above interface uses the latest committed version from the repository automatically, so it might be broken one day or not the same as what you would get when you install PrettyCSS with npm.  When that happens, please file a bug.</p>
 	</body>
 </html>
