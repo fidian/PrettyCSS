@@ -19,7 +19,7 @@ Features
 
 Check it out with the [live demo]!
 
-[live demo]: https://fidian.github.com/PrettyCSS/
+[live demo]: http://fidian.github.com/PrettyCSS/
 
 More Reading
 ------------
