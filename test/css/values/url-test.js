@@ -14,6 +14,12 @@ exports.batch = util.makeVows('url', {
 		'unparsed': [],
 		'warnings': []
 	},
+	'url(http://more.peanut.butter/)blah)': {
+		'tokens': ['URL', 'IDENT', 'PAREN_CLOSE'],
+		'toString': 'url(http://more.peanut.butter/)',
+		'unparsed': ['IDENT', 'PAREN_CLOSE'],
+		'warnings': []
+	},
 	'url ("blah")': {
 		'tokens': ['IDENT', 'S', 'CHAR', 'STRING', 'PAREN_CLOSE'],
 		'toString': null,
