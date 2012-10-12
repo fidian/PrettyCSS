@@ -38,6 +38,12 @@ exports.batch = util.makeVows('selector', {
 		"tokensRemaining": 3,
 		"toString": "p+div.colorful#blinking::after"
 	},
+	'nth-child': {
+		'input': 'tr:nth-child(odd) {}',
+		'tokenList' : ['IDENT', 'pseudoclass', 'S'],
+		'tokensRemaining': 2,
+		'toString': 'tr:nth-child(odd)'
+	},
 	'error combinator': {
 		'input': 'a > > html\n',
 		'errors': ['illegal-token-after-combinator:COMBINATOR@1'],

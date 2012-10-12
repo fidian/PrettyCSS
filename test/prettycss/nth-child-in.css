@@ -1,0 +1,3 @@
+tr:nth-child(odd) {
+	    display: none;
+}
