@@ -1,0 +1,58 @@
+<html>
+	<head>
+		<title>PrettyCSS Demo</title>
+		<link type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/vader/jquery-ui.css" rel="stylesheet" />
+		<link type="text/css" href="https://raw.github.com/fidian/PrettyCSS/master/www/demo.css" rel="stylesheet" />
+<style type="text/css">
+
+.ui-tabs {
+	font-size: 0.8em;
+}
+.ui-tabs-nav {
+	height: 30px;
+}
+textarea {
+	width: 100%; height: 11em;
+}
+#tabs-1, #tabs-2, #tabs-3 {
+	height: 336px; overflow-x: hidden; overflow-y: auto;
+}
+
+</style>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="https://raw.github.com/fidian/PrettyCSS/master/www/bundle.js"></script>
+		<script type="text/javascript" src="https://raw.github.com/fidian/PrettyCSS/master/www/demo.js"></script>
+	</head>
+	<body>
+		<form method="post" action="">
+			<div id="tabs">
+				<ul>
+					<li><a href="#tabs-1">Live Demo</a></li>
+					<li><a href="#tabs-2" class="boldIfEither update">Errors / Warnings</a></li>
+					<li><a href="#tabs-3">Options</a></li>
+				</ul>
+				<div id="tabs-1">
+					<b>Before</b> - <a href="" id="presetMinify">Minify</a> - <a href="" id="presetDefault">Default</a><br />
+					<textarea id="cssIn" wrap="off"></textarea><br />
+					<b>After</b> - 
+					<span class="update showIfClean">Invalid CSS grammar is automatically removed or fixed</span>
+					<span class="update showIfWarning">Warnings detected</span>
+					<span class="update showIfError">Errors detected</span>
+					<span class="update showIfBoth">Errors and warnings detected</span>
+					<span class="update showIfEither"> - go to <a class="warningsAndErrors" href="#" onclick="return false">Errors and Warnings tab</a></span>
+					<br />
+					<textarea class="update" id="cssOut" readonly="true" wrap="off"></textarea>
+				</div>
+				<div id="tabs-2">
+					<p><b>Errors:</b><br /><span id="errorList"></span></p>
+					<p><b>Warnings:</b><br /><span id="warningList"></span></p>
+				</div>
+				<div id="tabs-3">
+					<p>For the whitespace settings below, "\n" will insert a line break and "\t" will add a tab character.  Spaces are automatically converted to a dot (&middot;) so you can see them in this form.</p>
+				<div id="optionWrapper"></div>
+				</div>
+			</div>
+		</form>
+	</body>
+</html>
