@@ -17,16 +17,9 @@ Features
 [GitHub]: https://github.com/fidian/PrettyCSS
 [license]: https://github.com/fidian/PrettyCSS/blob/master/docs/License.md
 
-Live Demo
----------
+Check it out with the [live demo]!
 
-Nothing says more than actually seeing a product in action, so below is a live demo of the PrettyCSS engine at work.  It updates live; as you type in CSS, the bottom text area updates with a pretty printed version.  It also reflects how a browser sees the CSS, so invalid markup is removed.  To understand this more, try typing in `a {garbage}` and you won't see "garbage" because the structure of the declaration is invalid.
-
-Check out the errors and warnings tab to see exactly what's wrong and where the problem was located.  From there, you can ignore selective codes, just like using the [command-line interface].
-
-<iframe title="PrettyCSS Live Demo" width="100%" height="400" scrolling="no" frameborder="0" id="1127290848" name="1127290848" allowtransparency="true" src="https://fidian.github.com/PrettyCSS/iframe.html"></iframe>
-
-The above iframe uses the latest committed version from the [GitHub] repository automatically, so it might be broken one day or not the same as what you would get when you install PrettyCSS with npm.  When that happens, please file a bug.
+[live demo]: https://fidian.github.com/PrettyCSS/
 
 More Reading
 ------------
