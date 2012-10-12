@@ -1,3 +1,6 @@
+License
+=======
+
 Copyright (c) 2012 individual committers of the code
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

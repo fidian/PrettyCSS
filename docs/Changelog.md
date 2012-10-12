@@ -1,28 +1,52 @@
+Changelog
+=========
+
+v0.3.5
+------
+
+* Corrected URL pattern for significant speed improvement on minified CSS
+
+v0.3.4
+------
+
+* Renamed bin/* files to remove ".js" at the end
+* Feature - Additional CSS parsing rules
+
+v0.3.3
+------
+
+* Bugfix issue #6 - Should use `/bin/env node` instead of `/usr/bin/node`
+* Bugfix - correct ignored warnings in command-line version
+* Feature - Adding detection of star and underscore hacks
+* Feature - Additional CSS parsing rules
+* Bugfix - correcting webkit-side-or-corner
+* Bugfix - corrected key for language encoding of a message
+
 v0.3.2
-======
+------
 
 * Use OptionParser for command line program's options
 * Bugfix - fixing newlines in comments being reindented
 
 v0.3.1
-======
+------
 
 * Bugfix - some properties need to be case sensitive
 
 v0.3.0
-======
+------
 
 * Added many more tests - now to a good spot with tests
 
 v0.2.0
-======
+------
 
 * Added live HTML view
 * Parsing values and validating that the property's value seems correct
 * Added many tests, but not complete coverage of anything
 
 v0.1.0
-======
+------
 
 * Can tokenize CSS
 * Can parse tokens into CSS objects
