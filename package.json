@@ -1,6 +1,6 @@
 {
 	"name": "PrettyCSS",
-	"version": "0.3.4",
+	"version": "0.3.5",
 	"preferGlobal": true,
 	"author": "Tyler Akins <fidian@rumkin.com>",
 	"description": "CSS pretty printer, lint checker, and validator",
@@ -18,7 +18,7 @@
 	"main": "./lib/prettycss.js",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/fidian/prettycss.git"
+		"url": "https://github.com/fidian/PrettyCSS.git"
 	},
 	"keywords": [
 		"css",
