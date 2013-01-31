@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v0.3.6
+------
+
+* Added `table-layout`, a CSS2 property
+
 v0.3.5
 ------
 
