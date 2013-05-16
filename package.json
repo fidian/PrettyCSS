@@ -13,7 +13,7 @@
 		"prettycss": "./bin/prettycss"
 	},
 	"scripts": {
-		"test": "node_modules/vows/bin/vows"
+		"test": "vows"
 	},
 	"main": "./lib/prettycss.js",
 	"repository": {
