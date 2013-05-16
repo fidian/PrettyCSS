@@ -6,6 +6,7 @@ var fs = require('fs');
 var optionparser = require('OptionParser');
 var parser = new optionparser.OptionParser();
 var options = {
+	ignoreAllWarnings: false,
 	ignoreWarnings: [],
 	stopOnErrors: false,
 	stopOnWarnings: false
@@ -38,6 +39,11 @@ parser.
 	argument('code').
 	action(function (arg) {
 		options.ignoreWarnings.push(arg);
+	});
+parser.
+	addOption(null, 'ignore-all', 'Ignore all warnings').
+	action(function () {
+		options.ignoreAllWarnings = true;
 	});
 parser.
 	addOption(null, 'stop-on-errors', 'Stop when an error is encountered').
@@ -80,7 +86,7 @@ function parseFile(filename) {
 		if (item.typeCode == 'error') {
 			importantProblems.push(item);
 			errorCount ++;
-		} else {
+		} else if (!options.ignoreAllWarnings) {
 			if (! options.ignoreWarnings.some(function (warning) {
 				if (item.code == warning) {
 					return true;
