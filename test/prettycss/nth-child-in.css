@@ -1,3 +1,7 @@
 tr:nth-child(odd) {
 	    display: none;
 }
+
+td:nth-child(3n+1) {
+        display: block;
+}
