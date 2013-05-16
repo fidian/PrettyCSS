@@ -34,3 +34,5 @@ To Do
 * Rework tokens - I have three different implementions
 
 * Move "inherit" to declarations like expression()
+
+* nth-child parsing is off.  Things like ":nth-child( +3N - 2 )" behave poorly.  Need a way to format that whitespace as well.  Treat it like math?  Separate formatter?
