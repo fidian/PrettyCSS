@@ -2,6 +2,6 @@ tr:nth-child(odd) {
 	display: none;
 }
 
-tr:nth-child(3n+1) {
+td:nth-child(3n+1) {
 	display: block;
 }
