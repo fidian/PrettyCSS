@@ -36,4 +36,4 @@ More Reading
 [Errors and Warnings]: https://github.com/fidian/PrettyCSS/blob/master/docs/ErrorsAndWarnings.md
 [Function Reference]: https://github.com/fidian/PrettyCSS/blob/master/docs/Functions.md
 [Install]: https://github.com/fidian/PrettyCSS/blob/master/docs/Install.md
-[Lint]: https://github.com/fidian/PrettyCSS/blob/master/docs/Lint.md
+[Lint]: https://github.com/fidian/PrettyCSS/blob/master/docs/LintChecks.md
