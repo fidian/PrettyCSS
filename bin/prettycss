@@ -9,6 +9,7 @@ var options = {
 	beautifierConfig: {},
 	ignoreAllWarnings: false,
 	ignoreWarnings: [],
+	stdinRead: false,
 	stopOnErrors: false,
 	stopOnWarnings: false
 };
@@ -83,8 +84,24 @@ if (filenames.length === 0) {
 }
 
 
+function getFileContents(filename) {
+	if (filename !== '-') {
+		return fs.readFileSync(filename, 'utf-8');
+	}
+
+	if (options.stdinRead) {
+		throw new Error('Already read from stdin');
+	}
+
+	if (fs.existsSync('/dev/stdin')) {
+		return fs.readFileSync('/dev/stdin', 'utf-8');
+	}
+
+	throw new Error('/dev/stdin does not exist and must read from stream synchronously');
+}
+
 function parseFile(filename) {
-	var contents = fs.readFileSync(filename, 'utf-8');
+	var contents = getFileContents(filename);
 	var result = prettycss.parse(contents, options.beautifierConfig);
 	var stop = false;
 	var warningCount = 0;
