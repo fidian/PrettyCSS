@@ -31,9 +31,9 @@ More Reading
 * [Function Reference] - The exposed functions on the object and the configuration options available for calling from JavaScript directly
 * [Changelog] - See why we touched the code between releases
 
-[Changelog]: https://github.com/fidian/PrettyCSS/blob/master/docs/Changelog.md
-[Command-Line Interface]: https://github.com/fidian/PrettyCSS/blob/master/docs/CommandLine.md
-[Errors and Warnings]: https://github.com/fidian/PrettyCSS/blob/master/docs/ErrorsAndWarnings.md
-[Function Reference]: https://github.com/fidian/PrettyCSS/blob/master/docs/Functions.md
-[Install]: https://github.com/fidian/PrettyCSS/blob/master/docs/Install.md
-[Lint]: https://github.com/fidian/PrettyCSS/blob/master/docs/LintChecks.md
+[Changelog]: docs/Changelog.md
+[Command-Line Interface]: docs/CommandLine.md
+[Errors and Warnings]: docs/ErrorsAndWarnings.md
+[Function Reference]: docs/Functions.md
+[Install]: docs/Install.md
+[Lint]: docs/LintChecks.md

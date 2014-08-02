@@ -16,4 +16,4 @@ Check out the [Errors and Warnings] page for more information.
 
 The goal of the project is to create a single command-line tool that can read your CSS files and write it out reformatted when it's valid and ready for consumption.  The user should have the ability to specify any of the whitespace that gets modified anywhere in the file as well as determine what version of CSS that is being targeted.  To help prevent against mistakes, property names and values are checked.  In the end, this tool would be integrated with your development environments and your source code management system, so every commit to a CSS file would get standardized and checked before it entered your codebase.
 
-[Errors and Warnings]: https://github.com/fidian/PrettyCSS/blob/master/docs/ErrorsAndWarnings.md
+[Errors and Warnings]: ErrorsAndWarnings.md

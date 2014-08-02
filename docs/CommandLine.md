@@ -45,4 +45,14 @@ This example shows you how to ignore various codes, and some of those codes have
 
 You will also want to check out the [Error and Warning Codes].
 
-[Error and Warning Codes]: https://github.com/fidian/PrettyCSS/blob/master/docs/ErrorsAndWarnings.md
+Specifying Beautifer Config Options
+-----------------------------------
+
+All of the options that are described in [Beautifier Options] can be specified in a JSON file.
+
+```
+prettycss --config my_custom_configuration.json myfile.css > myfile_pretty.css
+```
+
+[Beautifier Options]: BeautifierOptions.md
+[Error and Warning Codes]: ErrorsAndWarnings.md

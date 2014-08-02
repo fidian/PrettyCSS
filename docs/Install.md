@@ -66,7 +66,7 @@ Web Based
 
 Depending on your needs, you could just download [bundle.js] and put it into your codebase.  Alternately, you can use the Git Submodule technique or install with npm like any of the above methods.  Those all install the entire library, test suite, command-line programs and everything else.  When you get the complete repository, you can check out the `www/` directory for a working, static HTML demo that you can use to beautify and check your CSS.
 
-[bundle.js]: https://raw.github.com/fidian/PrettyCSS/master/www/bundle.js
+[bundle.js]: ../www/bundle.js
 
 Other Methods
 -------------
