@@ -6,12 +6,22 @@ var fs = require('fs');
 var optionparser = require('OptionParser');
 var parser = new optionparser.OptionParser();
 var options = {
+	beautifierConfig: {},
 	ignoreAllWarnings: false,
 	ignoreWarnings: [],
 	stopOnErrors: false,
 	stopOnWarnings: false
 };
 
+parser.
+	addOption('c', 'config', 'Specify a JSON config file for beautifier').
+	argument('filename').
+	action(function (filename) {
+		var contents;
+
+		contents = fs.readFileSync(filename);
+		options.beautifierConfig = JSON.parse(contents);
+	});
 parser.
 	addOption('h', 'help', 'Display this help message').
 	action(function () {
@@ -75,7 +85,7 @@ if (filenames.length === 0) {
 
 function parseFile(filename) {
 	var contents = fs.readFileSync(filename, 'utf-8');
-	var result = prettycss.parse(contents);
+	var result = prettycss.parse(contents, options.beautifierConfig);
 	var stop = false;
 	var warningCount = 0;
 	var errorCount = 0;
@@ -83,18 +93,18 @@ function parseFile(filename) {
 
 	// Filter out ignored warnings and count everything
 	result.getProblems().forEach(function (item) {
-		if (item.typeCode == 'error') {
+		if (item.typeCode === 'error') {
 			importantProblems.push(item);
 			errorCount ++;
 		} else if (!options.ignoreAllWarnings) {
 			if (! options.ignoreWarnings.some(function (warning) {
-				if (item.code == warning) {
+				if (item.code === warning) {
 					return true;
 				}
 
-				if (warning.substr(0, item.code.length) == item.code &&
-					warning.charAt(item.code.length) == ':' &&
-					warning.substr(item.code.length + 1) == item.more) {
+				if (warning.substr(0, item.code.length) === item.code &&
+					warning.charAt(item.code.length) === ':' &&
+					warning.substr(item.code.length + 1) === item.more) {
 					return true;
 				}
 
@@ -109,13 +119,13 @@ function parseFile(filename) {
 	if (warningCount || errorCount) {
 		var msg;
 
-		if (errorCount == 1) {
+		if (errorCount === 1) {
 			msg = "There was 1 error ";
 		} else {
 			msg = "There were " + errorCount + " errors ";
 		}
 
-		if (warningCount == 1) {
+		if (warningCount === 1) {
 			msg += "and 1 warning detected.";
 		} else {
 			msg += "and " + warningCount + " warnings detected.";
