@@ -54,7 +54,7 @@ Another way to get this into your codebase would be to add it as a git submodule
 
 ```
 mkdir -p 3rd_party/node_modules
-git submodule add https://github.com/fidian/OptionParser.git 3rd_party/node_modules/OptionParser
+git submodule add https://github.com/tests-always-included/option-parser-js.git 3rd_party/node_modules/option-parser
 git submodule add https://github.com/fidian/PrettyCSS.git 3rd_party/node_modules/PrettyCSS
 git commit -m 'Adding PrettyCSS and dependent library'
 ```

@@ -3,8 +3,8 @@
 "use strict";
 var prettycss = require('../lib/prettycss');
 var fs = require('fs');
-var optionparser = require('OptionParser');
-var parser = new optionparser.OptionParser();
+var OptionParser = require('option-parser');
+var parser = new OptionParser();
 var options = {
 	beautifierConfig: {},
 	ignoreAllWarnings: false,

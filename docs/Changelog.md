@@ -1,6 +1,22 @@
 Changelog
 =========
 
+v0.3.9
+-------
+
+* Switched to use tests-always-included/option-parser-js (the fidian/OptionParser repository was moved and reworked)
+
+v0.3.8
+------
+
+* Rudimentary support for "-" as stdin
+* Documentation updates
+
+v0.3.7
+------
+
+* Added `:nth-child()` support
+
 v0.3.6
 ------
 
