@@ -28,7 +28,7 @@
 		"validator"
 	],
 	"dependencies": {
-		"option-parser": "0.1.3"
+		"option-parser": "~0.1.3"
 	},
 	"devDependencies": {
 		"browserify": "*",
