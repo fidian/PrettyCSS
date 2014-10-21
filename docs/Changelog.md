@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v0.3.10
+-------
+
+* 0.3.9 had an issue where the wrong version of option-parser could be used.
+* 0.3.9 also was released using "OptionParser" (the old version).  I tagged and pushed the wrong commit. (Issue [#34](https://github.com/fidian/PrettyCSS/issues/34))
+
 v0.3.9
 -------
 
