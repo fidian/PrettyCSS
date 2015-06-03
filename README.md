@@ -32,7 +32,7 @@ More Reading
 * [Function Reference] - The exposed functions on the object and the configuration options available for calling from JavaScript directly
 * [Changelog] - See why we touched the code between releases
 
-[BeautifierOptions]: docs/BeautifierOptions.md
+[Beautifier Options]: docs/BeautifierOptions.md
 [Changelog]: docs/Changelog.md
 [Command-Line Interface]: docs/CommandLine.md
 [Errors and Warnings]: docs/ErrorsAndWarnings.md
