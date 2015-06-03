@@ -45,8 +45,8 @@ This example shows you how to ignore various codes, and some of those codes have
 
 You will also want to check out the [Error and Warning Codes].
 
-Specifying Beautifer Config Options
------------------------------------
+Specifying Beautifier Config Options
+------------------------------------
 
 All of the options that are described in [Beautifier Options] can be specified in a JSON file.
 

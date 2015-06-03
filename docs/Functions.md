@@ -54,10 +54,10 @@ parseFile(filename, callback)
 parseFile(filename, callback, options)
 ```
 
-Reads the contents of filename, runs those contents through the `parse()` method, and finally calls your callback.  Your callback's function signature should look like `function (err, parser)`.  `err` is an error exception that happened or `null` if there were no problems.  The `parser` parameter is a Parser object that the parse() method returned.  The `option` object's properties are detailed in [Beautifer Options]
+Reads the contents of filename, runs those contents through the `parse()` method, and finally calls your callback.  Your callback's function signature should look like `function (err, parser)`.  `err` is an error exception that happened or `null` if there were no problems.  The `parser` parameter is a Parser object that the parse() method returned.  The `option` object's properties are detailed in [Beautifier Options].
 
 
-[Beautifer Options]: BeautiferOptions.md
+[Beautifier Options]: BeautifierOptions.md
 [Browserify]: https://github.com/substack/node-browserify
 [node.js]: http://nodejs.org
 [shim.js]: ../lib/shim.js

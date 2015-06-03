@@ -1,5 +1,5 @@
-Beautifer Options
-=================
+Beautifier Options
+==================
 
 These are the options that are available to tweak the parsing and the beautified output.  You can specify them via [command line] in a JSON file or as an options object when using the [functions] directly.
 
