@@ -24,6 +24,7 @@ Check it out with the [live demo]!
 More Reading
 ------------
 
+* [Beautifier Options] - Everything you can configure with the pretty printer
 * [Lint] - Here is a list of problems that could get detected
 * [Errors and Warnings] - A listing of all error and warning codes that can be generated
 * [Install] - instructions for how to get this running on your own computers
@@ -31,6 +32,7 @@ More Reading
 * [Function Reference] - The exposed functions on the object and the configuration options available for calling from JavaScript directly
 * [Changelog] - See why we touched the code between releases
 
+[BeautifierOptions]: docs/BeautifierOptions.md
 [Changelog]: docs/Changelog.md
 [Command-Line Interface]: docs/CommandLine.md
 [Errors and Warnings]: docs/ErrorsAndWarnings.md
