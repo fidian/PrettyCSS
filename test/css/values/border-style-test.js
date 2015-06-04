@@ -19,5 +19,23 @@ exports.batch = util.makeVows('border-style', {
 		'toString': null,
 		'unparsed': ['IDENT'],
 		'warnings': null
-	}
+	},
+    'solid none': {
+        'tokens': ['IDENT', 'S', 'IDENT'],
+        'toString': "solid none",
+        'unparsed': [],
+        'warnings': []
+    },
+    'solid none dotted': {
+        'tokens': ['IDENT', 'S', 'IDENT', 'S', 'IDENT'],
+        'toString': "solid none dotted",
+        'unparsed': [],
+        'warnings': []
+    },
+    'solid none dotted dashed': {
+        'tokens': ['IDENT', 'S', 'IDENT', 'S', 'IDENT', 'S', 'IDENT'],
+        'toString': "solid none dotted dashed",
+        'unparsed': [],
+        'warnings': []
+    }
 });
