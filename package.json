@@ -4,7 +4,7 @@
 	"preferGlobal": true,
 	"author": "Tyler Akins <fidian@rumkin.com>",
 	"description": "CSS pretty printer, lint checker, and validator",
-	"homepage": "http://fidian.com/PrettyCSS",
+	"homepage": "https://github.com/fidian/PrettyCSS",
 	"contributors": [
 		"Tyler Akins <fidian@rumkin.com> (http://rumkin.com/)",
 		"Michael Plaxico <michael.plaxico@bestbuy.com>"
