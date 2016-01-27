@@ -8,28 +8,29 @@ exports.batch = util.makeVows('hsla', {
 		'unparsed': [],
 		'warnings': []
 	},
-	'hsla( 4% ,5% ,6% , 0.7 ) hsla(asdf)': {
+	'hsla( 4 ,5% ,6% , 0.7 ) hsla(asdf)': {
 		'tokens': ['FUNCTION', 'S', 'UNIT', 'S', 'OPERATOR', 'UNIT', 'S', 'OPERATOR', 'UNIT', 'S', 'OPERATOR', 'S', 'UNIT', 'S', 'PAREN_CLOSE', 'S', 'FUNCTION', 'IDENT', 'PAREN_CLOSE'],
-		'toString': 'hsla(4%, 5%, 6%, 0.7)',
+		'toString': 'hsla(4, 5%, 6%, 0.7)',
 		'unparsed': ['FUNCTION', 'IDENT', 'PAREN_CLOSE'],
 		'warnings': []
 	},
-	'hsla(7,8%,9%,1)': {
+	'hsla(7,8%,9,1)': {
 		'tokens': ['FUNCTION', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'PAREN_CLOSE'],
-		'toString': 'hsla(7, 8%, 9%, 1)',
+		'toString': 'hsla(7, 8%, 9, 1)',
 		'unparsed': [],
 		'warnings': ['mixing-percentages']
-	},
-	'hsla(-7%,888%,0.9,1.001)': {
-		'tokens': ['FUNCTION', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'PAREN_CLOSE'],
-		'toString': 'hsla(0%, 100%, 1, 1)',
-		'unparsed': [],
-		'warnings': ['mixing-percentages', 'range-min:0', 'range-max:100', 'require-integer', 'range-max:1']
 	},
 	'hsla(red, green, blue, alpha)': {
 		'tokens': ['FUNCTION', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'PAREN_CLOSE'],
 		'toString': null,
 		'unparsed': ['FUNCTION', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'PAREN_CLOSE'],
+		'warnings': null
+	},
+    // First value must be a number, not percentage
+	'hsla(-7%,888%,0.9,1.001)': {
+		'tokens': ['FUNCTION', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'PAREN_CLOSE'],
+		'toString': null,
+		'unparsed': ['FUNCTION', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'PAREN_CLOSE'],
 		'warnings': null
 	},
 	// inherit is not allowed

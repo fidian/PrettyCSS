@@ -8,28 +8,29 @@ exports.batch = util.makeVows('hsl', {
 		'unparsed': [],
 		'warnings': []
 	},
-	'hsl( 4% ,5% ,6% ) hsl(asdf)': {
+	'hsl( 4 ,5% ,6% ) hsl(asdf)': {
 		'tokens': ['FUNCTION', 'S', 'UNIT', 'S', 'OPERATOR', 'UNIT', 'S', 'OPERATOR', 'UNIT', 'S', 'PAREN_CLOSE', 'S', 'FUNCTION', 'IDENT', 'PAREN_CLOSE'],
-		'toString': 'hsl(4%, 5%, 6%)',
+		'toString': 'hsl(4, 5%, 6%)',
 		'unparsed': ['FUNCTION', 'IDENT', 'PAREN_CLOSE'],
 		'warnings': []
 	},
-	'hsl(7,8%,9%)': {
+	'hsl(7,8%,9)': {
 		'tokens': ['FUNCTION', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'PAREN_CLOSE'],
-		'toString': 'hsl(7, 8%, 9%)',
+		'toString': 'hsl(7, 8%, 9)',
 		'unparsed': [],
 		'warnings': ['mixing-percentages']
-	},
-	'hsl(-7%,888%,0.9)': {
-		'tokens': ['FUNCTION', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'PAREN_CLOSE'],
-		'toString': 'hsl(0%, 100%, 1)',
-		'unparsed': [],
-		'warnings': ['mixing-percentages', 'range-min:0', 'range-max:100', 'require-integer']
 	},
 	'hsl(red, green, blue)': {
 		'tokens': ['FUNCTION', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'PAREN_CLOSE'],
 		'toString': null,
 		'unparsed': ['FUNCTION', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'OPERATOR', 'S', 'IDENT', 'PAREN_CLOSE'],
+		'warnings': null
+	},
+    // First value must be a number
+	'hsl(-7%,888%,0.9)': {
+		'tokens': ['FUNCTION', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'PAREN_CLOSE'],
+		'toString': null,
+		'unparsed': ['FUNCTION', 'UNIT', 'OPERATOR', 'UNIT', 'OPERATOR', 'UNIT', 'PAREN_CLOSE'],
 		'warnings': null
 	},
 	// inherit is not allowed
