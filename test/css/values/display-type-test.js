@@ -32,6 +32,12 @@ exports.batch = util.makeVows('display-type', {
 		'unparsed': [],
 		'warnings': ['css-minimum:2.1']
 	},
+	'flex': {
+		'tokens': ['IDENT'],
+		'toString': 'flex',
+		'unparsed': [],
+		'warnings': ['css-minimum:3']
+	},
 	'inherit pinkeye 27': {
 		'tokens': ['IDENT', 'S', 'IDENT', 'S', 'UNIT' ],
 		'toString': 'inherit',

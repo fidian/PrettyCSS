@@ -28,7 +28,7 @@ More Reading
 * [Lint] - Here is a list of problems that could get detected
 * [Errors and Warnings] - A listing of all error and warning codes that can be generated
 * [Install] - instructions for how to get this running on your own computers
-* [Command-Line Interface] - Once installed, he're is how to run it
+* [Command-Line Interface] - Once installed, here is how to run it
 * [Function Reference] - The exposed functions on the object and the configuration options available for calling from JavaScript directly
 * [Changelog] - See why we touched the code between releases
 
