@@ -53,7 +53,6 @@ var testValue = function (name, obj, expected) {
 			var container = {};
 			var parser = {
 				debug: function (msg) {
-					console.log(msg);
 				},
 				options: {
 					autocorrect: true,
