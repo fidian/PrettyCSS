@@ -6,7 +6,8 @@ var fs = require('fs');
 var OptionParser = require('option-parser');
 var parser = new OptionParser();
 var options = {
-	beautifierConfig: {},
+	beautifierConfig: {
+        debug: true},
 	ignoreAllWarnings: false,
 	ignoreWarnings: [],
 	stdinRead: false,
