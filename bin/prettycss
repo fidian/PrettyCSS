@@ -7,7 +7,8 @@ var OptionParser = require('option-parser');
 var parser = new OptionParser();
 var options = {
 	beautifierConfig: {
-        debug: true},
+        //debug: true
+    },
 	ignoreAllWarnings: false,
 	ignoreWarnings: [],
 	stdinRead: false,
