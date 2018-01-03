@@ -1,6 +1,6 @@
 {
 	"name": "PrettyCSS",
-	"version": "0.3.16",
+	"version": "0.3.17",
 	"preferGlobal": true,
 	"author": "Tyler Akins <fidian@rumkin.com>",
 	"description": "CSS pretty printer, lint checker, and validator",
