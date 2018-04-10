@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# Need to put this into memory because the file will be removed when we switch
+# branches.
+publish() {
+    if [[ -d src-www ]]; then
+        rm -rf src-www
+    fi
+
+    cp -r www src-www
+    git checkout gh-pages
+    cp src-www/{demo.js,demo.css,bundle.js} .
+    rm -rf src-www
+    git add demo.js demo.css bundle.js
+    git commit -m "Publishing file updates"
+    echo ""
+    echo "Changes were committed but not pushed. You are on the gh-pages branch."
+    echo ""
+    echo "Your next steps if you want to continue:"
+    echo "    git push"
+    echo "    git checkout master"
+    echo ""
+    echo "To roll back:"
+    echo "    git reset --hard HEAD^"
+    echo "    git checkout master"
+}
+
+publish
