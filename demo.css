@@ -1,0 +1,26 @@
+.boldIfEither.error, .boldIfEither.warning { font-weight: bold; }
+
+textarea { width: 100%; height: 11em; }
+
+#cssOut.error { background-color: #FCC; }
+#cssOut.warning { background-color: #CCF; }
+#cssOut.error.warning { background-color: #FCC; }
+
+.showIfClean.error, .showIfClean.warning { display: none; }
+.showIfWarning.no_warning, .showIfWarning.error { display: none; }
+.showIfError.no_error, .showIfError.warning { display: none; }
+.showIfBoth.no_error, .showIfBoth.no_warning { display: none; }
+.showIfEither.no_error.no_warning { display: none; }
+
+.optionWrapper { text-align: right; }
+.ui-widget .option { font-family: monospace; font-size: 1.3em; font-weight: bold; float: right; margin-left: 0.5em; width: 45%; text-align: left; }
+.optionLabel { margin-right: 30%; }
+.optionClear { clear: both; }
+.optionValidationMessage { display: none; font-size: 0.8em; color: red; }
+.optionInvalid input { background-color: #FCC; }
+.optionInvalid .optionValidationMessage { display: block; }
+
+.hidden { display: none; }
+.detailTag { margin-left: 1.6em; }
+.ignoreTag { margin-left: 1em; }
+.action { font-size: 0.8em; border: 1px solid yellow; padding: 0 1em; }
