@@ -23,33 +23,33 @@ require._core = {
 require.resolve = (function () {
     return function (x, cwd) {
         if (!cwd) cwd = '/';
-        
+
         if (require._core[x]) return x;
         var path = require.modules.path();
         var y = cwd || '.';
-        
+
         if (x.match(/^(?:\.\.?\/|\/)/)) {
             var m = loadAsFileSync(path.resolve(y, x))
                 || loadAsDirectorySync(path.resolve(y, x));
             if (m) return m;
         }
-        
+
         var n = loadNodeModulesSync(x, y);
         if (n) return n;
-        
+
         throw new Error("Cannot find module '" + x + "'");
-        
+
         function loadAsFileSync (x) {
             if (require.modules[x]) {
                 return x;
             }
-            
+
             for (var i = 0; i < require.extensions.length; i++) {
                 var ext = require.extensions[i];
                 if (require.modules[x + ext]) return x + ext;
             }
         }
-        
+
         function loadAsDirectorySync (x) {
             x = x.replace(/\/+$/, '');
             var pkgfile = x + '/package.json';
@@ -69,10 +69,10 @@ require.resolve = (function () {
                     if (m) return m;
                 }
             }
-            
+
             return loadAsFileSync(x + '/index');
         }
-        
+
         function loadNodeModulesSync (x, start) {
             var dirs = nodeModulesPathsSync(start);
             for (var i = 0; i < dirs.length; i++) {
@@ -82,23 +82,23 @@ require.resolve = (function () {
                 var n = loadAsDirectorySync(dir + '/' + x);
                 if (n) return n;
             }
-            
+
             var m = loadAsFileSync(x);
             if (m) return m;
         }
-        
+
         function nodeModulesPathsSync (start) {
             var parts;
             if (start === '/') parts = [ '' ];
             else parts = path.normalize(start).split('/');
-            
+
             var dirs = [];
             for (var i = parts.length - 1; i >= 0; i--) {
                 if (parts[i] === 'node_modules') continue;
                 var dir = parts.slice(0, i + 1).join('/') + '/node_modules';
                 dirs.push(dir);
             }
-            
+
             return dirs;
         }
     };
@@ -114,13 +114,13 @@ require.alias = function (from, to) {
         res = require.resolve(from, '/');
     }
     var basedir = path.dirname(res);
-    
+
     var keys = (Object.keys || function (obj) {
         var res = [];
         for (var key in obj) res.push(key)
         return res;
     })(require.modules);
-    
+
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
         if (key.slice(0, basedir.length + 1) === basedir + '/') {
@@ -138,7 +138,7 @@ require.define = function (filename, fn) {
         ? ''
         : require.modules.path().dirname(filename)
     ;
-    
+
     var require_ = function (file) {
         return require(file, dirname)
     };
@@ -148,7 +148,7 @@ require.define = function (filename, fn) {
     require_.modules = require.modules;
     require_.define = require.define;
     var module_ = { exports : {} };
-    
+
     require.modules[filename] = function () {
         require.modules[filename]._cached = module_.exports;
         fn.call(
@@ -171,7 +171,7 @@ if (!process.nextTick) process.nextTick = (function () {
     var canPost = typeof window !== 'undefined'
         && window.postMessage && window.addEventListener
     ;
-    
+
     if (canPost) {
         window.addEventListener('message', function (ev) {
             if (ev.source === window && ev.data === 'browserify-tick') {
@@ -183,7 +183,7 @@ if (!process.nextTick) process.nextTick = (function () {
             }
         }, true);
     }
-    
+
     return function (fn) {
         if (canPost) {
             queue.push(fn);
@@ -293,7 +293,7 @@ path = normalizeArray(filter(path.split('/'), function(p) {
   if (path && trailingSlash) {
     path += '/';
   }
-  
+
   return (isAbsolute ? '/' : '') + path;
 };
 
@@ -401,7 +401,7 @@ util.extend(PrettyCSS.prototype, {
 			if (! code) {
 				throw new Error('Invalid warning/error code: ' + item.code);
 			}
-			
+
 			if (code[3]) {
 				more = code[3];
 			}
@@ -431,7 +431,7 @@ util.extend(PrettyCSS.prototype, {
 			}
 
 			var tokenCopy = null;
-			
+
 			if (item.token) {
 				tokenCopy = item.token.clone();
 			}
@@ -1148,7 +1148,7 @@ var CDO = base.baseConstructor();
 
 util.extend(CDO.prototype, base.base, {
 	name: "cdo",
-	
+
 	toString: function () {
 		this.debug('toString', this.list);
 		return this.bucket.options.cdo;
@@ -1179,7 +1179,7 @@ var Comment = base.baseConstructor();
 
 util.extend(Comment.prototype, base.base, {
 	name: 'comment',
-	
+
 	toString: function () {
 		this.debug('toString', this.list);
 
@@ -1826,7 +1826,7 @@ util.extend(Angle.prototype, base.base, {
 			validation: [
 				validate.angle()
 			],
-			values: [ 
+			values: [
 				"0",
 				base.makeRegexp('[-+]?{n}(deg|grad|rad|turn)')
 			]
@@ -2000,7 +2000,7 @@ exports.base = {
 
 		return false;
 	},
-	
+
 	handleInherit: function (validator) {
 		if (this.unparsed.isContent('inherit')) {
 			this.add(this.unparsed.advance());
@@ -2010,7 +2010,7 @@ exports.base = {
 			} else {
 				validator(this);
 			}
-			
+
 			return true;
 		}
 
@@ -2121,7 +2121,7 @@ exports.base = {
 				});
 				rule.valueObjects = null;
 			}
-			
+
 			for (var j = 0; j < rule.values.length; j ++) {
 				var result = this.testRuleValue(rule.values[j], tokenContent, rule);
 
@@ -2462,7 +2462,7 @@ exports.call = function () {
 exports.deprecated = function (deprecatedVersion, suggestion) {
 	return function (tokenOrObject) {
 		var warning = 'css-deprecated';
-		
+
 		if (deprecatedVersion) {
 			warning += ':' + deprecatedVersion;
 		}
@@ -2505,7 +2505,7 @@ exports.numberPortionIsInteger = function () {
 	return function (tokenOrObject) {
 		var tv = getTokenAndValue(tokenOrObject);
 		var num = tv.value.toString().match(/^[-+]?[0-9]*\.?[0-9]*/);
-		
+
 		if (! num || num.toString().indexOf('.') != -1) {
 			this.addWarning('require-integer', tv.token);
 		}
@@ -2516,7 +2516,7 @@ exports.numberPortionIsNotZero = function () {
 	return function (tokenOrObject) {
 		var tv = getTokenAndValue(tokenOrObject);
 		var num = tv.value.toString().match(/^[-+]?[0-9]*\.?[0-9]+/);
-		
+
 		if (+num === 0) {
 			this.addWarning('suggest-remove-unit:' + this.getUnit(), tv.token);
 		}
@@ -3526,7 +3526,7 @@ util.extend(BackgroundColor.prototype, base.base, {
 		},
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'transparent'
 			],
 			valueObjects: [
@@ -3806,7 +3806,7 @@ util.extend(BackgroundSize.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var bs = new BackgroundSize(bucket, container, unparsedReal);
 	bs.debug('parse', unparsedReal);
-	
+
 	if (bs.handleInherit()) {
 		return bs;
 	}
@@ -3849,7 +3849,7 @@ util.extend(Val.prototype, base.base, {
 			validation: [
 				validate.browserOnly('ie')
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"url"
 			]
 		}
@@ -3883,7 +3883,7 @@ util.extend(Attachment.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				"scroll",
 				"fixed"
 			]
@@ -3892,7 +3892,7 @@ util.extend(Attachment.prototype, base.base, {
 			validation: [
 				validate.minimumCss(2)
 			],
-			values: [ 
+			values: [
 				"inherit"
 			]
 		},
@@ -3900,7 +3900,7 @@ util.extend(Attachment.prototype, base.base, {
 			validation: [
 				validate.minimumCss(3)
 			],
-			values: [ 
+			values: [
 				"local"
 			]
 		}
@@ -3970,7 +3970,7 @@ util.extend(BgImage.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				"none"
 			],
 			valueObjects: [
@@ -3981,7 +3981,7 @@ util.extend(BgImage.prototype, base.base, {
 			validation: [
 				validate.minimumCss(2)
 			],
-			values: [ 
+			values: [
 				"inherit"
 			]
 		}
@@ -4032,7 +4032,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		}
 
 		var parsed = defObject.parseFunction(unparsed, bucket, bl);
-		
+
 		if (! parsed) {
 			return false;
 		}
@@ -4106,7 +4106,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		{
 			name: 'bg-position',
 			parseFunction: bucket['bg-position'].parse,
-			processFunction: positionProcess 
+			processFunction: positionProcess
 		},
 		{
 			name: 'bg-box',
@@ -4311,13 +4311,13 @@ var testPatterns = function (patterns, unparsedReal, bucket, container) {
 
 			case 'PL':
 				token = unparsed.matchAny([ bucket['percentage'], bucket['length'] ], container);
-				
+
 				if (token) {
 					doesMatch = true;
 				}
-				
+
 				break;
-				
+
 			default:
 				throw new Error('Unknown pattern matching definition: ' + pm);
 		}
@@ -4331,7 +4331,7 @@ var testPatterns = function (patterns, unparsedReal, bucket, container) {
 
 			if (patterns[pm].children) {
 				var tryChild = testPatterns(patterns[pm].children, unparsed, bucket, container);
-				
+
 				if (tryChild) {
 					tryChild.tokens.unshift(token);
 					return tryChild;
@@ -4432,7 +4432,7 @@ util.extend(bgRepeat.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				"repeat",
 				"repeat-x",
 				"repeat-y",
@@ -4443,7 +4443,7 @@ util.extend(bgRepeat.prototype, base.base, {
 			validation: [
 				validate.minimumCss(2)
 			],
-			values: [ 
+			values: [
 				"inherit"
 			]
 		}
@@ -4486,7 +4486,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 	var getLpa = function () {
 		var token = unparsed.matchAny([ bucket['length'], bucket['percentage'] ], bs);
-		
+
 		if (token) {
 			unparsed = token.unparsed;
 			validate.call(token, 'positiveValue');
@@ -4739,7 +4739,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 				}
 			}
 		}
-		
+
 		if (! foundRepeat) {
 			next = bucket['border-image-repeat'].parse(v.unparsed, bucket, v);
 
@@ -4996,7 +4996,7 @@ util.extend(Val.prototype, base.base, {
 			validation: [
 				validate.minimumCss(3)
 			],
-			values: [ 
+			values: [
 				"inherit"
 			],
 			valueObjects: [
@@ -5147,7 +5147,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		var unparsedBackup = unparsed.clone();
 		var slashToken = unparsed.advance();
 		var result = unparsed.matchAny([ bucket['length'], bucket['percentage'] ], br);
-		
+
 		if (result) {
 			br.add(slashToken);
 			br.add(result);
@@ -5195,7 +5195,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	}
 
 	var result = unparsed.matchAny([ bucket['length'], bucket['percentage'] ], brs);
-	
+
 	if (! result) {
 		return null;
 	}
@@ -5285,7 +5285,7 @@ util.extend(BorderSpacing.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			valueObjects: [ 
+			valueObjects: [
 				'length1-2'
 			]
 		},
@@ -5293,7 +5293,7 @@ util.extend(BorderSpacing.prototype, base.base, {
 			validation: [
 				validate.minimumCss(2)
 			],
-			values: [ 
+			values: [
 				"inherit"
 			]
 		}
@@ -5645,7 +5645,7 @@ util.extend(Clear.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'none',
 				'left',
 				'right',
@@ -5883,7 +5883,7 @@ util.extend(Color.prototype, base.base, {
 				validate.deprecated(3),
 				validate.suggestUsing('appearance')
 			],
-			values: [ 
+			values: [
 				'activeborder',
 				'activecaption',
 				'appworkspace',
@@ -5915,7 +5915,7 @@ util.extend(Color.prototype, base.base, {
 		},
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'aqua',
 				'black',
 				'blue',
@@ -5943,7 +5943,7 @@ util.extend(Color.prototype, base.base, {
 			validation: [
 				validate.minimumCss(2)
 			],
-			values: [ 
+			values: [
 				'purple'
 			]
 		},
@@ -5951,7 +5951,7 @@ util.extend(Color.prototype, base.base, {
 			validation: [
 				validate.minimumCss(2.1)
 			],
-			values: [ 
+			values: [
 				'orange'
 			]
 		},
@@ -6187,7 +6187,7 @@ util.extend(ColWidth.prototype, base.base, {
 			validation: [
 				validate.minimumCss(3)
 			],
-			values: [ 
+			values: [
 				"auto",
 				"fit-content",
 				"max-content",
@@ -6204,7 +6204,7 @@ util.extend(ColWidth.prototype, base.base, {
 				validate.minimumCss(3),
 				validate.positiveValue()
 			],
-			valueObjects: [ 
+			valueObjects: [
 				'length'
 			]
 		}
@@ -6305,11 +6305,11 @@ exports.parse = function (unparsed, bucket, container) {
 	if (! result) {
 		result = counter.functionParser('counters(', bucket['ident'], bucket['string']);
 	}
-	
+
 	if (! result) {
 		result = counter.functionParser('counters(', bucket['ident'], bucket['string'], bucket['list-style-type']);
 	}
-	
+
 	if (! result) {
 		counter.debug('parse fail');
 		return null;
@@ -6398,7 +6398,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 		if (x) {
 			var y = bucket['number'].parse(x.unparsed, bucket, cursor);
-			
+
 			if (! y) {
 				cursor.debug('parse fail - found X but no Y');
 				return null;
@@ -6425,7 +6425,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		cursor.debug('parse fail - no cursor keyword');
 		return null;
 	}
-	
+
 	cursor.add(keyword);
 	validate.call(cursor, 'minimumCss', cursor.firstToken(), minimumCss);
 	cursor.unparsed = keyword.unparsed;
@@ -6443,7 +6443,7 @@ require.define("/css/values/cursor-keyword.js", function (require, module, expor
  *
  * CSS2: auto | crosshair | default | pointer | move | e-resize | ne-resize | nw-resize | n-resize | se-resize | sw-resize | s-resize | w-resize| text | wait | help
  * CSS2.1: progress
- * CSS3: none |context-menu  | cell | vertical-text | alias | copy | no-drop | not-allowed | ew-resize | ns-resize | nesw-resize | nwse-resize | col-resize | row-resize | all-scroll | zoom-in | zoom-out 
+ * CSS3: none |context-menu  | cell | vertical-text | alias | copy | no-drop | not-allowed | ew-resize | ns-resize | nesw-resize | nwse-resize | col-resize | row-resize | all-scroll | zoom-in | zoom-out
  */
 
 "use strict";
@@ -6605,7 +6605,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	}
 
 	result = bucket['template'].parse(unparsed, bucket, display);
-	
+
 	if (result) {
 		validate.call(display, 'minimumCss', display.firstToken(), 3);
 		display.add(result);
@@ -6613,7 +6613,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 		if (! displayTypeCount) {
 			result = bucket['display-type'].parse(unparsed, bucket, display);
-			
+
 			if (result) {
 				display.add(result);
 				unparsed = result.unparsed;
@@ -6651,7 +6651,7 @@ util.extend(DisplayType.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'block',
 				'inline',
 				'list-item',
@@ -6829,7 +6829,7 @@ require.define("/css/values/filter.js", function (require, module, exports, __di
  * the "hasLayout" property (use "zoom:1" or "width:100%" or another trick)
  *   filter: alpha(opacity=40)
  * http://css-tricks.com/css-transparency-settings-for-all-broswers/
- * 
+ *
  * Other filter values:
  *   filter: none
  *   -ms-filter: none
@@ -6904,7 +6904,7 @@ var alphaParser = function (filter) {
 
 	// Next up is an integer between 0 and 100
 	var number = filter.bucket['number'].parse(filter.unparsed, filter.bucket, filter);
-	
+
 	if (! number) {
 		filter.debug('parse fail - alpha - number');
 		return null;
@@ -6933,7 +6933,7 @@ var progidParser = function (filter) {
 	var addToken = filter.unparsed.advance();
 	addToken.content = addToken.content.toLowerCase();
 	filter.add(addToken);
-	
+
 	if (! filter.unparsed.isContent(':')) {
 		filter.debug('parse fail - progid - colon');
 		return null;
@@ -6948,7 +6948,7 @@ var progidParser = function (filter) {
 	}
 
 	addToken = filter.unparsed.advance();
-	
+
 	if (addToken.content != 'DXImageTransform.Microsoft.Alpha(') {
 		filter.addWarning('filter-case-sensitive', addToken);
 		addToken = addToken.clone();
@@ -6981,7 +6981,7 @@ var progidParser = function (filter) {
 
 	// Next up is an integer between 0 and 100
 	var number = filter.bucket.number.parse(filter.unparsed, filter.bucket, filter);
-	
+
 	if (! number) {
 		filter.debug('parse fail - progid - number');
 		return null;
@@ -7215,7 +7215,7 @@ util.extend(Val.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -7253,7 +7253,7 @@ util.extend(Val.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -7332,7 +7332,7 @@ util.extend(Val.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -7445,7 +7445,7 @@ util.extend(Val.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -7551,7 +7551,7 @@ util.extend(Val.prototype, base.base, {
 				validate.maximumCss(2),
 				validate.minimumCss(2)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"url"
 			]
 		}
@@ -7589,7 +7589,7 @@ util.extend(Val.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -7742,7 +7742,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	v.unparsed = e.unparsed;
 
 	e = v.unparsed.matchAny([ 'on', 'off', bucket['integer'] ], v);
-	
+
 	if (e) {
 		v.add(e);
 		v.unparsed = e.unparsed;
@@ -7955,7 +7955,7 @@ util.extend(Val.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'normal',
 				'ultra-condensed',
 				'extra-condensed',
@@ -8179,7 +8179,7 @@ util.extend(Val.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'normal',
 				'bold',
 				base.makeRegexp('[1-9]00')
@@ -8367,7 +8367,7 @@ util.extend(Val.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -8584,7 +8584,7 @@ util.extend(Val.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -8658,7 +8658,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	v.debug('parse', v.unparsed);
 
 	var url = bucket['url'].parse(v.unparsed, bucket, v);
-	
+
 	if (url) {
 		v.debug('parsed url');
 		v.add(url);
@@ -8718,7 +8718,7 @@ util.extend(Val.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -8756,7 +8756,7 @@ util.extend(Val.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -8900,7 +8900,7 @@ util.extend(Val.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -8938,7 +8938,7 @@ util.extend(Val.prototype, base.base, {
 				validate.notForwardCompatible(3),
 				validate.positiveValue()
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -9109,7 +9109,7 @@ util.extend(Val.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.notForwardCompatible(3)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				"number"
 			]
 		}
@@ -9362,7 +9362,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		return font;
 	}
 
-	if (font.unparsed.isContent([ 
+	if (font.unparsed.isContent([
 		'caption',
 		'icon',
 		'menu',
@@ -9378,7 +9378,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var hits = font.unparsed.matchAnyOrder([
 		bucket['font-style'],
 		bucket['font-variant-css21'],
-		bucket['font-weight']	
+		bucket['font-weight']
 	], font);
 
 	var fs = bucket['font-size'].parse(font.unparsed, bucket, font);
@@ -9444,14 +9444,14 @@ util.extend(FontSize.prototype, base.base, {
 			validation: [
 				validate.positiveValue()
 			],
-			valueObjects: [ 
+			valueObjects: [
 				'length',
 				'percentage'
 			]
 		},
 		{
 			validation: [],
-			values: [ 
+			values: [
 				// absolute
 				base.makeRegexp('(x?x-)?(small|large)'),
 				'medium',
@@ -9478,7 +9478,7 @@ exports.parse = base.simpleParser(FontSize);
 require.define("/css/values/font-style.js", function (require, module, exports, __dirname, __filename) {
 /* <font-style>
  *
- * CSS1: normal | italic | oblique  
+ * CSS1: normal | italic | oblique
  * CSS2:  inherit
  *
  */
@@ -9497,7 +9497,7 @@ util.extend(FontStyle.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'normal',
 				'italic',
 				'oblique'
@@ -9572,7 +9572,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 		if (v.firstToken().content.toLowerCase() == 'inherit') {
 			validate.call(v, 'minimumCss', v.firstToken(), 2);
 		}
-	
+
 		v.debug('parse success - css21', v.unparsed);
 		return v;
 	}
@@ -9633,7 +9633,7 @@ util.extend(FontVariantCss21.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'normal',
 				'small-caps'
 			]
@@ -9676,7 +9676,7 @@ util.extend(FontSize.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'normal',
 				'bold',
 				'bolder',
@@ -9724,13 +9724,13 @@ util.extend(Height.prototype, base.base, {
 			validation: [
 				validate.positiveValue()
 			],
-			valueObjects: [ 
-				'length'	
+			valueObjects: [
+				'length'
 			]
 		},
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'auto'
 			]
 		},
@@ -9739,7 +9739,7 @@ util.extend(Height.prototype, base.base, {
 				validate.minimumCss(2),
 				validate.positiveValue()
 			],
-			valueObjects: [ 
+			valueObjects: [
 				'percentage'
 			]
 		},
@@ -9780,7 +9780,7 @@ exports.parse = function (unparsed, bucket, container) {
 	var hsla = new HSLA(bucket, container, unparsed);
 	hsla.debug('parse', unparsed);
 
-	if (! hsla.functionParser('hsla(', 
+	if (! hsla.functionParser('hsla(',
 		[ bucket['number'], bucket['percentage'] ],
 		[ bucket['number'], bucket['percentage'] ],
 		[ bucket['number'], bucket['percentage'] ],
@@ -9816,7 +9816,7 @@ exports.parse = function (unparsed, bucket, container) {
 	var hsl = new HSL(bucket, container, unparsed);
 	hsl.debug('parse', unparsed);
 
-	if (! hsl.functionParser('hsl(', 
+	if (! hsl.functionParser('hsl(',
 		[ bucket['number'], bucket['percentage'] ],
 		[ bucket['number'], bucket['percentage'] ],
 		[ bucket['number'], bucket['percentage'] ])) {
@@ -9922,7 +9922,7 @@ util.extend(Val.prototype, base.base, {
 			validation: [
 				validate.numberPortionIsInteger()
 			],
-			values: [ 
+			values: [
 				base.makeRegexp('[-+]?[0-9]+')
 			]
 		}
@@ -9962,7 +9962,7 @@ util.extend(Length.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				"0"
 			]
 		},
@@ -9979,7 +9979,7 @@ util.extend(Length.prototype, base.base, {
 				validate.numberPortionIsNotZero(),
 				validate.suggestUsingRelativeUnits()
 			],
-			values: [ 
+			values: [
 				// px were made an absolute length as of CSS2.1
 				base.makeRegexp('[-+]?{n}(in|cm|mm|pt|pc|px)')
 			]
@@ -9989,7 +9989,7 @@ util.extend(Length.prototype, base.base, {
 				validate.numberPortionIsNotZero(),
 				validate.minimumCss(3)
 			],
-			values: [ 
+			values: [
 				base.makeRegexp('[-+]?{n}(ch|rem|vw|vh|vm|vmin|vmax)')
 			]
 		}
@@ -10094,7 +10094,7 @@ util.extend(Val.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			valueObjects: [ 
+			valueObjects: [
 				'length',
 				'percentage'
 			]
@@ -10378,7 +10378,7 @@ require.define("/css/values/list-style-image.js", function (require, module, exp
  *
  * CSS1: <image> | none
  * CSS2: inherit
- * 
+ *
  */
 
 "use strict";
@@ -10401,7 +10401,7 @@ util.extend(ListStyleImage.prototype, base.base, {
 			valueObjects: [
 				'image'
 			]
-		
+
 		},
 		{
 			validation: [
@@ -10411,7 +10411,7 @@ util.extend(ListStyleImage.prototype, base.base, {
 				"inherit"
 			]
 		}
-		
+
 	]
 });
 
@@ -10425,7 +10425,7 @@ require.define("/css/values/list-style-position.js", function (require, module, 
  *
  * CSS1: inside | outside
  * CSS2: inherit
- * CSS3: hanging 
+ * CSS3: hanging
  */
 
 "use strict";
@@ -10447,7 +10447,7 @@ util.extend(ListStylePosition.prototype, base.base, {
 				"outside",
 				"none"
 			]
-		
+
 		},
 		{
 			validation: [
@@ -10465,7 +10465,7 @@ util.extend(ListStylePosition.prototype, base.base, {
 				"hanging"
 			]
 		}
-		
+
 	]
 });
 
@@ -10689,7 +10689,7 @@ util.extend(ListStyleType.prototype, base.base, {
 				"simple-lower-roman",
 				"simple-upper-roman",
 				"upper-armenian",
-				
+
 				// Complex styles
 				"ethiopian-numeric",  // Careful - not "ethiopic-numeric" regardless what section 10.2 of the spec is named
 				"simp-chinese-formal",
@@ -10771,7 +10771,7 @@ util.extend(MarginWidth.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'auto'
 			],
 			valueObjects: [
@@ -11034,7 +11034,7 @@ util.extend(Val.prototype, base.base, {
 			validation: [
 				validate.withinRange(0, 1)
 			],
-			valueObjects: [ 
+			valueObjects: [
 				'integer'
 			]
 		}
@@ -11233,7 +11233,7 @@ util.extend(Val.prototype, base.base, {
 				"nearest-neighbor",
 				"bicubic"
 			]
-		
+
 		}
 	]
 });
@@ -11348,7 +11348,7 @@ util.extend(ProgressAppearance.prototype, base.base, {
 				"bar",
 				"ring"
 			]
-		
+
 		}
 	]
 });
@@ -11459,7 +11459,7 @@ util.extend(Num.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				base.makeRegexp('[-+]?{n}')
 			]
 		}
@@ -11498,7 +11498,7 @@ util.extend(Val.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			valueObjects: [ 
+			valueObjects: [
 				'number',
 				'percentage'
 			]
@@ -11711,7 +11711,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var hits = unparsed.matchAnyOrder([
 		bucket['outline-width'],
 		bucket['outline-style'],
-		bucket['outline-color']	
+		bucket['outline-color']
 	], outline);
 
 	if (! hits) {
@@ -11804,7 +11804,7 @@ util.extend(OutlineStyle.prototype, base.base, {
 			values: [
 				'auto'
 			]
-		}	
+		}
 	]
 });
 
@@ -11842,7 +11842,7 @@ util.extend(OutlineWidth.prototype, base.base, {
 			valueObjects: [
 				'border-width-single'
 			]
-		}	
+		}
 	]
 });
 
@@ -11901,7 +11901,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var overflow3 = new Overflow(bucket, container, unparsedReal);
 	unparsed = unparsedReal.clone();
 	result = bucket['overflow-dimension'].parse(unparsed, bucket, overflow3);
-	
+
 	if (! result) {
 		return overflow;
 	}
@@ -12071,7 +12071,7 @@ util.extend(PaddingWidth.prototype, base.base, {
 			validation: [
 				validate.positiveValue()
 			],
-			values: [ 
+			values: [
 				'auto'
 			],
 			valueObjects: [
@@ -12116,7 +12116,7 @@ util.extend(Val.prototype, base.base, {
 			validation: [
 				validate.minimumCss(2)
 			],
-			values: [ 
+			values: [
 				"inherit",
 				"auto",
 				"avoid",
@@ -12154,7 +12154,7 @@ util.extend(Val.prototype, base.base, {
 			validation: [
 				validate.minimumCss(2)
 			],
-			values: [ 
+			values: [
 				"inherit",
 				"auto",
 				"avoid"
@@ -12244,13 +12244,13 @@ util.extend(Val.prototype, base.base, {
 				validate.maximumCss(2),
 				validate.notForwardCompatible(2.1)
 			],
-			values: [ 
+			values: [
 				"inherit",
 				"auto",
 				"portrait",
 				"landscape"
 			],
-			valueObjects: [ 
+			valueObjects: [
 				'length1-2'
 			]
 		}
@@ -12283,7 +12283,7 @@ util.extend(Percentage.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [ 
+			values: [
 				base.makeRegexp('[-+]?{n}%')
 			]
 		}
@@ -12361,7 +12361,7 @@ util.extend(Position.prototype, base.base, {
 			validation: [
 				validate.minimumCss(2)
 			],
-			values: [ 
+			values: [
 				"static",
 				"relative",
 				"absolute",
@@ -12373,7 +12373,7 @@ util.extend(Position.prototype, base.base, {
 			validation: [
 				validate.minimumCss(3)
 			],
-			values: [ 
+			values: [
 				"center",
 				"page",
 				"same",
@@ -12455,7 +12455,7 @@ util.extend(Val.prototype, base.base, {
 exports.parse = function (unparsedReal, bucket, container) {
 	var v = new Val(bucket, container, unparsedReal);
 	v.debug('parse start');
-	
+
 	var hits = v.repeatParser([ bucket['string'] ], 2);
 
 	if (hits != 2) {
@@ -12563,8 +12563,8 @@ util.extend(RGBA.prototype, base.base, {
 exports.parse = function (unparsed, bucket, container) {
 	var rgba = new RGBA(bucket, container, unparsed);
 	rgba.debug('parse', unparsed);
-	
-	if (! rgba.functionParser('rgba(', 
+
+	if (! rgba.functionParser('rgba(',
 		[ bucket['number'], bucket['percentage'] ],
 		[ bucket['number'], bucket['percentage'] ],
 		[ bucket['number'], bucket['percentage'] ],
@@ -12600,7 +12600,7 @@ exports.parse = function (unparsed, bucket, container) {
 	var rgb = new RGB(bucket, container, unparsed);
 	rgb.debug('parse', unparsed);
 
-	if (! rgb.functionParser('rgb(', 
+	if (! rgb.functionParser('rgb(',
 		[ bucket['number'], bucket['percentage'] ],
 		[ bucket['number'], bucket['percentage'] ],
 		[ bucket['number'], bucket['percentage'] ])) {
@@ -12637,7 +12637,7 @@ util.extend(RowHeight.prototype, base.base, {
 			validation: [
 				validate.minimumCss(3)
 			],
-			values: [ 
+			values: [
 				"auto",
 				"*"
 			]
@@ -12647,7 +12647,7 @@ util.extend(RowHeight.prototype, base.base, {
 				validate.minimumCss(3),
 				validate.positiveValue()
 			],
-			valueObjects: [ 
+			valueObjects: [
 				'length'
 			]
 		}
@@ -13537,7 +13537,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	var td = new TextDecoration(bucket, container, unparsedReal);
 	td.debug('parse', unparsedReal);
 	var tdc2 = bucket['text-decoration-css2'].parse(unparsedReal, bucket, td);
-	
+
 	if (tdc2 && ! tdc2.unparsed.length()) {
 		td.add(tdc2);
 		td.unparsed = tdc2.unparsed;
@@ -13670,11 +13670,11 @@ exports.parse = function (unparsedReal, bucket, container) {
 		tdc2.unparsed = unparsed;
 	} else {
 		// underline || overline || line-through || blink
-		var hits = unparsed.matchAnyOrder([ 
-			'underline', 
+		var hits = unparsed.matchAnyOrder([
+			'underline',
 			'overline',
 			'line-through',
-			bucket['text-decoration-blink']	
+			bucket['text-decoration-blink']
 		], tdc2);
 		if (! hits) {
 			tdc2.debug('parse fail - matched nothing');
@@ -13731,7 +13731,7 @@ require.define("/css/values/text-decoration-css3-line.js", function (require, mo
 /* <text-decoration-css3-line>
  *
  * Supporting object to make text-decoration-css3 easier
- * 
+ *
  * none | [ underline || overline || line-through ]
  */
 
@@ -13760,7 +13760,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 
 	if (! hits) {
 		return null;
-	} 
+	}
 
 	return tdl;
 };
@@ -13793,8 +13793,8 @@ exports.parse = function (unparsedReal, bucket, container) {
 		v.add(v.unparsed.advance());
 	} else {
 		// underline || overline || line-through
-		var hits = v.unparsed.matchAnyOrder([ 
-			'underline', 
+		var hits = v.unparsed.matchAnyOrder([
+			'underline',
 			'overline',
 			'line-through'
 		], v);
@@ -13872,7 +13872,7 @@ util.extend(TextIndent.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			valueObjects: [ 
+			valueObjects: [
 				'length',
 				'percentage'
 			]
@@ -13881,7 +13881,7 @@ util.extend(TextIndent.prototype, base.base, {
 			validation: [
 				validate.minimumCss(2)
 			],
-			values: [ 
+			values: [
 				"inherit"
 			]
 		},
@@ -13891,7 +13891,7 @@ util.extend(TextIndent.prototype, base.base, {
 			],
 			values: [
 				"hanging",
-				"each-line"		
+				"each-line"
 			]
 		}
 	]
@@ -13959,7 +13959,7 @@ require.define("/css/values/text-shadow.js", function (require, module, exports,
 /* <text-shadow>
  *
  * CSS3: none | [ <length>{2,3} && <color>? ]#
- * 
+ *
  */
 
 "use strict";
@@ -15182,7 +15182,7 @@ exports.parse = function (unparsed, bucket, container) {
 
 require.define("/css/values/vertical-align.js", function (require, module, exports, __dirname, __filename) {
 /* <vertical-align>
- * 
+ *
  * Used for matching values for vertical-align property..
  *
  * CSS1: baseline | sub | super | top | text-top | middle | bottom | text-bottom | <percentage>
@@ -15204,7 +15204,7 @@ util.extend(VerticalAlign.prototype, base.base, {
 	allowed: [
 		{
 			validation: [],
-			values: [				 			
+			values: [
 				'baseline',
 				'sub',
 				'super',
@@ -15233,7 +15233,7 @@ util.extend(VerticalAlign.prototype, base.base, {
 			validation: [
 				validate.minimumCss(3)
 			],
-			values: [				
+			values: [
 				'auto',
 				'use-script',
 				'central'
@@ -15260,7 +15260,7 @@ require.define("/css/values/visibility.js", function (require, module, exports, 
  * Used for matching visibility properties.
  *
  * CSS2: visible | hidden | collapse | inherit
- * 
+ *
  */
 
 "use strict";
@@ -15282,11 +15282,11 @@ util.extend(Visibility.prototype, base.base, {
 			values: [
 				'visible',
 				'hidden',
-				'collapse',	
+				'collapse',
 				'inherit'
 			]
 		}
-		
+
 	]
 });
 
@@ -15588,7 +15588,7 @@ util.extend(Val.prototype, base.base, {
 			values: [
 				'center'
 			],
-			valueObjects: [ 
+			valueObjects: [
 				'length-percentage2',
 				'webkit-side-or-corner'
 			]
@@ -15844,7 +15844,7 @@ exports.parse = function (unparsedReal, bucket, container) {
 	v.add(w);
 	v.unparsed = w.unparsed;
 	var c = bucket['webkit-text-stroke-color'].parse(v.unparsed, bucket, v);
-	
+
 	if (! c) {
 		v.debug('parse fail - no color', v.unparsed);
 		return null;
@@ -15980,7 +15980,7 @@ require.define("/css/values/white-space.js", function (require, module, exports,
  *
  * CSS1: normal | pre | nowrap
  * CSS2: inherit
- * CSS3: pre-wrap | pre-line 
+ * CSS3: pre-wrap | pre-line
  */
 
 "use strict";
@@ -16093,14 +16093,14 @@ util.extend(Width.prototype, base.base, {
 			validation: [
 				validate.positiveValue()
 			],
-			valueObjects: [ 
+			valueObjects: [
 				'length',
 				'percentage'
 			]
 		},
 		{
 			validation: [],
-			values: [ 
+			values: [
 				'auto'
 			]
 		},
@@ -16166,9 +16166,9 @@ require.define("/css/values/zoom.js", function (require, module, exports, __dirn
 /* <zoom>
  *
  * Used for matching zoom properties.
- * 
+ *
  * CSS1: <number> | <percentage> | normal
- * 
+ *
  * TODO:  If this is set to a non-zero value, also set -moz-transform
  * http://www.fix-css.com/2011/05/css-zoom/
  */
@@ -16304,6 +16304,8 @@ var propertyMapping = {
 	'-moz-background-origin': 'background-origin',
 	'-webkit-background-origin': 'background-origin',
 	'background-position': 'background-position',
+	'background-position-x': 'background-position-single',
+	'background-position-y': 'background-position-single',
 	'background-repeat': 'background-repeat',
 	'background-size': 'background-size',
 	'behavior': 'behavior',
@@ -16580,7 +16582,7 @@ var Keyframe = base.baseConstructor();
 
 util.extend(Keyframe.prototype, base.base, {
 	name: "keyframe",
-	
+
 	toString: function () {
 		this.debug('toString');
 		var decAsStrings = [];
@@ -16761,7 +16763,7 @@ util.extend(Property.prototype, base.base, {
 		if (this.bucket.options.propertiesLowerCase) {
 			propertyName = propertyName.toLowerCase();
 		}
-		
+
 		return this.addWhitespace('property', propertyName);
 	}
 });
@@ -16793,7 +16795,7 @@ exports.parse = function (tokens, bucket, container) {
 	if (nextToken && nextToken.type == 'S') {
 		tokens.next();
 	}
-	
+
 	return property;
 };
 
@@ -16978,7 +16980,7 @@ var Ruleset = base.baseConstructor();
 
 util.extend(Ruleset.prototype, base.base, {
 	name: "ruleset",
-	
+
 	toString: function () {
 		this.debug('toString');
 		var selAsStrings = [];
@@ -17508,53 +17510,53 @@ var getTokenDefs = function () {
 		},
 		// These must appear before IDENT
 		UNIT: {
-			leading: ".0123456789-+", 
+			leading: ".0123456789-+",
 			all: false,
 			pattern: "[-+]?{num}({ident}|%)?"
 		},  // All forms of numbers and units
 		UNICODE_RANGE: {
-			leading: "U", 
+			leading: "U",
 			all: false,
 			pattern: "U\\+({h}|\\?){1,6}(-{h}{1,6})?"
 		},
 
 		CLASS: {
-			leading: ".", 
+			leading: ".",
 			all: false,
 			pattern: "\\.{ident}"
 		},
 		HASH: {
-			leading: "#", 
+			leading: "#",
 			all: false,
 			pattern: "#{name}"
 		},
 		ATTRIB: {
-			leading: "[", 
+			leading: "[",
 			all: false,
 			pattern: "\\[{w}{ident}{w}([~|^$*]?={w}({ident}|{string}){w})?{w}\\]"
 		},
 		AT_SYMBOL: {
-			leading: "@", 
+			leading: "@",
 			all: false,
 			pattern: "@{name}"
 		},  // All @ symbols
 		STRING: {
-			leading: "\"'", 
+			leading: "\"'",
 			all: false,
 			pattern: "{string}"
 		},
 		CDO: {
-			leading: "<", 
+			leading: "<",
 			all: false,
 			pattern: "<!--"
 		},
 		CDC: {
-			leading: "-", 
+			leading: "-",
 			all: false,
 			pattern: "-->"
 		},
 		COMMENT: {
-			leading: "/", 
+			leading: "/",
 			all: false,
 			pattern: "\\/\\*[^*]*\\*+([^\\/][^*]*\\*+)*\\/"
 		},
@@ -17564,7 +17566,7 @@ var getTokenDefs = function () {
 			pattern: "[~|^$*]?="
 		},  // All of the matching tokens stay here
 		BOM: {
-			leading: "\xfeff", 
+			leading: "\xfeff",
 			all: false,
 			pattern: "\xfeff"
 		},  // Byte order mark
@@ -17621,7 +17623,7 @@ var getTokenDefs = function () {
 
 		// Always test against these patterns
 		FUNCTION: {
-			leading: "", 
+			leading: "",
 			all: true,
 			pattern: "{ident}([\\.]{ident})*\\("
 		},  // URI lands in here
@@ -17669,7 +17671,7 @@ var getDefsByLetter = function (tokens) {
 			if (! out[letter1]) {
 				out[letter1] = {};
 			}
-		
+
 			if (! out[letter1][tIndex]) {
 				out[letter1][tIndex] = token1;
 			}
@@ -17696,7 +17698,7 @@ var defsByLetter = getDefsByLetter(defs);
 
 var Token = function (line, charNum, type, content) {
 	this.line = line;
-	this.charNum = charNum; 
+	this.charNum = charNum;
 	this.type = type;
 	this.content = content;
 };
@@ -17728,7 +17730,7 @@ Tokenizer.prototype.addToken = function (tokenSpot, type, content) {
 	var token = new Token(tokenSpot.line, tokenSpot.charNum, type, content);
 	this.tokens.push(token);
 	defs[type].count ++;
-	
+
 	var splitByLine = content.split(/\r?\n|\r/g);
 	if (splitByLine.length > 1) {
 		tokenSpot.line += splitByLine.length - 1;
@@ -17786,7 +17788,7 @@ Tokenizer.prototype.tokenize = function (str) {
 	var wsAtStart = new RegExp("^" + wsPatternString + "+");
 
 	matches = str.match(wsAtStart);
-	
+
 	if (matches) {
 		str = str.substr(matches[0].length);
 		this.addToken(tokenSpot, "S", matches[0]);
